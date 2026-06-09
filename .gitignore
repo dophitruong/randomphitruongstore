@@ -1,0 +1,41 @@
+# Dependencies and build output
+node_modules/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+
+# Environment files and deployment metadata
+.env
+.env.*
+!.env.example
+.vercel/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Local databases and generated uploads
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+public/uploads/*
+!public/uploads/.gitkeep
+
+# Private keys and certificates
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+
+# Editors and operating system files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
