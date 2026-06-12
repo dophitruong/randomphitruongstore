@@ -207,27 +207,49 @@ model ZaloCommunity {
   @@index([shopSettingId])
 }
 
+model Category {
+  id               String     @id @default(uuid()) @db.Uuid
+  parentCategoryId String?    @db.Uuid
+  parentCategory   Category?  @relation("CategoryHierarchy", fields: [parentCategoryId], references: [id], onDelete: SetNull)
+  subcategories    Category[] @relation("CategoryHierarchy")
+  nameVi           String
+  nameEn           String
+  slug             String     @unique
+  descriptionVi    String?    @db.Text
+  descriptionEn    String?    @db.Text
+  sortOrder        Int        @default(0)
+  isActive         Boolean    @default(true)
+  createdAt        DateTime   @default(now())
+  products         Product[]
+
+  @@index([parentCategoryId])
+  @@index([isActive, sortOrder])
+}
+
 model Product {
-  id            String          @id @default(uuid()) @db.Uuid
-  nameVi        String
-  nameEn        String
-  slug          String          @unique
-  descriptionVi String          @db.Text
-  descriptionEn String          @db.Text
-  category      ProductCategory
-  price         Int
-  sizes         String[]
-  colors        String[]
-  materialVi    String
-  materialEn    String
-  isFeatured    Boolean         @default(false)
-  isActive      Boolean         @default(true)
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-  images        ProductImage[]
-  orderItems    OrderItem[]
+  id             String          @id @default(uuid()) @db.Uuid
+  nameVi         String
+  nameEn         String
+  slug           String          @unique
+  descriptionVi  String          @db.Text
+  descriptionEn  String          @db.Text
+  category       ProductCategory
+  categoryId     String?         @db.Uuid
+  categoryRecord Category?       @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  price          Int
+  sizes          String[]
+  colors         String[]
+  materialVi     String
+  materialEn     String
+  isFeatured     Boolean         @default(false)
+  isActive       Boolean         @default(true)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  images         ProductImage[]
+  orderItems     OrderItem[]
 
   @@index([category, isActive])
+  @@index([categoryId])
 }
 
 model ProductImage {
