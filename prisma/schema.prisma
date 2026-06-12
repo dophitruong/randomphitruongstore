@@ -47,6 +47,94 @@ enum OrderRequestStatus {
   CLOSED
 }
 
+enum AdminRole {
+  OWNER
+  ADMIN
+  STAFF
+}
+
+enum InquiryStatus {
+  NEW
+  CONTACTED
+  QUOTED
+  CONVERTED_TO_ORDER
+  CLOSED
+}
+
+enum OrderType {
+  CATALOG_PRODUCT
+  CUSTOM_INQUIRY
+}
+
+enum PaymentOption {
+  DEPOSIT_50
+  ONLINE_100
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentType {
+  DEPOSIT
+  REMAINING_BALANCE
+  FULL_PAYMENT
+  SHIPPING_FEE
+}
+
+enum ProofStatus {
+  PENDING_REVIEW
+  VERIFIED
+  REJECTED
+}
+
+enum ShipmentStatus {
+  PENDING
+  READY_TO_SHIP
+  SHIPPED
+  IN_TRANSIT
+  DELIVERED
+  RETURNED
+  CANCELLED
+}
+
+enum ContactStatus {
+  NEW
+  IN_PROGRESS
+  RESOLVED
+  SPAM
+  ARCHIVED
+}
+
+enum PageType {
+  ABOUT
+  CONTACT
+  FAQ
+  ORDER_GUIDE
+  PAYMENT_GUIDE
+  SHIPPING_GUIDE
+  CUSTOM_PAGE
+}
+
+enum SourceChannel {
+  WEBSITE
+  ZALO
+  INSTAGRAM
+  TIKTOK
+  OTHER
+}
+
+enum CustomsIdType {
+  RESIDENCE_CARD
+  PASSPORT
+  VIRTUAL_ID
+  NONE
+}
+
 model Product {
   id            String          @id @default(uuid()) @db.Uuid
   nameVi        String
