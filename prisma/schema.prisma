@@ -146,6 +146,7 @@ model AdminUser {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @default(now()) @updatedAt
   createdProducts Product[] @relation("ProductCreatedByAdmin")
+  updatedOrders   Order[]   @relation("OrderUpdatedByAdmin")
 
   @@index([role, isActive])
 }
@@ -363,6 +364,7 @@ model ProductInquiry {
   quotedAt           DateTime?
   createdAt          DateTime       @default(now())
   images             InquiryImage[]
+  convertedOrder     Order?
 
   @@index([customerId])
   @@index([productId])
@@ -382,21 +384,38 @@ model InquiryImage {
 }
 
 model Order {
-  id             String         @id @default(uuid()) @db.Uuid
-  orderNumber    String         @unique
-  customerId     String         @db.Uuid
-  customer       Customer       @relation(fields: [customerId], references: [id])
-  shippingRegion ShippingRegion @default(VIETNAM)
-  paymentMethod  PaymentMethod
-  status         OrderStatus
-  note           String?        @db.Text
-  subtotal       Int
-  depositAmount  Int?
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-  items          OrderItem[]
+  id                  String          @id @default(uuid()) @db.Uuid
+  orderNumber         String          @unique
+  customerId          String          @db.Uuid
+  customer            Customer        @relation(fields: [customerId], references: [id])
+  inquiryId           String?         @unique @db.Uuid
+  inquiry             ProductInquiry? @relation(fields: [inquiryId], references: [id], onDelete: SetNull)
+  updatedByAdminId    String?         @db.Uuid
+  updatedByAdmin      AdminUser?      @relation("OrderUpdatedByAdmin", fields: [updatedByAdminId], references: [id], onDelete: SetNull)
+  trackingToken       String?         @unique
+  orderType           OrderType       @default(CATALOG_PRODUCT)
+  paymentOption       PaymentOption?
+  shippingRegion      ShippingRegion  @default(VIETNAM)
+  paymentMethod       PaymentMethod
+  status              OrderStatus
+  note                String?         @db.Text
+  subtotal            Int
+  depositAmount       Int?
+  subtotalAmount      Int?
+  remainingAmount     Int?
+  shippingFee         Int             @default(0)
+  totalAmount         Int?
+  sizeColorLocked     Boolean         @default(false)
+  noChangePolicyAck   Boolean         @default(false)
+  noChangePolicyAckAt DateTime?
+  expectedArrivalDate DateTime?
+  adminNotes          String?         @db.Text
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  items               OrderItem[]
 
   @@index([status, createdAt])
+  @@index([updatedByAdminId])
 }
 
 model OrderItem {
