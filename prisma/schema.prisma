@@ -137,16 +137,17 @@ enum CustomsIdType {
 }
 
 model AdminUser {
-  id              String    @id @default(uuid()) @db.Uuid
-  fullName        String
-  email           String    @unique
-  passwordHash    String
-  role            AdminRole @default(STAFF)
-  isActive        Boolean   @default(true)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @default(now()) @updatedAt
-  createdProducts Product[] @relation("ProductCreatedByAdmin")
-  updatedOrders   Order[]   @relation("OrderUpdatedByAdmin")
+  id                 String               @id @default(uuid()) @db.Uuid
+  fullName           String
+  email              String               @unique
+  passwordHash       String
+  role               AdminRole            @default(STAFF)
+  isActive           Boolean              @default(true)
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @default(now()) @updatedAt
+  createdProducts    Product[]            @relation("ProductCreatedByAdmin")
+  updatedOrders      Order[]              @relation("OrderUpdatedByAdmin")
+  orderStatusHistory OrderStatusHistory[] @relation("OrderStatusHistoryCreatedByAdmin")
 
   @@index([role, isActive])
 }
@@ -386,36 +387,38 @@ model InquiryImage {
 }
 
 model Order {
-  id                  String           @id @default(uuid()) @db.Uuid
-  orderNumber         String           @unique
-  customerId          String           @db.Uuid
-  customer            Customer         @relation(fields: [customerId], references: [id])
-  inquiryId           String?          @unique @db.Uuid
-  inquiry             ProductInquiry?  @relation(fields: [inquiryId], references: [id], onDelete: SetNull)
-  updatedByAdminId    String?          @db.Uuid
-  updatedByAdmin      AdminUser?       @relation("OrderUpdatedByAdmin", fields: [updatedByAdminId], references: [id], onDelete: SetNull)
-  trackingToken       String?          @unique
-  orderType           OrderType        @default(CATALOG_PRODUCT)
+  id                  String               @id @default(uuid()) @db.Uuid
+  orderNumber         String               @unique
+  customerId          String               @db.Uuid
+  customer            Customer             @relation(fields: [customerId], references: [id])
+  inquiryId           String?              @unique @db.Uuid
+  inquiry             ProductInquiry?      @relation(fields: [inquiryId], references: [id], onDelete: SetNull)
+  updatedByAdminId    String?              @db.Uuid
+  updatedByAdmin      AdminUser?           @relation("OrderUpdatedByAdmin", fields: [updatedByAdminId], references: [id], onDelete: SetNull)
+  trackingToken       String?              @unique
+  orderType           OrderType            @default(CATALOG_PRODUCT)
   paymentOption       PaymentOption?
-  shippingRegion      ShippingRegion   @default(VIETNAM)
+  shippingRegion      ShippingRegion       @default(VIETNAM)
   paymentMethod       PaymentMethod
   status              OrderStatus
-  note                String?          @db.Text
+  note                String?              @db.Text
   subtotal            Int
   depositAmount       Int?
   subtotalAmount      Int?
   remainingAmount     Int?
-  shippingFee         Int              @default(0)
+  shippingFee         Int                  @default(0)
   totalAmount         Int?
-  sizeColorLocked     Boolean          @default(false)
-  noChangePolicyAck   Boolean          @default(false)
+  sizeColorLocked     Boolean              @default(false)
+  noChangePolicyAck   Boolean              @default(false)
   noChangePolicyAckAt DateTime?
   expectedArrivalDate DateTime?
-  adminNotes          String?          @db.Text
-  createdAt           DateTime         @default(now())
-  updatedAt           DateTime         @updatedAt
+  adminNotes          String?              @db.Text
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
   items               OrderItem[]
   payments            Payment[]
+  statusHistory       OrderStatusHistory[]
+  shipments           Shipment[]
   shippingAddress     ShippingAddress?
 
   @@index([status, createdAt])
@@ -499,6 +502,35 @@ model PaymentProof {
 
   @@index([paymentId])
   @@index([verificationStatus, submittedAt])
+}
+
+model OrderStatusHistory {
+  id               String      @id @default(uuid()) @db.Uuid
+  orderId          String      @db.Uuid
+  order            Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  createdByAdminId String?     @db.Uuid
+  createdByAdmin   AdminUser?  @relation("OrderStatusHistoryCreatedByAdmin", fields: [createdByAdminId], references: [id], onDelete: SetNull)
+  status           OrderStatus
+  note             String?     @db.Text
+  createdAt        DateTime    @default(now())
+
+  @@index([orderId, createdAt])
+  @@index([createdByAdminId])
+}
+
+model Shipment {
+  id             String         @id @default(uuid()) @db.Uuid
+  orderId        String         @db.Uuid
+  order          Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  carrierName    String?
+  trackingCode   String?
+  shipmentStatus ShipmentStatus @default(PENDING)
+  shippedAt      DateTime?
+  deliveredAt    DateTime?
+  createdAt      DateTime       @default(now())
+
+  @@index([orderId])
+  @@index([shipmentStatus])
 }
 
 model OrderRequest {
