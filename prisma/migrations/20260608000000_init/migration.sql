@@ -18,7 +18,7 @@ CREATE TYPE "OrderRequestStatus" AS ENUM ('NEW', 'CONTACTED', 'QUOTED', 'CLOSED'
 
 -- CreateTable
 CREATE TABLE "Product" (
-    "id" TEXT NOT NULL,
+    "id" UUID NOT NULL,
     "nameVi" TEXT NOT NULL,
     "nameEn" TEXT NOT NULL,
     "slug" TEXT NOT NULL,
@@ -39,18 +39,18 @@ CREATE TABLE "Product" (
 
 -- CreateTable
 CREATE TABLE "ProductImage" (
-    "id" TEXT NOT NULL,
+    "id" UUID NOT NULL,
     "url" TEXT NOT NULL,
     "altVi" TEXT NOT NULL,
     "altEn" TEXT NOT NULL,
     "sortOrder" INTEGER NOT NULL DEFAULT 0,
-    "productId" TEXT NOT NULL,
+    "productId" UUID NOT NULL,
     CONSTRAINT "ProductImage_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "Customer" (
-    "id" TEXT NOT NULL,
+    "id" UUID NOT NULL,
     "fullName" TEXT NOT NULL,
     "phone" TEXT NOT NULL,
     "address" TEXT NOT NULL,
@@ -64,9 +64,9 @@ CREATE TABLE "Customer" (
 
 -- CreateTable
 CREATE TABLE "Order" (
-    "id" TEXT NOT NULL,
+    "id" UUID NOT NULL,
     "orderNumber" TEXT NOT NULL,
-    "customerId" TEXT NOT NULL,
+    "customerId" UUID NOT NULL,
     "shippingRegion" "ShippingRegion" NOT NULL DEFAULT 'VIETNAM',
     "paymentMethod" "PaymentMethod" NOT NULL,
     "status" "OrderStatus" NOT NULL,
@@ -80,9 +80,9 @@ CREATE TABLE "Order" (
 
 -- CreateTable
 CREATE TABLE "OrderItem" (
-    "id" TEXT NOT NULL,
-    "orderId" TEXT NOT NULL,
-    "productId" TEXT NOT NULL,
+    "id" UUID NOT NULL,
+    "orderId" UUID NOT NULL,
+    "productId" UUID NOT NULL,
     "productName" TEXT NOT NULL,
     "unitPrice" INTEGER NOT NULL,
     "quantity" INTEGER NOT NULL DEFAULT 1,
@@ -93,7 +93,7 @@ CREATE TABLE "OrderItem" (
 
 -- CreateTable
 CREATE TABLE "OrderRequest" (
-    "id" TEXT NOT NULL,
+    "id" UUID NOT NULL,
     "fullName" TEXT NOT NULL,
     "phone" TEXT NOT NULL,
     "socialContact" TEXT NOT NULL,

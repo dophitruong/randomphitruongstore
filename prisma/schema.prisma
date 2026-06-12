@@ -48,7 +48,7 @@ enum OrderRequestStatus {
 }
 
 model Product {
-  id            String          @id @default(cuid())
+  id            String          @id @default(uuid()) @db.Uuid
   nameVi        String
   nameEn        String
   slug          String          @unique
@@ -71,19 +71,19 @@ model Product {
 }
 
 model ProductImage {
-  id        String  @id @default(cuid())
+  id        String  @id @default(uuid()) @db.Uuid
   url       String
   altVi     String
   altEn     String
   sortOrder Int     @default(0)
-  productId String
+  productId String  @db.Uuid
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([productId, sortOrder])
 }
 
 model Customer {
-  id        String   @id @default(cuid())
+  id        String   @id @default(uuid()) @db.Uuid
   fullName  String
   phone     String
   address   String
@@ -98,9 +98,9 @@ model Customer {
 }
 
 model Order {
-  id             String         @id @default(cuid())
+  id             String         @id @default(uuid()) @db.Uuid
   orderNumber    String         @unique
-  customerId     String
+  customerId     String         @db.Uuid
   customer       Customer       @relation(fields: [customerId], references: [id])
   shippingRegion ShippingRegion @default(VIETNAM)
   paymentMethod  PaymentMethod
@@ -116,10 +116,10 @@ model Order {
 }
 
 model OrderItem {
-  id          String  @id @default(cuid())
-  orderId     String
+  id          String  @id @default(uuid()) @db.Uuid
+  orderId     String  @db.Uuid
   order       Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  productId   String
+  productId   String  @db.Uuid
   product     Product @relation(fields: [productId], references: [id])
   productName String
   unitPrice   Int
@@ -131,7 +131,7 @@ model OrderItem {
 }
 
 model OrderRequest {
-  id             String             @id @default(cuid())
+  id             String             @id @default(uuid()) @db.Uuid
   fullName       String
   phone          String
   socialContact  String
