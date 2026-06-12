@@ -128,7 +128,7 @@ git diff --cached --name-only
 Secret scan tối thiểu:
 
 ```bash
-git grep -n -E "(BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY|AKIA[0-9A-Z]{16}|github_pat_|gh[pousr]_|sk-[A-Za-z0-9_-]{20,}|DATABASE_URL[[:space:]]*=|ADMIN_PASSWORD[[:space:]]*=|ADMIN_SESSION_SECRET[[:space:]]*=)"
+git grep -n -E "(BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY|AKIA[0-9A-Z]{16}|github_pat_|gh[pousr]_|sk-[A-Za-z0-9_-]{20,}|DATABASE_URL[[:space:]]*=|ADMIN_PASSWORD[[:space:]]*=|ADMIN_SESSION_SECRET[[:space:]]*=)" -- . ':(exclude)CONTRIBUTING.md'
 ```
 
 Kết quả chỉ được phép chứa placeholder trong `.env.example`. Nếu secret thật đã
