@@ -148,6 +148,64 @@ model AdminUser {
   @@index([role, isActive])
 }
 
+model ShopSetting {
+  id                String          @id @default(uuid()) @db.Uuid
+  brandName         String
+  defaultLanguage   String          @default("vi")
+  zaloPhone         String
+  zaloQrCodeUrl     String?
+  orderLeadTimeText String          @default("7-10 ngày")
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @default(now()) @updatedAt
+  socialLinks       SocialLink[]
+  bankAccounts      BankAccount[]
+  zaloCommunities   ZaloCommunity[]
+}
+
+model SocialLink {
+  id            String      @id @default(uuid()) @db.Uuid
+  shopSettingId String      @db.Uuid
+  shopSetting   ShopSetting @relation(fields: [shopSettingId], references: [id], onDelete: Cascade)
+  platform      String
+  url           String
+  isActive      Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+
+  @@unique([shopSettingId, platform])
+  @@index([shopSettingId])
+}
+
+model BankAccount {
+  id             String      @id @default(uuid()) @db.Uuid
+  shopSettingId  String      @db.Uuid
+  shopSetting    ShopSetting @relation(fields: [shopSettingId], references: [id], onDelete: Cascade)
+  bankName       String
+  branchName     String?
+  accountNumber  String
+  accountHolder  String
+  vietqrImageUrl String?
+  isDefault      Boolean     @default(false)
+  isActive       Boolean     @default(true)
+  createdAt      DateTime    @default(now())
+
+  @@unique([shopSettingId, accountNumber])
+  @@index([shopSettingId, isDefault])
+}
+
+model ZaloCommunity {
+  id            String      @id @default(uuid()) @db.Uuid
+  shopSettingId String      @db.Uuid
+  shopSetting   ShopSetting @relation(fields: [shopSettingId], references: [id], onDelete: Cascade)
+  groupName     String
+  groupUrl      String?
+  qrCodeUrl     String?
+  isActive      Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+
+  @@unique([shopSettingId, groupName])
+  @@index([shopSettingId])
+}
+
 model Product {
   id            String          @id @default(uuid()) @db.Uuid
   nameVi        String
