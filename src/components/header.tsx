@@ -1,6 +1,7 @@
 "use client";
 
-import { Instagram, Menu, Music2, X } from "lucide-react";
+import { Instagram, Menu, X } from "lucide-react";
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -11,6 +12,7 @@ import {
   TIKTOK_URL
 } from "@/lib/constants";
 import { cn } from "@/lib/utils";
+import { TikTokIcon } from "./brand-icons";
 import { LanguageToggle } from "./language-toggle";
 
 export function Header() {
@@ -25,22 +27,39 @@ export function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/15 bg-black text-white">
-      <div className="container-shell flex h-16 items-center justify-between gap-4">
+    <header className="sticky top-0 z-40 bg-[#11100e]/95 text-white backdrop-blur-md">
+      <div className="container-shell flex h-[4.5rem] items-center justify-between gap-2 sm:gap-4">
         <Link
-          className="text-sm font-black tracking-[-0.03em] sm:text-base"
+          className="group flex min-w-0 items-center gap-2 sm:gap-3"
           href="/"
           onClick={() => setOpen(false)}
         >
-          {BRAND_NAME}
+          <span className="relative size-9 shrink-0 overflow-hidden rounded-full bg-white sm:size-10">
+            <Image
+              alt={`${BRAND_NAME} logo`}
+              className="object-contain"
+              fill
+              priority
+              sizes="40px"
+              src="/truongphistore/android-chrome-192x192.png"
+            />
+          </span>
+          <span className="min-w-0">
+            <span className="block truncate text-xs font-black tracking-[-0.03em] sm:text-base">
+              {BRAND_NAME}
+            </span>
+            <span className="hidden text-[0.5rem] font-bold uppercase tracking-[0.28em] text-white/45 sm:block">
+              Sukajan order studio
+            </span>
+          </span>
         </Link>
 
         <nav className="hidden items-center gap-7 lg:flex">
           {links.map((link) => (
             <Link
               className={cn(
-                "text-xs font-bold uppercase tracking-[0.12em] text-white/65 hover:text-white",
-                pathname === link.href && "text-white"
+                "relative py-2 text-[0.68rem] font-bold uppercase tracking-[0.14em] text-white/60 after:absolute after:inset-x-0 after:bottom-0 after:h-px after:origin-left after:scale-x-0 after:bg-[#d64b3d] after:transition-transform hover:text-white hover:after:scale-x-100",
+                pathname === link.href && "text-white after:scale-x-100"
               )}
               href={link.href}
               key={link.href}
@@ -50,7 +69,7 @@ export function Header() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1 sm:gap-2">
           <a
             aria-label="Instagram"
             className="hidden p-2 text-white/70 hover:text-white sm:block"
@@ -67,7 +86,7 @@ export function Header() {
             rel="noreferrer"
             target="_blank"
           >
-            <Music2 size={18} />
+            <TikTokIcon size={18} />
           </a>
           <LanguageToggle />
           <button
@@ -82,7 +101,7 @@ export function Header() {
       </div>
 
       {open ? (
-        <nav className="container-shell border-t border-white/15 py-5 lg:hidden">
+        <nav className="container-shell py-5 lg:hidden">
           {links.map((link) => (
             <Link
               className="block border-b border-white/10 py-4 text-sm font-bold uppercase tracking-[0.1em]"

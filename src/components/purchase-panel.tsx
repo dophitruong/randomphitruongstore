@@ -1,10 +1,11 @@
 "use client";
 
-import { MessageCircle, ShoppingBag } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ZALO_URL } from "@/lib/constants";
 import { cn } from "@/lib/utils";
+import { ZaloIcon } from "./brand-icons";
 import { InternationalShippingNotice } from "./international-shipping-notice";
 
 type ShippingRegion = "VIETNAM" | "KOREA" | "TAIWAN" | "JAPAN";
@@ -94,7 +95,7 @@ export function PurchasePanel({
 
       <div className="grid gap-3 sm:grid-cols-2">
         <button className="button-primary" onClick={proceed} type="button">
-          <ShoppingBag size={17} />
+          <ShoppingCart aria-hidden="true" size={17} />
           {labels.order}
         </button>
         <a
@@ -103,7 +104,7 @@ export function PurchasePanel({
           rel="noreferrer"
           target="_blank"
         >
-          <MessageCircle size={17} />
+          <ZaloIcon size={17} />
           {labels.zalo}
         </a>
       </div>
