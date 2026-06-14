@@ -551,11 +551,12 @@ model InternationalShippingDetail {
   countryCode          String
   country              InternationalCountry @relation(fields: [countryCode], references: [countryCode])
   customsIdType        CustomsIdType?
-  customsIdNumber      String?
   usesVirtualId        Boolean              @default(false)
   noInsuranceAck       Boolean              @default(false)
   warehouseShippingFee Int?
   consultationChannel  SourceChannel?
+  /// Operational customs notes only. Never store passport, residence-card,
+  /// national-ID, or other government-issued identifier values here.
   customsNotes         String?              @db.Text
   createdAt            DateTime             @default(now())
 
