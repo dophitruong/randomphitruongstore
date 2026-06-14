@@ -11,7 +11,7 @@ import { type NextRequest, NextResponse } from "next/server";
  * We do NOT protect any routes here — auth guards live in the individual
  * pages/routes so the logic stays co-located with the feature.
  */
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(
