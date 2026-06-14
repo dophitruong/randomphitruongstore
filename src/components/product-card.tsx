@@ -18,10 +18,19 @@ export function ProductCard({
 }) {
   const image = product.images[0];
   const name = locale === "vi" ? product.nameVi : product.nameEn;
+  const isOutOfStock = product.stockStatus === "OUT_OF_STOCK";
 
   return (
     <article className="group min-w-0 border-t border-black/20 pt-2 sm:pt-3">
-      <Link className="block" href={`/shop/${product.slug}`}>
+      <Link
+        className="block"
+        href={`/shop/${product.slug}`}
+        aria-disabled={isOutOfStock}
+        tabIndex={isOutOfStock ? -1 : 0}
+        onClick={(e) => {
+          if (isOutOfStock) e.preventDefault();
+        }}
+      >
         <div className="relative aspect-[4/5] overflow-hidden bg-[#d8d3c9]">
           {image ? (
             <Image
@@ -39,6 +48,13 @@ export function ProductCard({
           <div className="absolute left-2 top-2 origin-top-left scale-90 sm:left-3 sm:top-3 sm:scale-100">
             <OrderBadge label={orderLabel} />
           </div>
+          {isOutOfStock && (
+            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+              <span className="bg-[#a72b1f] px-3 py-1 text-xs font-bold uppercase tracking-[0.1em] text-white">
+                {locale === "vi" ? "Hết hàng" : "Out of stock"}
+              </span>
+            </div>
+          )}
           <span className="vertical-label absolute bottom-3 right-3 hidden bg-[#f1eee7]/90 px-1.5 py-2 font-jp text-[0.65rem] font-bold tracking-[0.2em] text-black sm:block">
             刺繍
           </span>
