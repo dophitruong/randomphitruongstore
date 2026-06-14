@@ -413,7 +413,7 @@ async function main() {
       orderLeadTimeMaxDays: 10
     };
 
-    await prisma.product.upsert({
+    const seededProduct = await prisma.product.upsert({
       where: { slug: productData.slug },
       update: {
         ...productData,
@@ -425,10 +425,6 @@ async function main() {
             altEn: productData.nameEn,
             sortOrder: index
           }))
-        },
-        variants: {
-          deleteMany: {},
-          create: buildProductVariants(productData.sizes, productData.colors)
         }
       },
       create: {
@@ -440,12 +436,26 @@ async function main() {
             altEn: productData.nameEn,
             sortOrder: index
           }))
-        },
-        variants: {
-          create: buildProductVariants(productData.sizes, productData.colors)
         }
       }
     });
+
+    for (const variant of buildProductVariants(productData.sizes, productData.colors)) {
+      await prisma.productVariant.upsert({
+        where: {
+          productId_size_colorVi: {
+            productId: seededProduct.id,
+            size: variant.size,
+            colorVi: variant.colorVi
+          }
+        },
+        update: {},
+        create: {
+          ...variant,
+          productId: seededProduct.id
+        }
+      });
+    }
   }
 }
 
