@@ -6,19 +6,26 @@ import { useState } from "react";
 import { ZALO_URL } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { ZaloIcon } from "./brand-icons";
+import { useCart } from "./cart-provider";
 import { InternationalShippingNotice } from "./international-shipping-notice";
 
 type ShippingRegion = "VIETNAM" | "KOREA" | "TAIWAN" | "JAPAN";
 
 export function PurchasePanel({
   productId,
+  productSlug,
   productName,
+  productPrice,
+  imageUrl,
   sizes,
   colors,
   labels
 }: {
   productId: string;
+  productSlug: string;
   productName: string;
+  productPrice: number;
+  imageUrl?: string;
   sizes: string[];
   colors: string[];
   labels: {
@@ -37,10 +44,20 @@ export function PurchasePanel({
   const [color, setColor] = useState("");
   const [region, setRegion] = useState<ShippingRegion>("VIETNAM");
   const [error, setError] = useState("");
+  const [added, setAdded] = useState(false);
+  const { addItem } = useCart();
 
-  function proceed() {
+  function validateSelection() {
     if (!size || !color) {
       setError(labels.selectOptions);
+      return false;
+    }
+    setError("");
+    return true;
+  }
+
+  function proceed() {
+    if (!validateSelection()) {
       return;
     }
     if (region !== "VIETNAM") {
@@ -53,6 +70,23 @@ export function PurchasePanel({
     router.push(
       `/checkout?productId=${encodeURIComponent(productId)}&size=${encodeURIComponent(size)}&color=${encodeURIComponent(color)}`
     );
+  }
+
+  function addToCart() {
+    if (!validateSelection()) {
+      return;
+    }
+    addItem({
+      productId,
+      slug: productSlug,
+      name: productName,
+      price: productPrice,
+      imageUrl,
+      size,
+      color,
+      quantity: 1
+    });
+    setAdded(true);
   }
 
   return (
@@ -94,10 +128,16 @@ export function PurchasePanel({
       {error ? <p className="error-text">{error}</p> : null}
 
       <div className="grid gap-3 sm:grid-cols-2">
+        <button className="button-secondary" onClick={addToCart} type="button">
+          <ShoppingCart aria-hidden="true" size={17} />
+          {added ? "Đã thêm" : "Thêm vào giỏ"}
+        </button>
         <button className="button-primary" onClick={proceed} type="button">
           <ShoppingCart aria-hidden="true" size={17} />
           {labels.order}
         </button>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-1">
         <a
           className="button-secondary"
           href={`${ZALO_URL}?text=${encodeURIComponent(`Product consultation: ${productName}`)}`}
