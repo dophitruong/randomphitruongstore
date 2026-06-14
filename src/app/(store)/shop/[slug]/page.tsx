@@ -95,7 +95,10 @@ export default async function ProductPage({ params }: PageProps) {
             internationalBody: t("internationalBody")
           }}
           productId={product.id}
+          productSlug={product.slug}
           productName={name}
+          productPrice={product.price}
+          imageUrl={product.images[0]?.url}
           sizes={product.sizes}
         />
       </section>
