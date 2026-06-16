@@ -12,7 +12,7 @@ export default function LoginPage() {
     <AuthShell
       eyebrow="Customer account"
       title="Đăng nhập"
-      subtitle="Frontend preview để mô phỏng luồng mua hàng. Backend auth sẽ được nối sau."
+      subtitle=""
       switchHref="/register"
       switchText="Chưa có tài khoản? Đăng ký"
     >

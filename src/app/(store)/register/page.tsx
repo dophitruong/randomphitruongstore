@@ -14,10 +14,6 @@ export default function RegisterPage() {
         <section className="w-full max-w-lg">
           <p className="eyebrow text-[#a72b1f]">Customer account</p>
           <h1 className="mt-3 text-5xl font-black tracking-[-0.05em]">Đăng ký</h1>
-          <p className="mt-4 text-sm leading-7 text-zinc-600">
-            Form đăng ký preview cho khách hàng. Dữ liệu hiện lưu localStorage và sẽ
-            thay bằng backend auth sau.
-          </p>
           <AuthForm
             mode="register"
             labels={{
