@@ -6,7 +6,7 @@ import { productInputSchema } from "@/lib/validations";
 export async function GET() {
   try {
     const products = await getPrisma().product.findMany({
-      where: { isActive: true },
+      where: { isActive: true, stockStatus: "IN_STOCK" },
       include: { images: { orderBy: { sortOrder: "asc" } } },
       orderBy: { createdAt: "desc" }
     });

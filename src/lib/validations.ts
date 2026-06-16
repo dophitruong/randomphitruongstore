@@ -46,7 +46,7 @@ export const orderInputSchema = z.object({
   district: z.string().trim().min(2),
   ward: z.string().trim().min(2),
   note: z.string().trim().max(1000).optional().or(z.literal("")),
-  shippingRegion: z.literal("VIETNAM"),
+  shippingRegion: z.enum(["VIETNAM", "KOREA", "TAIWAN", "JAPAN"]),
   paymentMethod: z.enum([
     "DEPOSIT_50_BANK_ZALO",
     "ONLINE_100_VNPAY",

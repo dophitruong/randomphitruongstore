@@ -47,12 +47,14 @@ export async function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Run middleware on all paths except:
-     * - _next/static  (static files)
-     * - _next/image   (image optimisation)
+     * Only run the session-refresh proxy on page routes.
+     * Exclude:
+     * - api/*          (route handlers manage their own auth)
+     * - _next/static   (static files)
+     * - _next/image    (image optimisation)
      * - favicon.ico, robots.txt, sitemap.xml
      * - public/uploads (uploaded product images)
      */
-    "/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|uploads/).*)"
+    "/((?!api/|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|uploads/).*)"
   ]
 };
