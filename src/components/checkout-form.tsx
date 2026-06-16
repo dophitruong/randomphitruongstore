@@ -97,20 +97,21 @@ export function CheckoutForm({
       })
     });
     const result = await response.json();
-    if (!response.ok) {
+    if (!response.ok || !result.success) {
       setServerError(result.error ?? "Unable to create order");
       return;
     }
 
-    setCreatedOrder(result);
+    const order = result.data;
+    setCreatedOrder(order);
     if (values.paymentMethod === "ONLINE_100_VNPAY") {
       window.location.assign(
-        `/api/payment/vnpay-placeholder?orderId=${encodeURIComponent(result.orderNumber)}`
+        `/api/payment/vnpay-placeholder?orderId=${encodeURIComponent(order.orderNumber)}`
       );
     }
     if (values.paymentMethod === "ONLINE_100_MOMO") {
       window.location.assign(
-        `/api/payment/momo-placeholder?orderId=${encodeURIComponent(result.orderNumber)}`
+        `/api/payment/momo-placeholder?orderId=${encodeURIComponent(order.orderNumber)}`
       );
     }
   }
