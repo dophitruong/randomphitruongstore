@@ -30,7 +30,7 @@ export async function POST(request: Request) {
   try {
     const productIds = [...new Set(input.items.map((item) => item.productId))];
     const products = await getPrisma().product.findMany({
-      where: { id: { in: productIds }, isActive: true }
+      where: { id: { in: productIds }, isActive: true, stockStatus: "IN_STOCK" }
     });
 
     if (products.length !== productIds.length) {
@@ -50,15 +50,25 @@ export async function POST(request: Request) {
       return total + product.price * item.quantity;
     }, 0);
     const isDeposit = input.paymentMethod === "DEPOSIT_50_BANK_ZALO";
+    const depositAmount = isDeposit ? Math.ceil(subtotal / 2) : null;
+    const shippingFee = 0;
+    const totalAmount = subtotal + shippingFee;
+    const remainingAmount = depositAmount === null ? 0 : totalAmount - depositAmount;
+    const paymentOption = isDeposit ? "DEPOSIT_50" : "ONLINE_100";
 
     const order = await getPrisma().order.create({
       data: {
         orderNumber: orderNumber(),
         shippingRegion: input.shippingRegion,
         paymentMethod: input.paymentMethod,
+        paymentOption,
         status: isDeposit ? "PENDING_DEPOSIT" : "PENDING_ONLINE_PAYMENT",
         subtotal,
-        depositAmount: isDeposit ? Math.ceil(subtotal / 2) : null,
+        depositAmount,
+        subtotalAmount: subtotal,
+        remainingAmount,
+        shippingFee,
+        totalAmount,
         note: input.note || null,
         customer: {
           create: {

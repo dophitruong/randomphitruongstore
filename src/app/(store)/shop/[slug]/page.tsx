@@ -40,7 +40,7 @@ export default async function ProductPage({ params }: PageProps) {
   const t = await getTranslations("product");
   const common = await getTranslations("common");
   const product = await getPrisma().product.findFirst({
-    where: { slug, isActive: true },
+    where: { slug, isActive: true, stockStatus: "IN_STOCK" },
     include: { images: { orderBy: { sortOrder: "asc" } } }
   });
   if (!product) {
