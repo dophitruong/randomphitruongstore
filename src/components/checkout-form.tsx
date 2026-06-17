@@ -43,12 +43,14 @@ export function CheckoutForm({
   product,
   selectedSize,
   selectedColor,
-  labels
+  labels,
+  userEmail
 }: {
   product: ProductWithImages;
   selectedSize: string;
   selectedColor: string;
   labels: Record<string, string>;
+  userEmail?: string | null;
 }) {
   const locale = useLocale() as Locale;
   const [createdOrder, setCreatedOrder] = useState<CreatedOrder | null>(null);
@@ -93,7 +95,8 @@ export function CheckoutForm({
             size: selectedSize,
             color: selectedColor
           }
-        ]
+        ],
+        email: userEmail
       })
     });
     const result = await response.json();

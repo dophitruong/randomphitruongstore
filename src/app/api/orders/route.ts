@@ -3,6 +3,7 @@ import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { orderNumber } from "@/lib/format";
 import { getPrisma } from "@/lib/prisma";
 import { orderInputSchema } from "@/lib/validations";
+import { getSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function GET() {
   if (!(await isAdminAuthenticated())) {
@@ -56,6 +57,59 @@ export async function POST(request: Request) {
     const remainingAmount = depositAmount === null ? 0 : totalAmount - depositAmount;
     const paymentOption = isDeposit ? "DEPOSIT_50" : "ONLINE_100";
 
+    // Get Supabase user if authenticated
+    const supabase = await getSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    const userEmail = user?.email ?? input.email ?? null;
+
+    // Find or create customer
+    let customer;
+    if (userEmail) {
+      // Try to find existing customer by email
+      customer = await getPrisma().customer.findFirst({
+        where: { email: userEmail }
+      });
+      if (customer) {
+        // Update customer info
+        customer = await getPrisma().customer.update({
+          where: { id: customer.id },
+          data: {
+            fullName: input.fullName,
+            phone: input.phone,
+            address: input.address,
+            province: input.province,
+            district: input.district,
+            ward: input.ward
+          }
+        });
+      } else {
+        // Create new customer with email
+        customer = await getPrisma().customer.create({
+          data: {
+            email: userEmail,
+            fullName: input.fullName,
+            phone: input.phone,
+            address: input.address,
+            province: input.province,
+            district: input.district,
+            ward: input.ward
+          }
+        });
+      }
+    } else {
+      // No email - create customer without email (guest checkout)
+      customer = await getPrisma().customer.create({
+        data: {
+          fullName: input.fullName,
+          phone: input.phone,
+          address: input.address,
+          province: input.province,
+          district: input.district,
+          ward: input.ward
+        }
+      });
+    }
+
     const order = await getPrisma().order.create({
       data: {
         orderNumber: orderNumber(),
@@ -70,16 +124,7 @@ export async function POST(request: Request) {
         shippingFee,
         totalAmount,
         note: input.note || null,
-        customer: {
-          create: {
-            fullName: input.fullName,
-            phone: input.phone,
-            address: input.address,
-            province: input.province,
-            district: input.district,
-            ward: input.ward
-          }
-        },
+        customerId: customer.id,
         items: {
           create: input.items.map((item) => {
             const product = productMap.get(item.productId)!;

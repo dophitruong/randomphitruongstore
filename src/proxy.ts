@@ -47,14 +47,14 @@ export async function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Only run the session-refresh proxy on page routes.
+     * Run the session-refresh proxy on page routes AND customer API routes.
      * Exclude:
-     * - api/*          (route handlers manage their own auth)
+     * - api/* (except /api/customer/*)   (other route handlers manage their own auth)
      * - _next/static   (static files)
      * - _next/image    (image optimisation)
      * - favicon.ico, robots.txt, sitemap.xml
      * - public/uploads (uploaded product images)
      */
-    "/((?!api/|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|uploads/).*)"
+    "/((?!api/(?!customer/)|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|uploads/).*)"
   ]
 };

@@ -182,6 +182,7 @@
     "welcomeBack": "Chào mừng trở lại, {name}",
     "customer": "Khách hàng",
     "signInRequired": "Cần đăng nhập",
+    "profile": "Hồ sơ",
     "signInRequiredBody": "Vui lòng đăng nhập để xem đơn hàng và yêu cầu tư vấn.",
     "signIn": "Đăng nhập",
     "myOrders": "Đơn hàng của tôi",
@@ -200,6 +201,12 @@
     "quantity": "Số lượng",
     "inspiration": "Ảnh tham khảo",
     "desiredSize": "Size mong muốn",
-    "desiredColor": "Màu mong muốn"
+    "desiredColor": "Màu mong muốn",
+    "myProfile": "Hồ sơ của tôi",
+    "editProfile": "Chỉnh sửa",
+    "cancel": "Hủy",
+    "save": "Lưu",
+    "latestUpdate": "Cập nhật mới nhất",
+    "quotedPrice": "Báo giá"
   }
 }

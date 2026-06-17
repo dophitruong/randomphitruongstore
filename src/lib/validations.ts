@@ -61,7 +61,8 @@ export const orderInputSchema = z.object({
         color: z.string().min(1)
       })
     )
-    .min(1)
+    .min(1),
+  email: z.string().email().optional().nullable()
 });
 
 export const orderRequestInputSchema = z.object({

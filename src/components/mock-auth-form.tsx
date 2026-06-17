@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 const schema = z.object({
   fullName: z.string().trim().optional(),
@@ -54,9 +55,13 @@ export function AuthForm({
       return;
     }
 
-    // On success redirect to shop
-    router.push("/shop");
-    router.refresh(); // Force server components to re-read the new session cookie
+    // Refresh browser Supabase client to pick up the new session cookie
+    const supabase = getSupabaseBrowserClient();
+    await supabase.auth.getSession();
+
+    // On success redirect to account
+    router.push("/account");
+    router.refresh();
   }
 
   return (
