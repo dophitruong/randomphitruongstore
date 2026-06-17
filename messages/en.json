@@ -12,7 +12,12 @@
     "language": "Language",
     "loading": "Processing...",
     "submit": "Submit request",
-    "close": "Close"
+    "close": "Close",
+    "login": "Login",
+    "accountMenu": "Account menu",
+    "profile": "Profile",
+    "logout": "Logout",
+    "account": "Account"
   },
   "home": {
     "eyebrow": "Sukajan · Ordered in Vietnam",

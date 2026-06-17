@@ -12,7 +12,12 @@
     "language": "Ngôn ngữ",
     "loading": "Đang xử lý...",
     "submit": "Gửi yêu cầu",
-    "close": "Đóng"
+    "close": "Đóng",
+    "login": "Đăng nhập",
+    "accountMenu": "Menu tài khoản",
+    "profile": "Hồ sơ",
+    "logout": "Đăng xuất",
+    "account": "Tài khoản"
   },
   "home": {
     "eyebrow": "Sukajan · Order tại Việt Nam",
