@@ -19,7 +19,7 @@ const requestFormSchema = z.object({
 
 type RequestFormValues = z.infer<typeof requestFormSchema>;
 
-export function OrderRequestForm({
+export function ProductInquiryForm({
   labels
 }: {
   labels: Record<string, string>;

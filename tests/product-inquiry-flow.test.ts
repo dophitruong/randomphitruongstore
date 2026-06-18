@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
-  createProductInquiryFromOrderRequest,
+  createProductInquiry,
   listAdminProductInquiries,
   updateProductInquiryStatus
 } from "../src/lib/product-inquiry";
 
-const orderRequestInput = {
+const inquiryInput = {
   fullName: "Nguyen Van A",
   phone: "0901234567",
   socialContact: "@customer",
@@ -16,17 +16,13 @@ const orderRequestInput = {
   note: "Please source this jacket"
 };
 
-describe("product inquiry order-request flow", () => {
-  it("creates ProductInquiry as the primary record and keeps a legacy OrderRequest mirror", async () => {
-    let createdLegacyRequest: unknown;
+describe("product inquiry flow", () => {
+  it("creates ProductInquiry without a legacy request mirror", async () => {
     let createdProductInquiry: unknown;
     const prisma = {
       $transaction: async <T>(callback: (transaction: {
         customer: {
           findFirst: () => Promise<{ id: string } | null>;
-        };
-        orderRequest: {
-          create: (args: { data: unknown }) => Promise<{ id: string }>;
         };
         productInquiry: {
           create: (args: { data: unknown; include: unknown }) => Promise<Record<string, unknown>>;
@@ -36,35 +32,25 @@ describe("product inquiry order-request flow", () => {
           customer: {
             findFirst: async () => ({ id: "customer-1" })
           },
-          orderRequest: {
-            create: async ({ data }) => {
-              createdLegacyRequest = data;
-              return { id: "legacy-request-1" };
-            }
-          },
           productInquiry: {
             create: async ({ data }) => {
               createdProductInquiry = data;
               return {
                 id: "inquiry-1",
-                ...data
+                ...(data as Record<string, unknown>)
               };
             }
           }
         })
     };
 
-    const inquiry = await createProductInquiryFromOrderRequest({
-      prisma,
-      input: orderRequestInput,
+    const inquiry = (await createProductInquiry({
+      prisma: prisma as never,
+      input: inquiryInput,
       userEmail: "CUSTOMER@EXAMPLE.COM"
-    });
+    })) as { id: string };
 
     assert.equal(inquiry.id, "inquiry-1");
-    assert.deepEqual(createdLegacyRequest, {
-      ...orderRequestInput,
-      note: "Please source this jacket"
-    });
     assert.deepEqual(createdProductInquiry, {
       customerId: "customer-1",
       fullName: "Nguyen Van A",
@@ -83,7 +69,7 @@ describe("product inquiry order-request flow", () => {
     });
   });
 
-  it("lists ProductInquiry records for admin instead of legacy OrderRequest records", async () => {
+  it("lists ProductInquiry records for admin", async () => {
     let productInquiryFindManyCalled = false;
     const prisma = {
       productInquiry: {
@@ -91,15 +77,10 @@ describe("product inquiry order-request flow", () => {
           productInquiryFindManyCalled = true;
           return [{ id: "inquiry-1", args }];
         }
-      },
-      orderRequest: {
-        findMany: async () => {
-          assert.fail("Admin list should not read legacy OrderRequest");
-        }
       }
     };
 
-    const inquiries = await listAdminProductInquiries(prisma);
+    const inquiries = await listAdminProductInquiries(prisma as never);
 
     assert.equal(productInquiryFindManyCalled, true);
     assert.equal(inquiries[0].id, "inquiry-1");
@@ -112,11 +93,6 @@ describe("product inquiry order-request flow", () => {
         update: async ({ where, data }: { where: { id: string }; data: { status: string } }) => {
           updatedStatus = { where, data };
           return { id: where.id, status: data.status };
-        }
-      },
-      orderRequest: {
-        update: async () => {
-          assert.fail("Admin status update should not write legacy OrderRequest");
         }
       }
     };

@@ -35,8 +35,7 @@ type CheckoutValues = z.infer<typeof checkoutSchema>;
 type CreatedOrder = {
   id: string;
   orderNumber: string;
-  subtotal: number;
-  depositAmount: number | null;
+  payments?: Array<{ amount: number }>;
   paymentMethod: CheckoutValues["paymentMethod"];
 };
 
@@ -77,7 +76,8 @@ export function CheckoutForm({
     (variant) => variant.id === selectedVariantId
   );
   const selectedUnitPrice =
-    (product.basePrice ?? product.price) + (selectedVariant?.priceAdjustment ?? 0);
+    product.basePrice + (selectedVariant?.priceAdjustment ?? 0);
+  const paymentAmount = createdOrder?.payments?.[0]?.amount;
 
   async function onSubmit(values: CheckoutValues) {
     setServerError("");
@@ -139,7 +139,7 @@ export function CheckoutForm({
         {createdOrder.paymentMethod === "DEPOSIT_50_BANK_ZALO" ? (
           <div className="mt-8">
             <BankTransferBox
-              amount={createdOrder.depositAmount ?? undefined}
+              amount={paymentAmount}
               instruction={labels.bankInstruction}
               orderNumber={createdOrder.orderNumber}
               title={labels.bankTitle}

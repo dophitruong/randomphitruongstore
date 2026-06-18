@@ -15,7 +15,7 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import type { ProductCategory, ProductWithImages } from "@/types";
+import type { ProductWithImages } from "@/types";
 import { AdminTable } from "./admin-table";
 
 type CategoryOption = {
@@ -48,14 +48,11 @@ const formSchema = z.object({
   slug: z.string().trim().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
   descriptionVi: z.string().trim().min(10),
   descriptionEn: z.string().trim().min(10),
-  category: z.enum(["SUKAJAN", "BOMBER", "HOODIE", "JACKET", "SEASONAL"]),
-  categoryId: z.string(),
+  categoryId: z.string().uuid(),
   basePrice: z.number().int().positive(),
   orderLeadTimeMinDays: z.number().int().positive(),
   orderLeadTimeMaxDays: z.number().int().positive(),
   images: z.string().trim().min(5),
-  sizes: z.string().trim().min(1),
-  colors: z.string().trim().min(1),
   variants: z.string().trim(),
   sizeCharts: z.string().trim().optional(),
   materialVi: z.string().trim().min(2),
@@ -73,14 +70,11 @@ const defaults: FormValues = {
   slug: "",
   descriptionVi: "",
   descriptionEn: "",
-  category: "SUKAJAN",
   categoryId: "",
   basePrice: 1500000,
   orderLeadTimeMinDays: 7,
   orderLeadTimeMaxDays: 10,
   images: "",
-  sizes: "M, L, XL",
-  colors: "Black",
   variants: "M | Black | Black | 0 | true\nL | Black | Black | 0 | true\nXL | Black | Black | 0 | true",
   sizeCharts: "",
   materialVi: "",
@@ -90,26 +84,7 @@ const defaults: FormValues = {
   isActive: true
 };
 
-const categories: Array<"ALL" | ProductCategory> = [
-  "ALL",
-  "SUKAJAN",
-  "BOMBER",
-  "HOODIE",
-  "JACKET",
-  "SEASONAL"
-];
 const pageSize = 10;
-
-function splitList(value: string) {
-  return value
-    .split(",")
-    .map((item) => item.trim())
-    .filter(Boolean);
-}
-
-function uniqueValues(values: string[]) {
-  return [...new Set(values.map((value) => value.trim()).filter(Boolean))];
-}
 
 function parseBoolean(value: string) {
   return !["0", "false", "no", "out", "unavailable"].includes(
@@ -191,21 +166,12 @@ function parseSizeChartRows(value: string | undefined): ParsedSizeChart[] {
 }
 
 function formatVariantRows(product: ProductWithImages) {
-  const variants = product.variants ?? [];
-  if (variants.length) {
-    return variants
-      .map(
-        (variant) =>
-          `${variant.size} | ${variant.colorVi} | ${variant.colorEn} | ${variant.priceAdjustment} | ${
-            variant.isAvailable ? "true" : "false"
-          }`
-      )
-      .join("\n");
-  }
-
-  return product.sizes
-    .flatMap((size) =>
-      product.colors.map((color) => `${size} | ${color} | ${color} | 0 | true`)
+  return product.variants
+    .map(
+      (variant) =>
+        `${variant.size} | ${variant.colorVi} | ${variant.colorEn} | ${variant.priceAdjustment} | ${
+          variant.isAvailable ? "true" : "false"
+        }`
     )
     .join("\n");
 }
@@ -264,7 +230,7 @@ export function AdminProductManager({
         product.nameEn.toLowerCase().includes(normalizedQuery) ||
         product.slug.toLowerCase().includes(normalizedQuery);
       const matchesCategory =
-        categoryFilter === "ALL" || product.category === categoryFilter;
+        categoryFilter === "ALL" || product.categoryId === categoryFilter;
       const matchesVisibility =
         visibilityFilter === "ALL" ||
         (visibilityFilter === "ACTIVE" && product.isActive) ||
@@ -318,14 +284,11 @@ export function AdminProductManager({
       slug: product.slug,
       descriptionVi: product.descriptionVi,
       descriptionEn: product.descriptionEn,
-      category: product.category,
-      categoryId: product.categoryId ?? "",
-      basePrice: product.basePrice ?? product.price,
+      categoryId: product.categoryId,
+      basePrice: product.basePrice,
       orderLeadTimeMinDays: product.orderLeadTimeMinDays ?? 7,
       orderLeadTimeMaxDays: product.orderLeadTimeMaxDays ?? 10,
       images: product.images.map((image) => image.url).join("\n"),
-      sizes: product.sizes.join(", "),
-      colors: product.colors.join(", "),
       variants: formatVariantRows(product),
       sizeCharts: formatSizeChartRows(product),
       materialVi: product.materialVi,
@@ -341,26 +304,17 @@ export function AdminProductManager({
     setServerError("");
     const variants = parseVariantRows(values.variants);
     const sizeCharts = parseSizeChartRows(values.sizeCharts);
-    const sizes = variants.length
-      ? uniqueValues(variants.map((variant) => variant.size))
-      : splitList(values.sizes);
-    const colors = variants.length
-      ? uniqueValues(variants.map((variant) => variant.colorVi))
-      : splitList(values.colors);
     const endpoint = editingId ? `/api/products/${editingId}` : "/api/products";
     const response = await fetch(endpoint, {
       method: editingId ? "PATCH" : "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         ...values,
-        price: values.basePrice,
-        categoryId: values.categoryId || "",
+        categoryId: values.categoryId,
         images: values.images
           .split(/\r?\n/)
           .map((value) => value.trim())
           .filter(Boolean),
-        sizes,
-        colors,
         variants,
         sizeCharts
       })
@@ -449,9 +403,10 @@ export function AdminProductManager({
           onChange={(event) => updateCategory(event.target.value)}
           value={categoryFilter}
         >
-          {categories.map((category) => (
-            <option key={category} value={category}>
-              {category === "ALL" ? "All categories" : category}
+          <option value="ALL">All categories</option>
+          {categoryOptions.map((category) => (
+            <option key={category.id} value={category.id}>
+              {category.nameEn}
             </option>
           ))}
         </select>
@@ -503,19 +458,12 @@ export function AdminProductManager({
               <p className="mt-1 text-xs text-zinc-500">{product.slug}</p>
             </td>
             <td className="px-4 py-4">
-              <CategoryBadge category={product.category} />
-              {product.categoryRecord ? (
-                <p className="mt-1 text-xs text-zinc-500">
-                  {product.categoryRecord.nameEn}
-                </p>
-              ) : null}
+              <CategoryBadge category={product.categoryRecord?.nameEn ?? "Uncategorized"} />
             </td>
             <td className="px-4 py-4">
-              {new Intl.NumberFormat("vi-VN").format(
-                product.basePrice ?? product.price
-              )}{" "}
+              {new Intl.NumberFormat("vi-VN").format(product.basePrice)}{" "}
               VND
-              {product.variants?.length ? (
+              {product.variants.length ? (
                 <p className="mt-1 text-xs text-zinc-500">
                   {product.variants.length} variants
                 </p>
@@ -627,21 +575,11 @@ export function AdminProductManager({
                 error={errors.categoryId?.message}
               >
                 <select className="field" {...register("categoryId")}>
-                  <option value="">No category record</option>
                   {categoryOptions.map((category) => (
                     <option key={category.id} value={category.id}>
                       {category.nameEn} / {category.nameVi}
                     </option>
                   ))}
-                </select>
-              </AdminField>
-              <AdminField label="Category" error={errors.category?.message}>
-                <select className="field" {...register("category")}>
-                  <option value="SUKAJAN">Sukajan</option>
-                  <option value="BOMBER">Bomber</option>
-                  <option value="HOODIE">Hoodie</option>
-                  <option value="JACKET">Jacket</option>
-                  <option value="SEASONAL">Seasonal</option>
                 </select>
               </AdminField>
               <AdminField
@@ -673,12 +611,6 @@ export function AdminProductManager({
                   type="number"
                   {...register("orderLeadTimeMaxDays", { valueAsNumber: true })}
                 />
-              </AdminField>
-              <AdminField label="Sizes (comma separated)" error={errors.sizes?.message}>
-                <input className="field" {...register("sizes")} />
-              </AdminField>
-              <AdminField label="Colors (comma separated)" error={errors.colors?.message}>
-                <input className="field" {...register("colors")} />
               </AdminField>
               <div className="sm:col-span-2">
                 <AdminField label="Variants" error={errors.variants?.message}>

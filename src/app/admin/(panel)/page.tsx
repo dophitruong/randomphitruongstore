@@ -8,13 +8,13 @@ export default async function AdminDashboardPage() {
     getPrisma().product.count(),
     getPrisma().order.count(),
     getPrisma().order.count({ where: { status: "PENDING_DEPOSIT" } }),
-    getPrisma().orderRequest.count()
+    getPrisma().productInquiry.count()
   ]);
   const stats = [
     { label: "Total products", value: products, icon: Shirt },
     { label: "Total orders", value: orders, icon: Package },
     { label: "Pending deposit", value: pendingDeposit, icon: HandCoins },
-    { label: "Order requests", value: requests, icon: ClipboardList }
+    { label: "Product inquiries", value: requests, icon: ClipboardList }
   ];
 
   return (

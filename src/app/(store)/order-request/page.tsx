@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
-import { OrderRequestForm } from "@/components/order-request-form";
+import { ProductInquiryForm } from "@/components/order-request-form";
 
 export const metadata: Metadata = {
   title: "Send an inspiration request",
@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     "Upload a streetwear inspiration image for sourcing and a direct quote."
 };
 
-export default async function OrderRequestPage() {
+export default async function ProductInquiryPage() {
   const t = await getTranslations("request");
   const common = await getTranslations("common");
   const keys = [
@@ -33,7 +33,7 @@ export default async function OrderRequestPage() {
         </h1>
         <p className="mt-5 text-sm leading-6 text-zinc-600">{t("subtitle")}</p>
       </header>
-      <OrderRequestForm
+      <ProductInquiryForm
         labels={{
           ...labels,
           loading: common("loading"),

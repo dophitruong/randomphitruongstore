@@ -1,4 +1,4 @@
-import { PrismaClient, ProductCategory, StockStatus } from "@prisma/client";
+import { PrismaClient, StockStatus } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -105,7 +105,6 @@ const internationalCountries = [
 const categories = [
   {
     id: "5b2d9f8a-9b6e-4f4c-8c0d-0f0f0f0f0a01",
-    legacyCategory: ProductCategory.SUKAJAN,
     nameVi: "Sukajan",
     nameEn: "Sukajan",
     slug: "sukajan",
@@ -116,7 +115,6 @@ const categories = [
   },
   {
     id: "5b2d9f8a-9b6e-4f4c-8c0d-0f0f0f0f0a02",
-    legacyCategory: ProductCategory.BOMBER,
     nameVi: "Bomber",
     nameEn: "Bomber",
     slug: "bomber",
@@ -127,7 +125,6 @@ const categories = [
   },
   {
     id: "5b2d9f8a-9b6e-4f4c-8c0d-0f0f0f0f0a03",
-    legacyCategory: ProductCategory.HOODIE,
     nameVi: "Hoodie",
     nameEn: "Hoodie",
     slug: "hoodie",
@@ -138,7 +135,6 @@ const categories = [
   },
   {
     id: "5b2d9f8a-9b6e-4f4c-8c0d-0f0f0f0f0a04",
-    legacyCategory: ProductCategory.JACKET,
     nameVi: "Áo khoác",
     nameEn: "Jacket",
     slug: "jacket",
@@ -149,7 +145,6 @@ const categories = [
   },
   {
     id: "5b2d9f8a-9b6e-4f4c-8c0d-0f0f0f0f0a05",
-    legacyCategory: ProductCategory.SEASONAL,
     nameVi: "Seasonal",
     nameEn: "Seasonal",
     slug: "seasonal",
@@ -160,14 +155,14 @@ const categories = [
   }
 ];
 
-const categoryIdByProductCategory = Object.fromEntries(
-  categories.map((category) => [category.legacyCategory, category.id])
-) as Record<ProductCategory, string>;
+const categoryIdBySlug = Object.fromEntries(
+  categories.map((category) => [category.slug, category.id])
+) as Record<string, string>;
 
-function buildProductVariants(sizes: string[], colors: string[]) {
-  const uniqueSizes = [...new Set(sizes.map((size) => size.trim()).filter(Boolean))];
+function buildVariantMatrix(sizeOptions: string[], colorOptions: string[]) {
+  const uniqueSizes = [...new Set(sizeOptions.map((size) => size.trim()).filter(Boolean))];
   const uniqueColors = [
-    ...new Set(colors.map((color) => color.trim()).filter(Boolean))
+    ...new Set(colorOptions.map((color) => color.trim()).filter(Boolean))
   ];
 
   return uniqueSizes.flatMap((size) =>
@@ -190,14 +185,13 @@ const products = [
       "Áo Sukajan hai mặt với họa tiết hạc thêu nổi, form relaxed và bo viền tương phản. Phù hợp làm điểm nhấn cho outfit đơn sắc.",
     descriptionEn:
       "A reversible Sukajan with raised crane embroidery, relaxed proportions and contrast ribbing. Built as the focal point of a minimal outfit.",
-    category: ProductCategory.SUKAJAN,
-    price: 2490000,
-    sizes: ["M", "L", "XL"],
-    colors: ["Black", "Navy"],
-      materialVi: "Satin cao cấp, lót poly",
-      materialEn: "Premium satin, polyester lining",
-      stockStatus: StockStatus.IN_STOCK,
-      isFeatured: true,
+    categorySlug: "sukajan",
+    basePrice: 2490000,
+    variants: buildVariantMatrix(["M", "L", "XL"], ["Black", "Navy"]),
+    materialVi: "Satin cao cấp, lót poly",
+    materialEn: "Premium satin, polyester lining",
+    stockStatus: StockStatus.IN_STOCK,
+    isFeatured: true,
     images: [
       "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&w=1200&q=85",
       "https://images.unsplash.com/photo-1548883354-7622d03aca27?auto=format&fit=crop&w=1200&q=85"
@@ -211,14 +205,13 @@ const products = [
       "Sukajan đen với chủ đề hổ thêu sau lưng, vải bóng vừa phải và tay raglan để phối cùng quần rộng.",
     descriptionEn:
       "Black Sukajan with a back tiger motif, restrained sheen and raglan sleeves made to pair with wide trousers.",
-    category: ProductCategory.SUKAJAN,
-    price: 2690000,
-    sizes: ["M", "L", "XL", "XXL"],
-    colors: ["Black", "Burgundy"],
-      materialVi: "Satin dày, bo dệt",
-      materialEn: "Heavy satin, knitted ribbing",
-      stockStatus: StockStatus.IN_STOCK,
-      isFeatured: true,
+    categorySlug: "sukajan",
+    basePrice: 2690000,
+    variants: buildVariantMatrix(["M", "L", "XL", "XXL"], ["Black", "Burgundy"]),
+    materialVi: "Satin dày, bo dệt",
+    materialEn: "Heavy satin, knitted ribbing",
+    stockStatus: StockStatus.IN_STOCK,
+    isFeatured: true,
     images: [
       "https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&w=1200&q=85"
     ]
@@ -231,14 +224,13 @@ const products = [
       "Bomber form boxy, túi nắp lớn và chi tiết kim loại tối giản. Lớp lót nhẹ phù hợp thời tiết giao mùa.",
     descriptionEn:
       "A boxy bomber with oversized flap pockets and minimal metal hardware. Lightly lined for transitional weather.",
-    category: ProductCategory.BOMBER,
-    price: 2190000,
-    sizes: ["S", "M", "L", "XL"],
-    colors: ["Black", "Olive"],
-      materialVi: "Nylon chống gió, lót lưới",
-      materialEn: "Wind-resistant nylon, mesh lining",
-      stockStatus: StockStatus.IN_STOCK,
-      isFeatured: true,
+    categorySlug: "bomber",
+    basePrice: 2190000,
+    variants: buildVariantMatrix(["S", "M", "L", "XL"], ["Black", "Olive"]),
+    materialVi: "Nylon chống gió, lót lưới",
+    materialEn: "Wind-resistant nylon, mesh lining",
+    stockStatus: StockStatus.IN_STOCK,
+    isFeatured: true,
     images: [
       "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?auto=format&fit=crop&w=1200&q=85"
     ]
@@ -251,14 +243,13 @@ const products = [
       "Bomber xử lý washed màu graphite, vải có độ đứng và phom vai rộng. Mỗi sản phẩm có sắc độ washed nhẹ khác nhau.",
     descriptionEn:
       "A graphite washed bomber with structured fabric and broad shoulders. Each garment has slight tonal variation.",
-    category: ProductCategory.BOMBER,
-    price: 2390000,
-    sizes: ["M", "L", "XL"],
-    colors: ["Graphite"],
-      materialVi: "Cotton canvas xử lý washed",
-      materialEn: "Washed cotton canvas",
-      stockStatus: StockStatus.OUT_OF_STOCK,
-      isFeatured: false,
+    categorySlug: "bomber",
+    basePrice: 2390000,
+    variants: buildVariantMatrix(["M", "L", "XL"], ["Graphite"]),
+    materialVi: "Cotton canvas xử lý washed",
+    materialEn: "Washed cotton canvas",
+    stockStatus: StockStatus.OUT_OF_STOCK,
+    isFeatured: false,
     images: [
       "https://images.unsplash.com/photo-1592878904946-b3cd8ae243d0?auto=format&fit=crop&w=1200&q=85"
     ]
@@ -271,14 +262,13 @@ const products = [
       "Hoodie nỉ dày với form oversize có kiểm soát, mũ hai lớp và logo thêu nhỏ trước ngực.",
     descriptionEn:
       "A heavyweight hoodie with a controlled oversized fit, double-layer hood and restrained chest embroidery.",
-    category: ProductCategory.HOODIE,
-    price: 1490000,
-    sizes: ["S", "M", "L", "XL"],
-    colors: ["Black", "Ash Gray", "Cream"],
-      materialVi: "Cotton nỉ 420gsm",
-      materialEn: "420gsm cotton fleece",
-      stockStatus: StockStatus.IN_STOCK,
-      isFeatured: true,
+    categorySlug: "hoodie",
+    basePrice: 1490000,
+    variants: buildVariantMatrix(["S", "M", "L", "XL"], ["Black", "Ash Gray", "Cream"]),
+    materialVi: "Cotton nỉ 420gsm",
+    materialEn: "420gsm cotton fleece",
+    stockStatus: StockStatus.IN_STOCK,
+    isFeatured: true,
     images: [
       "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=1200&q=85"
     ]
@@ -291,14 +281,13 @@ const products = [
       "Áo khoác shell nhẹ với dây rút điều chỉnh, túi ẩn và bề mặt cản nước. Thiết kế sạch để mặc hằng ngày.",
     descriptionEn:
       "A lightweight shell with adjustable cords, concealed pockets and a water-resistant face. Clean enough for daily wear.",
-    category: ProductCategory.JACKET,
-    price: 2890000,
-    sizes: ["M", "L", "XL"],
-    colors: ["Black", "Stone"],
-      materialVi: "Nylon cản nước 3 lớp",
-      materialEn: "Three-layer water-resistant nylon",
-      stockStatus: StockStatus.IN_STOCK,
-      isFeatured: true,
+    categorySlug: "jacket",
+    basePrice: 2890000,
+    variants: buildVariantMatrix(["M", "L", "XL"], ["Black", "Stone"]),
+    materialVi: "Nylon cản nước 3 lớp",
+    materialEn: "Three-layer water-resistant nylon",
+    stockStatus: StockStatus.IN_STOCK,
+    isFeatured: true,
     images: [
       "https://images.unsplash.com/photo-1611312449408-fcece27cdbb7?auto=format&fit=crop&w=1200&q=85"
     ]
@@ -311,14 +300,13 @@ const products = [
       "Jacket denim đen với đường cắt thô có chủ đích, form crop và chi tiết wash nhẹ ở các điểm ma sát.",
     descriptionEn:
       "A black denim jacket with intentional raw edges, cropped proportions and subtle wear at friction points.",
-    category: ProductCategory.JACKET,
-    price: 1990000,
-    sizes: ["S", "M", "L"],
-    colors: ["Washed Black"],
-      materialVi: "Denim cotton 13oz",
-      materialEn: "13oz cotton denim",
-      stockStatus: StockStatus.OUT_OF_STOCK,
-      isFeatured: false,
+    categorySlug: "jacket",
+    basePrice: 1990000,
+    variants: buildVariantMatrix(["S", "M", "L"], ["Washed Black"]),
+    materialVi: "Denim cotton 13oz",
+    materialEn: "13oz cotton denim",
+    stockStatus: StockStatus.OUT_OF_STOCK,
+    isFeatured: false,
     images: [
       "https://images.unsplash.com/photo-1523205771623-e0faa4d2813d?auto=format&fit=crop&w=1200&q=85"
     ]
@@ -331,14 +319,13 @@ const products = [
       "Mẫu aviator order theo mùa với cổ lông bản lớn và khóa kim loại. Shop sẽ xác nhận lịch sản xuất trước khi nhận cọc.",
     descriptionEn:
       "A seasonal aviator with an oversized faux-fur collar and metal zip. Production timing is confirmed before deposit.",
-    category: ProductCategory.SEASONAL,
-    price: 3290000,
-    sizes: ["M", "L", "XL"],
-    colors: ["Black", "Brown"],
-      materialVi: "Da PU cao cấp, lông nhân tạo",
-      materialEn: "Premium PU leather, faux fur",
-      stockStatus: StockStatus.IN_STOCK,
-      isFeatured: true,
+    categorySlug: "seasonal",
+    basePrice: 3290000,
+    variants: buildVariantMatrix(["M", "L", "XL"], ["Black", "Brown"]),
+    materialVi: "Da PU cao cấp, lông nhân tạo",
+    materialEn: "Premium PU leather, faux fur",
+    stockStatus: StockStatus.IN_STOCK,
+    isFeatured: true,
     images: [
       "https://images.unsplash.com/photo-1548126032-079a0fb0099d?auto=format&fit=crop&w=1200&q=85"
     ]
@@ -456,11 +443,10 @@ async function main() {
   }
 
   for (const product of products) {
-    const { images, ...data } = product;
+    const { categorySlug, images, variants, ...data } = product;
     const productData = {
       ...data,
-      categoryId: categoryIdByProductCategory[data.category],
-      basePrice: data.price,
+      categoryId: categoryIdBySlug[categorySlug],
       orderLeadTimeMinDays: 7,
       orderLeadTimeMaxDays: 10
     };
@@ -492,7 +478,7 @@ async function main() {
       }
     });
 
-    for (const variant of buildProductVariants(productData.sizes, productData.colors)) {
+    for (const variant of variants) {
       await prisma.productVariant.upsert({
         where: {
           productId_size_colorVi: {

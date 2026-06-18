@@ -14,12 +14,13 @@ const validOrderInput = {
   province: "Ho Chi Minh",
   district: "District 1",
   ward: "Ben Nghe",
-  shippingRegion: "VIETNAM",
-  paymentMethod: "DEPOSIT_50_BANK_ZALO",
+  shippingRegion: "VIETNAM" as const,
+  paymentMethod: "DEPOSIT_50_BANK_ZALO" as const,
   noChangePolicyAck: true,
   items: [
     {
       productId: "00000000-0000-4000-8000-000000000001",
+      productVariantId: "00000000-0000-4000-8000-000000000101",
       quantity: 1,
       size: "M",
       color: "Black"

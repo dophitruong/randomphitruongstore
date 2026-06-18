@@ -1,7 +1,6 @@
 // ─── Enums (mirrored from Prisma schema) ─────────────────────────────────────
 // Defined explicitly here so client code never imports from @prisma/client.
 
-export type ProductCategory = "SUKAJAN" | "BOMBER" | "HOODIE" | "JACKET" | "SEASONAL";
 export type StockStatus = "IN_STOCK" | "OUT_OF_STOCK";
 export type ShippingRegion = "VIETNAM" | "KOREA" | "TAIWAN" | "JAPAN";
 export type PaymentMethod = "DEPOSIT_50_BANK_ZALO" | "ONLINE_100_VNPAY" | "ONLINE_100_MOMO";
@@ -15,7 +14,6 @@ export type OrderStatus =
   | "SHIPPING"
   | "COMPLETED"
   | "CANCELLED";
-export type OrderRequestStatus = "NEW" | "CONTACTED" | "QUOTED" | "CLOSED";
 
 // ─── DTOs ─────────────────────────────────────────────────────────────────────
 // These types describe exactly what the API returns to the client.
@@ -62,15 +60,11 @@ export type ProductDTO = {
   slug: string;
   descriptionVi: string;
   descriptionEn: string;
-  category: ProductCategory;
-  categoryId?: string | null;
-  categoryRecord?: ProductCategoryRecordDTO | null;
-  price: number;
-  basePrice?: number | null;
+  categoryId: string;
+  categoryRecord: ProductCategoryRecordDTO | null;
+  basePrice: number;
   orderLeadTimeMinDays?: number;
   orderLeadTimeMaxDays?: number;
-  sizes: string[];
-  colors: string[];
   materialVi: string;
   materialEn: string;
   stockStatus: StockStatus;
@@ -81,7 +75,7 @@ export type ProductDTO = {
   createdAt: Date | string;
   updatedAt: Date | string;
   images: ProductImageDTO[];
-  variants?: ProductVariantDTO[];
+  variants: ProductVariantDTO[];
   sizeCharts?: SizeChartDTO[];
 };
 
@@ -89,10 +83,6 @@ export type CustomerDTO = {
   id: string;
   fullName: string;
   phone: string;
-  address: string;
-  province: string;
-  district: string;
-  ward: string;
 };
 
 export type OrderItemDTO = {
@@ -112,27 +102,15 @@ export type OrderDTO = {
   shippingRegion: ShippingRegion;
   paymentMethod: PaymentMethod;
   status: OrderStatus;
-  subtotal: number;
-  depositAmount: number | null;
+  subtotalAmount: number;
+  remainingAmount: number;
+  shippingFee: number;
+  totalAmount: number;
   note: string | null;
   createdAt: Date | string;
   updatedAt: Date | string;
   customer: CustomerDTO;
   items: OrderItemDTO[];
-};
-
-export type OrderRequestDTO = {
-  id: string;
-  fullName: string;
-  phone: string;
-  socialContact: string;
-  inspirationUrl: string;
-  desiredSize: string;
-  desiredColor: string;
-  note: string | null;
-  status: OrderRequestStatus;
-  createdAt: Date | string;
-  updatedAt: Date | string;
 };
 
 // ─── Aliases for backward compatibility ──────────────────────────────────────

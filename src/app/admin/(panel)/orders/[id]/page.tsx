@@ -38,9 +38,7 @@ export default async function AdminOrderDetailPage({
   if (!order) {
     notFound();
   }
-  const shippingAddress =
-    order.shippingAddress?.fullAddress ??
-    `${order.customer.address}, ${order.customer.ward}, ${order.customer.district}, ${order.customer.province}`;
+  const shippingAddress = order.shippingAddress?.fullAddress ?? "-";
   const recipientName = order.shippingAddress?.recipientName ?? order.customer.fullName;
   const recipientPhone = order.shippingAddress?.phone ?? order.customer.phone;
 
@@ -81,10 +79,12 @@ export default async function AdminOrderDetailPage({
           <h2 className="font-black">Payment</h2>
           <dl className="mt-4 grid gap-3 text-sm">
             <Detail label="Method" value={order.paymentMethod} />
-            <Detail label="Subtotal" value={formatPrice(order.subtotal)} />
+            <Detail label="Subtotal" value={formatPrice(order.subtotalAmount)} />
+            <Detail label="Shipping fee" value={formatPrice(order.shippingFee)} />
+            <Detail label="Total" value={formatPrice(order.totalAmount)} />
             <Detail
-              label="Deposit"
-              value={order.depositAmount ? formatPrice(order.depositAmount) : "-"}
+              label="Remaining"
+              value={formatPrice(order.remainingAmount)}
             />
             <Detail
               label="Created"

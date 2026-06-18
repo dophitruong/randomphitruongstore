@@ -1,5 +1,5 @@
 import { normalizeEmail } from "@/lib/customer-account";
-import type { OrderRequestInput } from "@/lib/validations";
+import type { ProductInquiryInput } from "@/lib/validations";
 
 type InquiryStatusInput = "NEW" | "CONTACTED" | "QUOTED" | "CLOSED";
 
@@ -25,21 +25,12 @@ type ProductInquiryTransaction = {
       select: { id: true };
     }): Promise<{ id: string } | null>;
   };
-  orderRequest: {
-    create(args: {
-      data: LegacyOrderRequestCreateData;
-    }): Promise<{ id: string }>;
-  };
   productInquiry: {
     create(args: {
       data: ProductInquiryCreateData;
       include: typeof adminProductInquiryInclude;
     }): Promise<unknown>;
   };
-};
-
-type LegacyOrderRequestCreateData = Omit<OrderRequestInput, "note"> & {
-  note: string | null;
 };
 
 type ProductInquiryCreateData = {
@@ -95,13 +86,13 @@ type ProductInquiryStatusStore = {
   };
 };
 
-export async function createProductInquiryFromOrderRequest({
+export async function createProductInquiry({
   prisma,
   input,
   userEmail
 }: {
   prisma: ProductInquiryStore;
-  input: OrderRequestInput;
+  input: ProductInquiryInput;
   userEmail: string | null | undefined;
 }) {
   const email = normalizeEmail(userEmail);
@@ -114,13 +105,6 @@ export async function createProductInquiryFromOrderRequest({
           select: { id: true }
         })
       : null;
-
-    await transaction.orderRequest.create({
-      data: {
-        ...input,
-        note: input.note || null
-      }
-    });
 
     return transaction.productInquiry.create({
       data: {

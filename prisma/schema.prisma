@@ -8,14 +8,6 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-enum ProductCategory {
-  SUKAJAN
-  BOMBER
-  HOODIE
-  JACKET
-  SEASONAL
-}
-
 enum StockStatus {
   IN_STOCK
   OUT_OF_STOCK
@@ -44,13 +36,6 @@ enum OrderStatus {
   SHIPPING
   COMPLETED
   CANCELLED
-}
-
-enum OrderRequestStatus {
-  NEW
-  CONTACTED
-  QUOTED
-  CLOSED
 }
 
 enum AdminRole {
@@ -242,17 +227,13 @@ model Product {
   slug                 String           @unique
   descriptionVi        String           @db.Text
   descriptionEn        String           @db.Text
-  category             ProductCategory
-  categoryId           String?          @db.Uuid
-  categoryRecord       Category?        @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  categoryId           String           @db.Uuid
+  categoryRecord       Category         @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   createdByAdminId     String?          @db.Uuid
   createdByAdmin       AdminUser?       @relation("ProductCreatedByAdmin", fields: [createdByAdminId], references: [id], onDelete: SetNull)
-  price                Int
-  basePrice            Int?
+  basePrice            Int
   orderLeadTimeMinDays Int              @default(7)
   orderLeadTimeMaxDays Int              @default(10)
-  sizes                String[]
-  colors               String[]
   materialVi           String
   materialEn           String
   stockStatus          StockStatus      @default(IN_STOCK)
@@ -266,7 +247,7 @@ model Product {
   sizeCharts           SizeChart[]
   orderItems           OrderItem[]
 
-  @@index([category, isActive])
+  @@index([categoryId, isActive])
   @@index([categoryId])
   @@index([createdByAdminId])
   @@index([stockStatus])
@@ -324,10 +305,6 @@ model Customer {
   zaloPhone          String?
   instagramHandle    String?
   preferredLanguage  String              @default("vi")
-  address            String
-  province           String
-  district           String
-  ward               String
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
   orders             Order[]
@@ -410,12 +387,10 @@ model Order {
   paymentMethod               PaymentMethod
   status                      OrderStatus
   note                        String?                      @db.Text
-  subtotal                    Int
-  depositAmount               Int?
-  subtotalAmount              Int?
-  remainingAmount             Int?
+  subtotalAmount              Int
+  remainingAmount             Int
   shippingFee                 Int                          @default(0)
-  totalAmount                 Int?
+  totalAmount                 Int
   sizeColorLocked             Boolean                      @default(false)
   noChangePolicyAck           Boolean                      @default(false)
   noChangePolicyAckAt         DateTime?
@@ -570,20 +545,4 @@ model InternationalShippingDetail {
   createdAt            DateTime             @default(now())
 
   @@index([countryCode])
-}
-
-model OrderRequest {
-  id             String             @id @default(uuid()) @db.Uuid
-  fullName       String
-  phone          String
-  socialContact  String
-  inspirationUrl String
-  desiredSize    String
-  desiredColor   String
-  note           String?            @db.Text
-  status         OrderRequestStatus @default(NEW)
-  createdAt      DateTime           @default(now())
-  updatedAt      DateTime           @updatedAt
-
-  @@index([status, createdAt])
 }

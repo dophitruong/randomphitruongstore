@@ -3,11 +3,11 @@ import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { normalizeEmail } from "@/lib/customer-account";
 import { getPrisma } from "@/lib/prisma";
 import {
-  createProductInquiryFromOrderRequest,
+  createProductInquiry,
   listAdminProductInquiries
 } from "@/lib/product-inquiry";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
-import { orderRequestInputSchema } from "@/lib/validations";
+import { productInquiryInputSchema } from "@/lib/validations";
 
 export async function GET() {
   if (!(await isAdminAuthenticated())) {
@@ -22,7 +22,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const parsed = orderRequestInputSchema.safeParse(await request.json());
+  const parsed = productInquiryInputSchema.safeParse(await request.json());
   if (!parsed.success) {
     return err("Invalid request data", 400, zodDetails(parsed.error));
   }
@@ -30,13 +30,13 @@ export async function POST(request: Request) {
     const supabase = await getSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();
     const email = normalizeEmail(user?.email);
-    const orderRequest = await createProductInquiryFromOrderRequest({
+    const inquiry = await createProductInquiry({
       prisma: getPrisma(),
       input: parsed.data,
       userEmail: email
     });
 
-    return ok(orderRequest, 201);
+    return ok(inquiry, 201);
   } catch (error) {
     return handlePrismaError(error);
   }

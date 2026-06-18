@@ -24,9 +24,14 @@ type ExistingProductVariant = {
   orderItemCount?: number;
 };
 
-function uniqueValues(values: string[]) {
-  return [...new Set(values.map((value) => value.trim()).filter(Boolean))];
-}
+type ProductOptionVariant = {
+  id?: string;
+  size: string;
+  colorVi: string;
+  colorEn?: string;
+  priceAdjustment?: number;
+  isAvailable: boolean;
+};
 
 function uniqueVariants(variants: Required<ProductCatalogVariant>[]) {
   const seen = new Set<string>();
@@ -41,20 +46,8 @@ function uniqueVariants(variants: Required<ProductCatalogVariant>[]) {
 }
 
 function normalizeVariants(input: ProductInput): Required<ProductCatalogVariant>[] {
-  const variants = input.variants?.length
-    ? input.variants
-    : input.sizes.flatMap((size) =>
-        input.colors.map((color) => ({
-          size,
-          colorVi: color,
-          colorEn: color,
-          priceAdjustment: 0,
-          isAvailable: true
-        }))
-      );
-
   return uniqueVariants(
-    variants.map((variant) => ({
+    input.variants.map((variant) => ({
       size: variant.size.trim(),
       colorVi: variant.colorVi.trim(),
       colorEn: variant.colorEn?.trim() || variant.colorVi.trim(),
@@ -93,6 +86,30 @@ function normalizeSizeCharts(input: ProductInput) {
 
 function variantKey(variant: Pick<ProductCatalogVariant, "size" | "colorVi">) {
   return `${variant.size.trim().toLowerCase()}::${variant.colorVi.trim().toLowerCase()}`;
+}
+
+export function availableProductVariants(variants: ProductOptionVariant[] = []) {
+  return variants.filter((variant) => variant.isAvailable);
+}
+
+export function productVariantSizes(variants: ProductOptionVariant[] = []) {
+  return [...new Set(availableProductVariants(variants).map((variant) => variant.size))];
+}
+
+export function productVariantColors(variants: ProductOptionVariant[] = []) {
+  return [...new Set(availableProductVariants(variants).map((variant) => variant.colorVi))];
+}
+
+export function findAvailableProductVariant(
+  variants: ProductOptionVariant[] = [],
+  size: string,
+  color: string
+) {
+  return availableProductVariants(variants).find(
+    (variant) =>
+      variant.size === size &&
+      (variant.colorVi === color || variant.colorEn === color)
+  );
 }
 
 export function buildProductVariantSyncPlan({
@@ -158,10 +175,7 @@ export function buildProductVariantSyncPlan({
 export function buildProductCatalogWrite(input: ProductInput) {
   const variants = normalizeVariants(input);
   const sizeCharts = normalizeSizeCharts(input);
-  const sizes = uniqueValues(variants.map((variant) => variant.size));
-  const colors = uniqueValues(variants.map((variant) => variant.colorVi));
-  const basePrice = input.basePrice ?? input.price;
-  const categoryId = input.categoryId?.trim() || null;
+  const categoryId = input.categoryId.trim();
 
   return {
     productData: {
@@ -170,14 +184,10 @@ export function buildProductCatalogWrite(input: ProductInput) {
       slug: input.slug,
       descriptionVi: input.descriptionVi,
       descriptionEn: input.descriptionEn,
-      category: input.category,
       categoryId,
-      price: basePrice,
-      basePrice,
+      basePrice: input.basePrice,
       orderLeadTimeMinDays: input.orderLeadTimeMinDays ?? 7,
       orderLeadTimeMaxDays: input.orderLeadTimeMaxDays ?? 10,
-      sizes,
-      colors,
       materialVi: input.materialVi,
       materialEn: input.materialEn,
       stockStatus: input.stockStatus,
