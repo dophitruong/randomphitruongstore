@@ -3,7 +3,11 @@
 import { ChevronDown, SlidersHorizontal, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { Locale } from "@/i18n/request";
-import { productVariantColors, productVariantSizes } from "@/lib/product-catalog";
+import {
+  productMatchesVariantFilters,
+  productVariantColors,
+  productVariantSizes
+} from "@/lib/product-catalog";
 import { productBasePrice } from "@/lib/product-pricing";
 import type { ProductWithImages } from "@/types";
 import { ProductGrid } from "./product-grid";
@@ -50,8 +54,7 @@ export function ProductFilters({
         (product) =>
           product.stockStatus === "IN_STOCK" &&
           (category === "ALL" || product.categoryId === category) &&
-          (size === "ALL" || productVariantSizes(product.variants).includes(size)) &&
-          (color === "ALL" || productVariantColors(product.variants).includes(color)) &&
+          productMatchesVariantFilters(product.variants, { size, color }) &&
           productBasePrice(product) <= maxPrice
       ),
     [category, color, maxPrice, products, size]

@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   buildProductCatalogWrite,
-  buildProductVariantSyncPlan
+  buildProductVariantSyncPlan,
+  productMatchesVariantFilters
 } from "../src/lib/product-catalog";
 import { productInputSchema } from "../src/lib/validations";
 
@@ -213,5 +214,41 @@ describe("admin product catalog write model", () => {
       }
     ]);
     assert.deepEqual(plan.deleteIds, ["variant-3"]);
+  });
+
+  it("matches product filters against an actual available size and color variant", () => {
+    const variants = [
+      {
+        size: "M",
+        colorVi: "Do",
+        colorEn: "Red",
+        priceAdjustment: 0,
+        isAvailable: true
+      },
+      {
+        size: "L",
+        colorVi: "Xanh",
+        colorEn: "Blue",
+        priceAdjustment: 0,
+        isAvailable: true
+      }
+    ];
+
+    assert.equal(
+      productMatchesVariantFilters(variants, { size: "M", color: "Xanh" }),
+      false
+    );
+    assert.equal(
+      productMatchesVariantFilters(variants, { size: "M", color: "Do" }),
+      true
+    );
+    assert.equal(
+      productMatchesVariantFilters(variants, { size: "ALL", color: "Xanh" }),
+      true
+    );
+    assert.equal(
+      productMatchesVariantFilters(variants, { size: "M", color: "ALL" }),
+      true
+    );
   });
 });

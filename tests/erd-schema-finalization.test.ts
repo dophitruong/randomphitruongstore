@@ -131,6 +131,16 @@ describe("ERD schema finalization", () => {
     assert.match(modelField(schema, "Order", "subtotalAmount"), /^subtotalAmount\s+Int(\s|$)/);
     assert.match(modelField(schema, "Order", "remainingAmount"), /^remainingAmount\s+Int(\s|$)/);
     assert.match(modelField(schema, "Order", "totalAmount"), /^totalAmount\s+Int(\s|$)/);
+    assert.match(
+      migrationSql,
+      /INSERT INTO "ProductInquiry"[\s\S]+FROM "OrderRequest"/
+    );
+    assert.match(
+      migrationSql,
+      /INSERT INTO "ShippingAddress"[\s\S]+FROM "Order" AS orders/
+    );
+    assert.match(migrationSql, /Cannot drop OrderRequest/);
+    assert.match(migrationSql, /Cannot drop Customer address fields/);
     assert.match(migrationSql, /DROP TABLE "OrderRequest"/);
     assert.match(migrationSql, /DROP TYPE "ProductCategory"/);
   });

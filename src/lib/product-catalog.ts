@@ -112,6 +112,32 @@ export function findAvailableProductVariant(
   );
 }
 
+export function productMatchesVariantFilters(
+  variants: ProductOptionVariant[] = [],
+  {
+    size,
+    color,
+    allValue = "ALL"
+  }: {
+    size: string;
+    color: string;
+    allValue?: string;
+  }
+) {
+  const selectedSize = size !== allValue;
+  const selectedColor = color !== allValue;
+
+  if (!selectedSize && !selectedColor) {
+    return true;
+  }
+
+  return availableProductVariants(variants).some(
+    (variant) =>
+      (!selectedSize || variant.size === size) &&
+      (!selectedColor || variant.colorVi === color || variant.colorEn === color)
+  );
+}
+
 export function buildProductVariantSyncPlan({
   existingVariants,
   nextVariants
