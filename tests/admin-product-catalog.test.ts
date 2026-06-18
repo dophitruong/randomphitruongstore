@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { buildProductCatalogWrite } from "../src/lib/product-catalog";
+import {
+  buildProductCatalogWrite,
+  buildProductVariantSyncPlan
+} from "../src/lib/product-catalog";
 import { productInputSchema } from "../src/lib/validations";
 
 const productInput = {
@@ -30,6 +33,24 @@ const productInput = {
       colorEn: "Navy",
       priceAdjustment: 120000,
       isAvailable: false
+    }
+  ],
+  sizeCharts: [
+    {
+      size: "M",
+      shoulder: 44,
+      chest: 54,
+      length: 65,
+      sleeve: 60,
+      unit: "cm"
+    },
+    {
+      size: "L",
+      shoulder: 46,
+      chest: 56,
+      length: 67,
+      sleeve: 61,
+      unit: "cm"
     }
   ],
   materialVi: "Satin cao cap",
@@ -105,6 +126,24 @@ describe("admin product catalog write model", () => {
         isAvailable: false
       }
     ]);
+    assert.deepEqual(write.sizeCharts, [
+      {
+        size: "M",
+        shoulder: 44,
+        chest: 54,
+        length: 65,
+        sleeve: 60,
+        unit: "cm"
+      },
+      {
+        size: "L",
+        shoulder: 46,
+        chest: 56,
+        length: 67,
+        sleeve: 61,
+        unit: "cm"
+      }
+    ]);
   });
 
   it("falls back to legacy sizes and colors without creating duplicate variants", () => {
@@ -133,5 +172,73 @@ describe("admin product catalog write model", () => {
         isAvailable: true
       }
     ]);
+  });
+
+  it("preserves existing product variant rows when an admin edit keeps the same size and color", () => {
+    const plan = buildProductVariantSyncPlan({
+      existingVariants: [
+        {
+          id: "variant-1",
+          size: "M",
+          colorVi: "Den",
+          orderItemCount: 2
+        },
+        {
+          id: "variant-2",
+          size: "XL",
+          colorVi: "Trang",
+          orderItemCount: 1
+        },
+        {
+          id: "variant-3",
+          size: "S",
+          colorVi: "Do",
+          orderItemCount: 0
+        }
+      ],
+      nextVariants: [
+        {
+          size: "M",
+          colorVi: "Den",
+          colorEn: "Black",
+          priceAdjustment: 50000,
+          isAvailable: true
+        },
+        {
+          size: "L",
+          colorVi: "Xanh navy",
+          colorEn: "Navy",
+          priceAdjustment: 0,
+          isAvailable: true
+        }
+      ]
+    });
+
+    assert.deepEqual(plan.update, [
+      {
+        id: "variant-1",
+        data: {
+          colorEn: "Black",
+          priceAdjustment: 50000,
+          isAvailable: true
+        }
+      },
+      {
+        id: "variant-2",
+        data: {
+          isAvailable: false
+        }
+      }
+    ]);
+    assert.deepEqual(plan.create, [
+      {
+        size: "L",
+        colorVi: "Xanh navy",
+        colorEn: "Navy",
+        priceAdjustment: 0,
+        isAvailable: true
+      }
+    ]);
+    assert.deepEqual(plan.deleteIds, ["variant-3"]);
   });
 });

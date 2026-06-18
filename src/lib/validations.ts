@@ -14,6 +14,20 @@ const productVariantInputSchema = z.object({
   isAvailable: z.boolean().default(true)
 });
 
+const optionalMeasurementSchema = z.preprocess(
+  (value) => (value === "" || value === null ? undefined : value),
+  z.coerce.number().positive().optional()
+);
+
+const productSizeChartInputSchema = z.object({
+  size: z.string().trim().min(1),
+  shoulder: optionalMeasurementSchema,
+  chest: optionalMeasurementSchema,
+  length: optionalMeasurementSchema,
+  sleeve: optionalMeasurementSchema,
+  unit: z.string().trim().min(1).default("cm")
+});
+
 export const productInputSchema = z.object({
   nameVi: z.string().trim().min(2),
   nameEn: z.string().trim().min(2),
@@ -44,6 +58,7 @@ export const productInputSchema = z.object({
   sizes: z.array(z.string().trim().min(1)).min(1),
   colors: z.array(z.string().trim().min(1)).min(1),
   variants: z.array(productVariantInputSchema).optional(),
+  sizeCharts: z.array(productSizeChartInputSchema).optional(),
   materialVi: z.string().trim().min(2),
   materialEn: z.string().trim().min(2),
   stockStatus: z.enum(["IN_STOCK", "OUT_OF_STOCK"]).default("IN_STOCK"),

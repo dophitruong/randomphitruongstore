@@ -4,6 +4,7 @@ import { ShoppingCart } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ZALO_URL } from "@/lib/constants";
+import { productVariantPrice } from "@/lib/product-pricing";
 import { cn } from "@/lib/utils";
 import { ZaloIcon } from "./brand-icons";
 import { useCart } from "./cart-provider";
@@ -15,6 +16,7 @@ type PurchasePanelVariant = {
   size: string;
   colorVi: string;
   colorEn: string;
+  priceAdjustment: number;
   isAvailable: boolean;
 };
 
@@ -88,11 +90,13 @@ export function PurchasePanel({
     if (!validateSelection()) {
       return;
     }
+    const selectedVariant = variantForSelection(variants, size, color);
     addItem({
       productId,
+      ...(selectedVariant ? { productVariantId: selectedVariant.id } : {}),
       slug: productSlug,
       name: productName,
-      price: productPrice,
+      price: productVariantPrice({ price: productPrice }, selectedVariant),
       imageUrl,
       size,
       color,

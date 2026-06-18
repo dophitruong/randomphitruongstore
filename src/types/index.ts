@@ -38,6 +38,16 @@ export type ProductVariantDTO = {
   isAvailable: boolean;
 };
 
+export type SizeChartDTO = {
+  id: string;
+  size: string;
+  shoulder?: number | string | null;
+  chest?: number | string | null;
+  length?: number | string | null;
+  sleeve?: number | string | null;
+  unit: string;
+};
+
 export type ProductCategoryRecordDTO = {
   id: string;
   nameVi: string;
@@ -72,6 +82,7 @@ export type ProductDTO = {
   updatedAt: Date | string;
   images: ProductImageDTO[];
   variants?: ProductVariantDTO[];
+  sizeCharts?: SizeChartDTO[];
 };
 
 export type CustomerDTO = {

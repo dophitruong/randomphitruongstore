@@ -11,7 +11,8 @@ export async function GET() {
       include: {
         categoryRecord: true,
         images: { orderBy: { sortOrder: "asc" } },
-        variants: { orderBy: [{ size: "asc" }, { colorVi: "asc" }] }
+        variants: { orderBy: [{ size: "asc" }, { colorVi: "asc" }] },
+        sizeCharts: { orderBy: { size: "asc" } }
       },
       orderBy: { createdAt: "desc" }
     });
@@ -37,12 +38,14 @@ export async function POST(request: Request) {
       data: {
         ...catalog.productData,
         images: { create: catalog.images },
-        variants: { create: catalog.variants }
+        variants: { create: catalog.variants },
+        sizeCharts: { create: catalog.sizeCharts }
       },
       include: {
         categoryRecord: true,
         images: { orderBy: { sortOrder: "asc" } },
-        variants: { orderBy: [{ size: "asc" }, { colorVi: "asc" }] }
+        variants: { orderBy: [{ size: "asc" }, { colorVi: "asc" }] },
+        sizeCharts: { orderBy: { size: "asc" } }
       }
     });
     return ok(product, 201);

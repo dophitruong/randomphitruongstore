@@ -33,6 +33,15 @@ type ParsedVariant = {
   isAvailable: boolean;
 };
 
+type ParsedSizeChart = {
+  size: string;
+  shoulder?: number;
+  chest?: number;
+  length?: number;
+  sleeve?: number;
+  unit: string;
+};
+
 const formSchema = z.object({
   nameVi: z.string().trim().min(2),
   nameEn: z.string().trim().min(2),
@@ -48,6 +57,7 @@ const formSchema = z.object({
   sizes: z.string().trim().min(1),
   colors: z.string().trim().min(1),
   variants: z.string().trim(),
+  sizeCharts: z.string().trim().optional(),
   materialVi: z.string().trim().min(2),
   materialEn: z.string().trim().min(2),
   stockStatus: z.enum(["IN_STOCK", "OUT_OF_STOCK"]),
@@ -72,6 +82,7 @@ const defaults: FormValues = {
   sizes: "M, L, XL",
   colors: "Black",
   variants: "M | Black | Black | 0 | true\nL | Black | Black | 0 | true\nXL | Black | Black | 0 | true",
+  sizeCharts: "",
   materialVi: "",
   materialEn: "",
   stockStatus: "IN_STOCK",
@@ -138,6 +149,47 @@ function parseVariantRows(value: string): ParsedVariant[] {
   });
 }
 
+function parseMeasurement(value: string) {
+  if (!value) {
+    return undefined;
+  }
+
+  const parsed = Number.parseFloat(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+}
+
+function parseSizeChartRows(value: string | undefined): ParsedSizeChart[] {
+  const sizeCharts = (value ?? "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const delimiter = line.includes("|") ? "|" : ",";
+      const [size = "", shoulder = "", chest = "", length = "", sleeve = "", unit = "cm"] =
+        line.split(delimiter).map((part) => part.trim());
+
+      return {
+        size,
+        shoulder: parseMeasurement(shoulder),
+        chest: parseMeasurement(chest),
+        length: parseMeasurement(length),
+        sleeve: parseMeasurement(sleeve),
+        unit: unit || "cm"
+      };
+    })
+    .filter((sizeChart) => sizeChart.size);
+
+  const seen = new Set<string>();
+  return sizeCharts.filter((sizeChart) => {
+    const key = sizeChart.size.toLowerCase();
+    if (seen.has(key)) {
+      return false;
+    }
+    seen.add(key);
+    return true;
+  });
+}
+
 function formatVariantRows(product: ProductWithImages) {
   const variants = product.variants ?? [];
   if (variants.length) {
@@ -154,6 +206,23 @@ function formatVariantRows(product: ProductWithImages) {
   return product.sizes
     .flatMap((size) =>
       product.colors.map((color) => `${size} | ${color} | ${color} | 0 | true`)
+    )
+    .join("\n");
+}
+
+function formatMeasurement(value: number | string | null | undefined) {
+  return value === null || value === undefined ? "" : String(value);
+}
+
+function formatSizeChartRows(product: ProductWithImages) {
+  return (product.sizeCharts ?? [])
+    .map(
+      (sizeChart) =>
+        `${sizeChart.size} | ${formatMeasurement(sizeChart.shoulder)} | ${formatMeasurement(
+          sizeChart.chest
+        )} | ${formatMeasurement(sizeChart.length)} | ${formatMeasurement(
+          sizeChart.sleeve
+        )} | ${sizeChart.unit}`
     )
     .join("\n");
 }
@@ -258,6 +327,7 @@ export function AdminProductManager({
       sizes: product.sizes.join(", "),
       colors: product.colors.join(", "),
       variants: formatVariantRows(product),
+      sizeCharts: formatSizeChartRows(product),
       materialVi: product.materialVi,
       materialEn: product.materialEn,
       stockStatus: product.stockStatus,
@@ -270,6 +340,7 @@ export function AdminProductManager({
   async function save(values: FormValues) {
     setServerError("");
     const variants = parseVariantRows(values.variants);
+    const sizeCharts = parseSizeChartRows(values.sizeCharts);
     const sizes = variants.length
       ? uniqueValues(variants.map((variant) => variant.size))
       : splitList(values.sizes);
@@ -290,7 +361,8 @@ export function AdminProductManager({
           .filter(Boolean),
         sizes,
         colors,
-        variants
+        variants,
+        sizeCharts
       })
     });
     const result = await response.json();
@@ -614,6 +686,18 @@ export function AdminProductManager({
                     className="field min-h-28"
                     placeholder="M | Black | Black | 0 | true"
                     {...register("variants")}
+                  />
+                </AdminField>
+              </div>
+              <div className="sm:col-span-2">
+                <AdminField
+                  label="Size chart"
+                  error={errors.sizeCharts?.message}
+                >
+                  <textarea
+                    className="field min-h-24"
+                    placeholder="M | 44 | 54 | 65 | 60 | cm"
+                    {...register("sizeCharts")}
                   />
                 </AdminField>
               </div>

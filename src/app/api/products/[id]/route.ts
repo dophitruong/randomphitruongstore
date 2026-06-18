@@ -1,6 +1,9 @@
 import { err, handlePrismaError, ok, zodDetails } from "@/lib/api-response";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
-import { buildProductCatalogWrite } from "@/lib/product-catalog";
+import {
+  buildProductCatalogWrite,
+  buildProductVariantSyncPlan
+} from "@/lib/product-catalog";
 import { getPrisma } from "@/lib/prisma";
 import { productInputSchema } from "@/lib/validations";
 
@@ -20,19 +23,65 @@ export async function PATCH(request: Request, context: RouteContext) {
   const catalog = buildProductCatalogWrite(parsed.data);
   try {
     const product = await getPrisma().$transaction(async (prisma) => {
+      const existingVariants = await prisma.productVariant.findMany({
+        where: { productId: id },
+        select: {
+          id: true,
+          size: true,
+          colorVi: true,
+          _count: { select: { orderItems: true } }
+        }
+      });
+      const variantPlan = buildProductVariantSyncPlan({
+        existingVariants: existingVariants.map((variant) => ({
+          id: variant.id,
+          size: variant.size,
+          colorVi: variant.colorVi,
+          orderItemCount: variant._count.orderItems
+        })),
+        nextVariants: catalog.variants
+      });
+
       await prisma.productImage.deleteMany({ where: { productId: id } });
-      await prisma.productVariant.deleteMany({ where: { productId: id } });
-      return prisma.product.update({
+      await prisma.sizeChart.deleteMany({ where: { productId: id } });
+      await prisma.product.update({
         where: { id },
         data: {
           ...catalog.productData,
           images: { create: catalog.images },
-          variants: { create: catalog.variants }
-        },
+          sizeCharts: { create: catalog.sizeCharts }
+        }
+      });
+
+      for (const variantUpdate of variantPlan.update) {
+        await prisma.productVariant.update({
+          where: { id: variantUpdate.id },
+          data: variantUpdate.data
+        });
+      }
+
+      if (variantPlan.deleteIds.length > 0) {
+        await prisma.productVariant.deleteMany({
+          where: { id: { in: variantPlan.deleteIds } }
+        });
+      }
+
+      for (const variant of variantPlan.create) {
+        await prisma.productVariant.create({
+          data: {
+            productId: id,
+            ...variant
+          }
+        });
+      }
+
+      return prisma.product.findUniqueOrThrow({
+        where: { id },
         include: {
           categoryRecord: true,
           images: { orderBy: { sortOrder: "asc" } },
-          variants: { orderBy: [{ size: "asc" }, { colorVi: "asc" }] }
+          variants: { orderBy: [{ size: "asc" }, { colorVi: "asc" }] },
+          sizeCharts: { orderBy: { size: "asc" } }
         }
       });
     });
