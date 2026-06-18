@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { useAuth } from "@/context/auth-context";
 
 const schema = z.object({
   fullName: z.string().trim().optional(),
@@ -23,6 +24,7 @@ export function AuthForm({
   labels: Record<string, string>;
 }) {
   const router = useRouter();
+  const { refreshUser } = useAuth();
   const [serverError, setServerError] = useState<string | null>(null);
 
   const {
@@ -54,9 +56,8 @@ export function AuthForm({
       return;
     }
 
-    // On success redirect to shop
-    router.push("/shop");
-    router.refresh(); // Force server components to re-read the new session cookie
+    await refreshUser();
+    router.replace("/account");
   }
 
   return (
@@ -105,4 +106,3 @@ export function AuthForm({
 
 /** @deprecated Use AuthForm instead */
 export const MockAuthForm = AuthForm;
-

@@ -1,8 +1,14 @@
 import { err, handlePrismaError, ok, zodDetails } from "@/lib/api-response";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
+import {
+  buildShippingAddressSnapshot,
+  isMissingCustomerEmailColumn,
+  normalizeEmail
+} from "@/lib/customer-account";
 import { orderNumber } from "@/lib/format";
 import { getPrisma } from "@/lib/prisma";
 import { orderInputSchema } from "@/lib/validations";
+import { getSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function GET() {
   if (!(await isAdminAuthenticated())) {
@@ -56,6 +62,70 @@ export async function POST(request: Request) {
     const remainingAmount = depositAmount === null ? 0 : totalAmount - depositAmount;
     const paymentOption = isDeposit ? "DEPOSIT_50" : "ONLINE_100";
 
+    const supabase = await getSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    const userEmail = normalizeEmail(user?.email);
+
+    let customer;
+    if (userEmail) {
+      try {
+        customer = await getPrisma().customer.findFirst({
+          where: { email: userEmail },
+          orderBy: { updatedAt: "desc" }
+        });
+        if (customer) {
+          customer = await getPrisma().customer.update({
+            where: { id: customer.id },
+            data: {
+              fullName: input.fullName,
+              phone: input.phone,
+              address: input.address,
+              province: input.province,
+              district: input.district,
+              ward: input.ward
+            }
+          });
+        } else {
+          customer = await getPrisma().customer.create({
+            data: {
+              email: userEmail,
+              fullName: input.fullName,
+              phone: input.phone,
+              address: input.address,
+              province: input.province,
+              district: input.district,
+              ward: input.ward
+            }
+          });
+        }
+      } catch (error) {
+        if (!isMissingCustomerEmailColumn(error)) {
+          throw error;
+        }
+        customer = await getPrisma().customer.create({
+          data: {
+            fullName: input.fullName,
+            phone: input.phone,
+            address: input.address,
+            province: input.province,
+            district: input.district,
+            ward: input.ward
+          }
+        });
+      }
+    } else {
+      customer = await getPrisma().customer.create({
+        data: {
+          fullName: input.fullName,
+          phone: input.phone,
+          address: input.address,
+          province: input.province,
+          district: input.district,
+          ward: input.ward
+        }
+      });
+    }
+
     const order = await getPrisma().order.create({
       data: {
         orderNumber: orderNumber(),
@@ -70,15 +140,9 @@ export async function POST(request: Request) {
         shippingFee,
         totalAmount,
         note: input.note || null,
-        customer: {
-          create: {
-            fullName: input.fullName,
-            phone: input.phone,
-            address: input.address,
-            province: input.province,
-            district: input.district,
-            ward: input.ward
-          }
+        customerId: customer.id,
+        shippingAddress: {
+          create: buildShippingAddressSnapshot(input)
         },
         items: {
           create: input.items.map((item) => {

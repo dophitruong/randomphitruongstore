@@ -93,7 +93,7 @@ export function CheckoutForm({
             size: selectedSize,
             color: selectedColor
           }
-        ]
+        ],
       })
     });
     const result = await response.json();
