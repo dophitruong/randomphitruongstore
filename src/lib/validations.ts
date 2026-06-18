@@ -112,7 +112,8 @@ export const orderStatusSchema = z.object({
     "SHIPPING",
     "COMPLETED",
     "CANCELLED"
-  ])
+  ]),
+  note: z.string().trim().max(1000).optional().or(z.literal(""))
 });
 
 export const orderRequestStatusSchema = z.object({
