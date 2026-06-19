@@ -6,10 +6,6 @@ export const customerProfileSelect = {
   fullName: true,
   phone: true,
   email: true,
-  address: true,
-  province: true,
-  district: true,
-  ward: true,
   zaloPhone: true,
   instagramHandle: true,
   preferredLanguage: true
@@ -20,10 +16,6 @@ type CustomerProfile = {
   fullName: string;
   phone: string;
   email: string | null;
-  address: string;
-  province: string;
-  district: string;
-  ward: string;
   zaloPhone: string | null;
   instagramHandle: string | null;
   preferredLanguage: string;
@@ -46,10 +38,6 @@ type CustomerProfileStore = {
         email: string;
         fullName: string;
         phone: string;
-        address: string;
-        province: string;
-        district: string;
-        ward: string;
         zaloPhone?: string;
         instagramHandle?: string;
         preferredLanguage?: "vi" | "en";
@@ -117,19 +105,11 @@ function buildCustomerCreateData({
   const data = {
     email,
     fullName,
-    phone: input.phone ?? "",
-    address: input.address ?? "",
-    province: input.province ?? "",
-    district: input.district ?? "",
-    ward: input.ward ?? ""
+    phone: input.phone ?? ""
   } satisfies {
     email: string;
     fullName: string;
     phone: string;
-    address: string;
-    province: string;
-    district: string;
-    ward: string;
     zaloPhone?: string;
     instagramHandle?: string;
     preferredLanguage?: "vi" | "en";

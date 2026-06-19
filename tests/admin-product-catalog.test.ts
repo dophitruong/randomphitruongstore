@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   buildProductCatalogWrite,
-  buildProductVariantSyncPlan
+  buildProductVariantSyncPlan,
+  productMatchesVariantFilters
 } from "../src/lib/product-catalog";
 import { productInputSchema } from "../src/lib/validations";
 
@@ -12,13 +13,9 @@ const productInput = {
   slug: "crane-sukajan",
   descriptionVi: "Ao sukajan theu hac song form rong.",
   descriptionEn: "Crane embroidered sukajan with relaxed fit.",
-  category: "SUKAJAN",
   categoryId: "00000000-0000-4000-8000-000000000201",
-  price: 2490000,
   basePrice: 2400000,
   images: ["/uploads/crane-front.webp", "/uploads/crane-back.webp"],
-  sizes: ["legacy-size"],
-  colors: ["legacy-color"],
   variants: [
     {
       size: "M",
@@ -61,7 +58,7 @@ const productInput = {
 } as const;
 
 describe("admin product catalog write model", () => {
-  it("accepts expanded catalog fields while keeping legacy compatibility fields", () => {
+  it("accepts expanded catalog fields without legacy compatibility fields", () => {
     const parsed = productInputSchema.safeParse(productInput);
 
     assert.equal(parsed.success, true);
@@ -72,7 +69,7 @@ describe("admin product catalog write model", () => {
     }
   });
 
-  it("builds Prisma write data that dual-writes base price, variants, sizes, colors, and images", () => {
+  it("builds Prisma write data from category records, base price, variants, and images", () => {
     const parsed = productInputSchema.parse(productInput);
     const write = buildProductCatalogWrite(parsed);
 
@@ -82,14 +79,10 @@ describe("admin product catalog write model", () => {
       slug: "crane-sukajan",
       descriptionVi: "Ao sukajan theu hac song form rong.",
       descriptionEn: "Crane embroidered sukajan with relaxed fit.",
-      category: "SUKAJAN",
       categoryId: "00000000-0000-4000-8000-000000000201",
-      price: 2400000,
       basePrice: 2400000,
       orderLeadTimeMinDays: 7,
       orderLeadTimeMaxDays: 10,
-      sizes: ["M", "L"],
-      colors: ["Den", "Xanh navy"],
       materialVi: "Satin cao cap",
       materialEn: "Premium satin",
       stockStatus: "IN_STOCK",
@@ -146,32 +139,13 @@ describe("admin product catalog write model", () => {
     ]);
   });
 
-  it("falls back to legacy sizes and colors without creating duplicate variants", () => {
-    const parsed = productInputSchema.parse({
+  it("rejects products that do not define explicit variants", () => {
+    const parsed = productInputSchema.safeParse({
       ...productInput,
-      categoryId: "",
-      price: 2200000,
-      basePrice: undefined,
-      sizes: ["M", "M"],
-      colors: ["Black", "Black"],
-      variants: undefined
+      variants: []
     });
-    const write = buildProductCatalogWrite(parsed);
 
-    assert.equal(write.productData.categoryId, null);
-    assert.equal(write.productData.price, 2200000);
-    assert.equal(write.productData.basePrice, 2200000);
-    assert.deepEqual(write.productData.sizes, ["M"]);
-    assert.deepEqual(write.productData.colors, ["Black"]);
-    assert.deepEqual(write.variants, [
-      {
-        size: "M",
-        colorVi: "Black",
-        colorEn: "Black",
-        priceAdjustment: 0,
-        isAvailable: true
-      }
-    ]);
+    assert.equal(parsed.success, false);
   });
 
   it("preserves existing product variant rows when an admin edit keeps the same size and color", () => {
@@ -240,5 +214,41 @@ describe("admin product catalog write model", () => {
       }
     ]);
     assert.deepEqual(plan.deleteIds, ["variant-3"]);
+  });
+
+  it("matches product filters against an actual available size and color variant", () => {
+    const variants = [
+      {
+        size: "M",
+        colorVi: "Do",
+        colorEn: "Red",
+        priceAdjustment: 0,
+        isAvailable: true
+      },
+      {
+        size: "L",
+        colorVi: "Xanh",
+        colorEn: "Blue",
+        priceAdjustment: 0,
+        isAvailable: true
+      }
+    ];
+
+    assert.equal(
+      productMatchesVariantFilters(variants, { size: "M", color: "Xanh" }),
+      false
+    );
+    assert.equal(
+      productMatchesVariantFilters(variants, { size: "M", color: "Do" }),
+      true
+    );
+    assert.equal(
+      productMatchesVariantFilters(variants, { size: "ALL", color: "Xanh" }),
+      true
+    );
+    assert.equal(
+      productMatchesVariantFilters(variants, { size: "M", color: "ALL" }),
+      true
+    );
   });
 });

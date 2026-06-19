@@ -47,10 +47,7 @@ describe("checkout ERD order creation", () => {
             id: catalogProductId,
             nameVi: "Sukajan Hac Song",
             nameEn: "Crane Sukajan",
-            price: 2490000,
-            basePrice: 2400000,
-            sizes: ["M", "L"],
-            colors: ["Black", "Navy"]
+            basePrice: 2400000
           }
         ]
       },
@@ -88,27 +85,27 @@ describe("checkout ERD order creation", () => {
           },
           order: {
             create: async ({ data }) => {
-              createdOrderData = data;
-              return {
-                id: "order-1",
-                orderNumber: data.orderNumber,
-                subtotal: data.subtotal,
-                depositAmount: data.depositAmount,
-                paymentMethod: data.paymentMethod
-              };
+                createdOrderData = data;
+                return {
+                  id: "order-1",
+                  orderNumber: data.orderNumber,
+                  subtotalAmount: data.subtotalAmount,
+                  totalAmount: data.totalAmount,
+                  paymentMethod: data.paymentMethod
+                };
             }
           }
         });
       }
     };
 
-    const order = await createCheckoutOrder({
+    const order = (await createCheckoutOrder({
       prisma,
       input: validOrderInput,
       userEmail: "CUSTOMER@EXAMPLE.COM",
       generateOrderNumber: () => "RPT-0001",
       now: () => new Date("2026-06-18T00:00:00.000Z")
-    });
+    })) as { orderNumber: string };
 
     assert.equal(usedTransaction, true);
     assert.equal(order.orderNumber, "RPT-0001");
@@ -118,8 +115,6 @@ describe("checkout ERD order creation", () => {
       paymentMethod: "DEPOSIT_50_BANK_ZALO",
       paymentOption: "DEPOSIT_50",
       status: "PENDING_DEPOSIT",
-      subtotal: 4980000,
-      depositAmount: 2490000,
       subtotalAmount: 4980000,
       remainingAmount: 2490000,
       shippingFee: 0,
@@ -178,10 +173,7 @@ describe("checkout ERD order creation", () => {
             id: catalogProductId,
             nameVi: "Sukajan Hac Song",
             nameEn: "Crane Sukajan",
-            price: 2490000,
-            basePrice: null,
-            sizes: ["M"],
-            colors: ["Black"]
+            basePrice: 2490000
           }
         ]
       },

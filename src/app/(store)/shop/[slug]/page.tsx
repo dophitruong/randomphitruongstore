@@ -6,6 +6,7 @@ import { ProductGallery } from "@/components/product-gallery";
 import { PurchasePanel } from "@/components/purchase-panel";
 import type { Locale } from "@/i18n/request";
 import { formatPrice } from "@/lib/format";
+import { productVariantColors, productVariantSizes } from "@/lib/product-catalog";
 import { productBasePrice } from "@/lib/product-pricing";
 import { getPrisma } from "@/lib/prisma";
 
@@ -57,6 +58,8 @@ export default async function ProductPage({ params }: PageProps) {
     locale === "vi" ? product.descriptionVi : product.descriptionEn;
   const material = locale === "vi" ? product.materialVi : product.materialEn;
   const basePrice = productBasePrice(product);
+  const availableSizes = productVariantSizes(product.variants);
+  const availableColors = productVariantColors(product.variants);
 
   return (
     <div className="container-shell grid gap-10 py-8 sm:py-14 lg:grid-cols-[1.15fr_0.85fr] lg:gap-16">
@@ -126,7 +129,7 @@ export default async function ProductPage({ params }: PageProps) {
           </p>
         </div>
         <PurchasePanel
-          colors={product.colors}
+          colors={availableColors}
           labels={{
             size: t("size"),
             color: t("color"),
@@ -143,7 +146,7 @@ export default async function ProductPage({ params }: PageProps) {
           productPrice={basePrice}
           variants={product.variants}
           imageUrl={product.images[0]?.url}
-          sizes={product.sizes}
+          sizes={availableSizes}
         />
       </section>
     </div>

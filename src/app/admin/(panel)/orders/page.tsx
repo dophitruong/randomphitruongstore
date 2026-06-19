@@ -55,7 +55,7 @@ export default async function AdminOrdersPage() {
               <p className="font-bold">{order.customer.fullName}</p>
               <p className="text-xs text-zinc-500">{order.customer.phone}</p>
             </td>
-            <td className="px-4 py-4">{formatPrice(order.subtotal)}</td>
+            <td className="px-4 py-4">{formatPrice(order.totalAmount)}</td>
             <td className="px-4 py-4 text-xs">
               <p className="font-bold">{order.paymentMethod}</p>
               <p className="mt-1 text-zinc-500">

@@ -1,6 +1,5 @@
 export type ProductPriceInput = {
-  price: number;
-  basePrice?: number | null;
+  basePrice: number;
 };
 
 export type ProductVariantPriceInput = {
@@ -8,7 +7,11 @@ export type ProductVariantPriceInput = {
 };
 
 export function productBasePrice(product: ProductPriceInput) {
-  return product.basePrice ?? product.price;
+  if (!Number.isFinite(product.basePrice)) {
+    throw new Error("Product basePrice is required");
+  }
+
+  return product.basePrice;
 }
 
 export function productVariantPrice(

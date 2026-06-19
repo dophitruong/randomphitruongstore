@@ -4,6 +4,7 @@ import { ShoppingCart } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ZALO_URL } from "@/lib/constants";
+import { findAvailableProductVariant } from "@/lib/product-catalog";
 import { productVariantPrice } from "@/lib/product-pricing";
 import { cn } from "@/lib/utils";
 import { ZaloIcon } from "./brand-icons";
@@ -58,8 +59,16 @@ export function PurchasePanel({
   const [added, setAdded] = useState(false);
   const { addItem } = useCart();
 
+  function selectedVariant() {
+    return findAvailableProductVariant(variants, size, color);
+  }
+
   function validateSelection() {
     if (!size || !color) {
+      setError(labels.selectOptions);
+      return false;
+    }
+    if (!selectedVariant()) {
       setError(labels.selectOptions);
       return false;
     }
@@ -71,7 +80,11 @@ export function PurchasePanel({
     if (!validateSelection()) {
       return;
     }
-    const selectedVariant = variantForSelection(variants, size, color);
+    const variant = selectedVariant();
+    if (!variant?.id) {
+      setError(labels.selectOptions);
+      return;
+    }
     if (region !== "VIETNAM") {
       const message = encodeURIComponent(
         `International order consultation: ${productName}, size ${size}, color ${color}, region ${region}`
@@ -80,9 +93,7 @@ export function PurchasePanel({
       return;
     }
     const params = new URLSearchParams({ productId, size, color });
-    if (selectedVariant) {
-      params.set("variantId", selectedVariant.id);
-    }
+    params.set("variantId", variant.id);
     router.push(`/checkout?${params.toString()}`);
   }
 
@@ -90,13 +101,17 @@ export function PurchasePanel({
     if (!validateSelection()) {
       return;
     }
-    const selectedVariant = variantForSelection(variants, size, color);
+    const variant = selectedVariant();
+    if (!variant?.id) {
+      setError(labels.selectOptions);
+      return;
+    }
     addItem({
       productId,
-      ...(selectedVariant ? { productVariantId: selectedVariant.id } : {}),
+      productVariantId: variant.id,
       slug: productSlug,
       name: productName,
-      price: productVariantPrice({ price: productPrice }, selectedVariant),
+      price: productVariantPrice({ basePrice: productPrice }, variant),
       imageUrl,
       size,
       color,
@@ -165,19 +180,6 @@ export function PurchasePanel({
         </a>
       </div>
     </div>
-  );
-}
-
-function variantForSelection(
-  variants: PurchasePanelVariant[] | undefined,
-  size: string,
-  color: string
-) {
-  return variants?.find(
-    (variant) =>
-      variant.isAvailable &&
-      variant.size === size &&
-      (variant.colorVi === color || variant.colorEn === color)
   );
 }
 

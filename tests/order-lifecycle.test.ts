@@ -79,14 +79,14 @@ describe("admin order lifecycle", () => {
       }
     };
 
-    const order = await updateAdminOrderLifecycle({
-      prisma,
+    const order = (await updateAdminOrderLifecycle({
+      prisma: prisma as never,
       orderId: "order-1",
       status: "DEPOSIT_CONFIRMED",
       note: "Bank transfer verified",
       adminId: "admin-1",
       now: () => now
-    });
+    })) as { status: string };
 
     assert.equal(usedTransaction, true);
     assert.equal(order.status, "DEPOSIT_CONFIRMED");

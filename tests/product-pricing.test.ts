@@ -3,23 +3,22 @@ import { describe, it } from "node:test";
 import { productBasePrice, productVariantPrice } from "../src/lib/product-pricing";
 
 describe("product pricing helpers", () => {
-  it("uses basePrice for storefront display and filters when it exists", () => {
+  it("uses required basePrice for storefront display and filters", () => {
     assert.equal(
       productBasePrice({
-        price: 2490000,
         basePrice: 2400000
       }),
       2400000
     );
   });
 
-  it("falls back to legacy price while old product rows are still supported", () => {
-    assert.equal(
-      productBasePrice({
-        price: 2490000,
-        basePrice: null
-      }),
-      2490000
+  it("rejects products that still rely on the removed legacy price fallback", () => {
+    assert.throws(
+      () =>
+        productBasePrice({
+          basePrice: null
+        } as never),
+      /basePrice/
     );
   });
 
@@ -27,7 +26,6 @@ describe("product pricing helpers", () => {
     assert.equal(
       productVariantPrice(
         {
-          price: 2490000,
           basePrice: 2400000
         },
         {

@@ -28,6 +28,7 @@ export default async function CheckoutPage({ searchParams }: PageProps) {
     ? await getPrisma().product.findFirst({
         where: { id: params.productId, isActive: true, stockStatus: "IN_STOCK" },
         include: {
+          categoryRecord: true,
           images: { orderBy: { sortOrder: "asc" } },
           variants: { orderBy: [{ size: "asc" }, { colorVi: "asc" }] }
         }
@@ -42,15 +43,8 @@ export default async function CheckoutPage({ searchParams }: PageProps) {
           (!params.color || variant.colorVi === params.color || variant.colorEn === params.color)
       )
     : null;
-  const validSelection =
-    product &&
-    (selectedVariant ||
-      (params.size &&
-        params.color &&
-        product.sizes.includes(params.size) &&
-        product.colors.includes(params.color)));
 
-  if (!product || !validSelection) {
+  if (!product || !selectedVariant) {
     return (
       <div className="container-shell min-h-[60vh] py-20 text-center">
         <h1 className="text-4xl font-black">{t("missingProduct")}</h1>
@@ -96,9 +90,9 @@ export default async function CheckoutPage({ searchParams }: PageProps) {
       <CheckoutForm
         labels={{ ...labels, loading: common("loading") }}
         product={product}
-        selectedColor={selectedVariant?.colorVi ?? params.color!}
-        selectedSize={selectedVariant?.size ?? params.size!}
-        selectedVariantId={selectedVariant?.id}
+        selectedColor={selectedVariant.colorVi}
+        selectedSize={selectedVariant.size}
+        selectedVariantId={selectedVariant.id}
       />
     </div>
   );

@@ -14,7 +14,6 @@ import {
   User,
   ChevronDown,
   Calendar,
-  MapPin,
   Phone,
   Mail,
   Edit3,
@@ -38,8 +37,7 @@ interface Order {
   id: string;
   orderNumber: string;
   status: string;
-  totalAmount: number | null;
-  subtotal: number;
+  totalAmount: number;
   createdAt: string;
   items: OrderItem[];
   statusHistory: { status: string; createdAt: string }[];
@@ -69,10 +67,6 @@ interface Profile {
   fullName: string;
   phone: string;
   email: string | null;
-  address: string;
-  province: string;
-  district: string;
-  ward: string;
   zaloPhone: string | null;
   instagramHandle: string | null;
   preferredLanguage: string;
@@ -265,7 +259,7 @@ function OrderRow({
               {date}
             </span>
             <span>
-              {t("total")}: {formatPrice(order.totalAmount ?? order.subtotal, locale)}
+              {t("total")}: {formatPrice(order.totalAmount, locale)}
             </span>
           </div>
         </div>
@@ -580,12 +574,6 @@ function ProfileSection() {
               <ProfileField label={t("fullName")} value={form.fullName} onChange={(v) => setForm({ ...form, fullName: v })} />
               <ProfileField label={t("phone")} value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} icon={<Phone size={16} />} />
               {profile.email && <ProfileReadOnlyField label={t("email")} value={profile.email} icon={<Mail size={16} />} />}
-              <ProfileField label={t("address")} value={form.address} onChange={(v) => setForm({ ...form, address: v })} icon={<MapPin size={16} />} />
-              <div className="grid grid-cols-3 gap-3">
-                <ProfileField label={t("province")} value={form.province} onChange={(v) => setForm({ ...form, province: v })} />
-                <ProfileField label={t("district")} value={form.district} onChange={(v) => setForm({ ...form, district: v })} />
-                <ProfileField label={t("ward")} value={form.ward} onChange={(v) => setForm({ ...form, ward: v })} />
-              </div>
               <ProfileField label="Zalo" value={form.zaloPhone} onChange={(v) => setForm({ ...form, zaloPhone: v })} />
               <ProfileField label="Instagram" value={form.instagramHandle} onChange={(v) => setForm({ ...form, instagramHandle: v })} />
             </div>
@@ -594,11 +582,6 @@ function ProfileSection() {
               <ProfileRow label={t("fullName")} value={profile.fullName} />
               <ProfileRow label={t("phone")} value={profile.phone} icon={<Phone size={14} />} />
               {profile.email && <ProfileRow label={t("email")} value={profile.email} icon={<Mail size={14} />} />}
-              <ProfileRow
-                label={t("address")}
-                value={formatAddress(profile)}
-                icon={<MapPin size={14} />}
-              />
               {profile.zaloPhone && <ProfileRow label="Zalo" value={profile.zaloPhone} />}
               {profile.instagramHandle && <ProfileRow label="Instagram" value={profile.instagramHandle} />}
             </dl>
@@ -649,17 +632,6 @@ function ProfileReadOnlyField({
       </div>
     </div>
   );
-}
-
-function formatAddress(profile: Profile) {
-  const address = [
-    profile.address,
-    profile.ward,
-    profile.district,
-    profile.province
-  ].filter(Boolean);
-
-  return address.length > 0 ? address.join(", ") : "-";
 }
 
 function ProfileField({

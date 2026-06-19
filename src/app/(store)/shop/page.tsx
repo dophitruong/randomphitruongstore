@@ -18,7 +18,11 @@ export default async function ShopPage() {
   const common = await getTranslations("common");
   const products = await getPrisma().product.findMany({
     where: { isActive: true, stockStatus: "IN_STOCK" },
-    include: { images: { orderBy: { sortOrder: "asc" } } },
+    include: {
+      categoryRecord: true,
+      images: { orderBy: { sortOrder: "asc" } },
+      variants: { orderBy: [{ size: "asc" }, { colorVi: "asc" }] }
+    },
     orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }]
   });
 

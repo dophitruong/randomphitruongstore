@@ -26,6 +26,16 @@ function modelField(schema: string, modelName: string, fieldName: string) {
   return line;
 }
 
+function missingModelField(schema: string, modelName: string, fieldName: string) {
+  const block = modelBlock(schema, modelName);
+  const line = block
+    .split("\n")
+    .map((value) => value.trim())
+    .find((value) => value.startsWith(`${fieldName} `));
+
+  assert.equal(line, undefined, `Expected ${modelName}.${fieldName} to be removed`);
+}
+
 async function readAllMigrationSql() {
   const entries = await readdir(migrationsUrl, { withFileTypes: true });
   const migrationDirs = entries
@@ -97,5 +107,41 @@ describe("ERD schema finalization", () => {
       migrationSql,
       /FOREIGN KEY \("productId"\) REFERENCES "Product"\("id"\) ON DELETE SET NULL/
     );
+  });
+
+  it("removes legacy MVP fields after runtime code migrates to ERD fields", async () => {
+    const schema = await readSchema();
+    const migrationSql = await readAllMigrationSql();
+
+    assert.doesNotMatch(schema, /enum ProductCategory\b/);
+    assert.doesNotMatch(schema, /enum OrderRequestStatus\b/);
+    assert.doesNotMatch(schema, /model OrderRequest\b/);
+    missingModelField(schema, "Product", "category");
+    missingModelField(schema, "Product", "price");
+    missingModelField(schema, "Product", "sizes");
+    missingModelField(schema, "Product", "colors");
+    missingModelField(schema, "Customer", "address");
+    missingModelField(schema, "Customer", "province");
+    missingModelField(schema, "Customer", "district");
+    missingModelField(schema, "Customer", "ward");
+    missingModelField(schema, "Order", "subtotal");
+    missingModelField(schema, "Order", "depositAmount");
+    assert.match(modelField(schema, "Product", "categoryId"), /^categoryId\s+String(\s|$)/);
+    assert.match(modelField(schema, "Product", "basePrice"), /^basePrice\s+Int(\s|$)/);
+    assert.match(modelField(schema, "Order", "subtotalAmount"), /^subtotalAmount\s+Int(\s|$)/);
+    assert.match(modelField(schema, "Order", "remainingAmount"), /^remainingAmount\s+Int(\s|$)/);
+    assert.match(modelField(schema, "Order", "totalAmount"), /^totalAmount\s+Int(\s|$)/);
+    assert.match(
+      migrationSql,
+      /INSERT INTO "ProductInquiry"[\s\S]+FROM "OrderRequest"/
+    );
+    assert.match(
+      migrationSql,
+      /INSERT INTO "ShippingAddress"[\s\S]+FROM "Order" AS orders/
+    );
+    assert.match(migrationSql, /Cannot drop OrderRequest/);
+    assert.match(migrationSql, /Cannot drop Customer address fields/);
+    assert.match(migrationSql, /DROP TABLE "OrderRequest"/);
+    assert.match(migrationSql, /DROP TYPE "ProductCategory"/);
   });
 });

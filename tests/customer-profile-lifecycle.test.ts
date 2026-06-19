@@ -26,7 +26,12 @@ describe("customer profile lifecycle", () => {
           createdCustomerData = data;
           return {
             id: "11111111-1111-4111-8111-111111111111",
-            ...data
+            fullName: String(data.fullName),
+            phone: String(data.phone),
+            email: String(data.email),
+            zaloPhone: null,
+            instagramHandle: null,
+            preferredLanguage: "vi"
           };
         }
       }
@@ -39,22 +44,14 @@ describe("customer profile lifecycle", () => {
       authFullName: "Auth Name",
       input: {
         fullName: "Profile Name",
-        phone: "0901234567",
-        address: "123 Nguyen Trai",
-        province: "Ho Chi Minh",
-        district: "District 1",
-        ward: "Ben Nghe"
+        phone: "0901234567"
       }
     });
 
     assert.deepEqual(createdCustomerData, {
       email: "customer@example.com",
       fullName: "Profile Name",
-      phone: "0901234567",
-      address: "123 Nguyen Trai",
-      province: "Ho Chi Minh",
-      district: "District 1",
-      ward: "Ben Nghe"
+      phone: "0901234567"
     });
     assert.equal(saved.email, "customer@example.com");
     assert.equal(saved.fullName, "Profile Name");

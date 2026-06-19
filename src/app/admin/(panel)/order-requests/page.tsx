@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 const statuses = ["NEW", "CONTACTED", "QUOTED", "CLOSED"];
 
-export default async function AdminOrderRequestsPage() {
+export default async function AdminProductInquiriesPage() {
   const requests = await listAdminProductInquiries(getPrisma());
 
   return (

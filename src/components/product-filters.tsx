@@ -3,12 +3,15 @@
 import { ChevronDown, SlidersHorizontal, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { Locale } from "@/i18n/request";
-import { categoryLabel } from "@/lib/format";
+import {
+  productMatchesVariantFilters,
+  productVariantColors,
+  productVariantSizes
+} from "@/lib/product-catalog";
 import { productBasePrice } from "@/lib/product-pricing";
 import type { ProductWithImages } from "@/types";
 import { ProductGrid } from "./product-grid";
 
-const categories = ["SUKAJAN", "BOMBER", "HOODIE", "JACKET", "SEASONAL"];
 const maximumPrice = 5000000;
 
 export function ProductFilters({
@@ -35,8 +38,9 @@ export function ProductFilters({
   const [color, setColor] = useState("ALL");
   const [maxPrice, setMaxPrice] = useState(maximumPrice);
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const sizes = [...new Set(products.flatMap((product) => product.sizes))];
-  const colors = [...new Set(products.flatMap((product) => product.colors))];
+  const categories = uniqueCategories(products);
+  const sizes = [...new Set(products.flatMap((product) => productVariantSizes(product.variants)))];
+  const colors = [...new Set(products.flatMap((product) => productVariantColors(product.variants)))];
   const activeFilterCount = [
     category !== "ALL",
     size !== "ALL",
@@ -49,9 +53,8 @@ export function ProductFilters({
       products.filter(
         (product) =>
           product.stockStatus === "IN_STOCK" &&
-          (category === "ALL" || product.category === category) &&
-          (size === "ALL" || product.sizes.includes(size)) &&
-          (color === "ALL" || product.colors.includes(color)) &&
+          (category === "ALL" || product.categoryId === category) &&
+          productMatchesVariantFilters(product.variants, { size, color }) &&
           productBasePrice(product) <= maxPrice
       ),
     [category, color, maxPrice, products, size]
@@ -103,8 +106,8 @@ export function ProductFilters({
               label={labels.category}
               onChange={setCategory}
               options={categories.map((item) => ({
-                value: item,
-                label: categoryLabel(item, locale)
+                value: item.id,
+                label: locale === "vi" ? item.nameVi : item.nameEn
               }))}
               value={category}
             />
@@ -167,6 +170,17 @@ export function ProductFilters({
       </section>
     </div>
   );
+}
+
+function uniqueCategories(products: ProductWithImages[]) {
+  const categories = new Map<string, NonNullable<ProductWithImages["categoryRecord"]>>();
+  for (const product of products) {
+    if (product.categoryRecord) {
+      categories.set(product.categoryRecord.id, product.categoryRecord);
+    }
+  }
+
+  return [...categories.values()];
 }
 
 function FilterSelect({

@@ -5,10 +5,7 @@ type CatalogProduct = {
   id: string;
   nameVi: string;
   nameEn: string;
-  price: number;
-  basePrice: number | null;
-  sizes: string[];
-  colors: string[];
+  basePrice: number;
 };
 
 type CatalogVariant = {
@@ -76,10 +73,6 @@ type CheckoutOrderTransaction = {
 type CustomerCheckoutData = {
   fullName: string;
   phone: string;
-  address: string;
-  province: string;
-  district: string;
-  ward: string;
 };
 
 type CheckoutOrderCreateData = {
@@ -88,8 +81,6 @@ type CheckoutOrderCreateData = {
   paymentMethod: OrderInput["paymentMethod"];
   paymentOption: "DEPOSIT_50" | "ONLINE_100";
   status: "PENDING_DEPOSIT" | "PENDING_ONLINE_PAYMENT";
-  subtotal: number;
-  depositAmount: number | null;
   subtotalAmount: number;
   remainingAmount: number;
   shippingFee: number;
@@ -153,9 +144,7 @@ export async function createCheckoutOrder({
   const productIds = [...new Set(input.items.map((item) => item.productId))];
   const variantIds = [
     ...new Set(
-      input.items
-        .map((item) => item.productVariantId)
-        .filter((id): id is string => Boolean(id))
+      input.items.map((item) => item.productVariantId)
     )
   ];
 
@@ -167,15 +156,13 @@ export async function createCheckoutOrder({
     throw new CheckoutOrderError("One or more products are unavailable", 409);
   }
 
-  const variants = variantIds.length > 0
-    ? await prisma.productVariant.findMany({
-        where: {
-          id: { in: variantIds },
-          productId: { in: productIds },
-          isAvailable: true
-        }
-      })
-    : [];
+  const variants = await prisma.productVariant.findMany({
+    where: {
+      id: { in: variantIds },
+      productId: { in: productIds },
+      isAvailable: true
+    }
+  });
 
   const productMap = new Map(products.map((product) => [product.id, product]));
   const variantMap = new Map(variants.map((variant) => [variant.id, variant]));
@@ -185,26 +172,19 @@ export async function createCheckoutOrder({
       throw new CheckoutOrderError("One or more products are unavailable", 409);
     }
 
-    const variant = item.productVariantId
-      ? variantMap.get(item.productVariantId)
-      : null;
+    const variant = variantMap.get(item.productVariantId);
 
-    if (item.productVariantId && (!variant || variant.productId !== item.productId)) {
+    if (!variant || variant.productId !== item.productId) {
       throw new CheckoutOrderError("Invalid product variant", 400);
     }
 
-    if (!variant && (!product.sizes.includes(item.size) || !product.colors.includes(item.color))) {
-      throw new CheckoutOrderError(`Invalid size or color for ${product.nameEn}`, 400);
-    }
-
-    const selectedSize = variant?.size ?? item.size;
-    const selectedColor = variant?.colorVi ?? item.color;
-    const basePrice = product.basePrice ?? product.price;
-    const unitPrice = basePrice + (variant?.priceAdjustment ?? 0);
+    const selectedSize = variant.size;
+    const selectedColor = variant.colorVi;
+    const unitPrice = product.basePrice + variant.priceAdjustment;
 
     return {
       productId: item.productId,
-      ...(item.productVariantId ? { productVariantId: item.productVariantId } : {}),
+      productVariantId: item.productVariantId,
       productName: product.nameVi,
       itemNameSnapshot: product.nameVi,
       unitPrice,
@@ -217,14 +197,15 @@ export async function createCheckoutOrder({
     };
   });
 
-  const subtotal = orderItems.reduce((total, item) => total + item.lineTotal, 0);
+  const subtotalAmount = orderItems.reduce((total, item) => total + item.lineTotal, 0);
   const isDeposit = input.paymentMethod === "DEPOSIT_50_BANK_ZALO";
-  const depositAmount = isDeposit ? Math.ceil(subtotal / 2) : null;
+  const depositPaymentAmount = isDeposit ? Math.ceil(subtotalAmount / 2) : null;
   const shippingFee = 0;
-  const totalAmount = subtotal + shippingFee;
-  const remainingAmount = depositAmount === null ? 0 : totalAmount - depositAmount;
+  const totalAmount = subtotalAmount + shippingFee;
+  const remainingAmount =
+    depositPaymentAmount === null ? 0 : totalAmount - depositPaymentAmount;
   const paymentOption = isDeposit ? "DEPOSIT_50" : "ONLINE_100";
-  const paymentAmount = depositAmount ?? totalAmount;
+  const paymentAmount = depositPaymentAmount ?? totalAmount;
   const normalizedEmail = normalizeEmail(userEmail);
   const customerData = customerDataFromCheckout(input);
 
@@ -243,9 +224,7 @@ export async function createCheckoutOrder({
         paymentMethod: input.paymentMethod,
         paymentOption,
         status: isDeposit ? "PENDING_DEPOSIT" : "PENDING_ONLINE_PAYMENT",
-        subtotal,
-        depositAmount,
-        subtotalAmount: subtotal,
+        subtotalAmount,
         remainingAmount,
         shippingFee,
         totalAmount,
@@ -282,11 +261,7 @@ export async function createCheckoutOrder({
 function customerDataFromCheckout(input: OrderInput): CustomerCheckoutData {
   return {
     fullName: input.fullName,
-    phone: input.phone,
-    address: input.address,
-    province: input.province,
-    district: input.district,
-    ward: input.ward
+    phone: input.phone
   };
 }
 

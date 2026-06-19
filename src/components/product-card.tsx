@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Locale } from "@/i18n/request";
-import { categoryLabel, formatPrice } from "@/lib/format";
+import { formatPrice } from "@/lib/format";
 import { productBasePrice } from "@/lib/product-pricing";
 import type { ProductWithImages } from "@/types";
 import { OrderBadge } from "./order-badge";
@@ -19,6 +19,11 @@ export function ProductCard({
 }) {
   const image = product.images[0];
   const name = locale === "vi" ? product.nameVi : product.nameEn;
+  const categoryName = product.categoryRecord
+    ? locale === "vi"
+      ? product.categoryRecord.nameVi
+      : product.categoryRecord.nameEn
+    : "";
   const isOutOfStock = product.stockStatus === "OUT_OF_STOCK";
 
   return (
@@ -64,7 +69,7 @@ export function ProductCard({
           <div className="flex items-center gap-2">
             <span className="h-px w-3 shrink-0 bg-[#a72b1f] sm:w-5" />
             <p className="truncate text-[0.55rem] font-bold uppercase tracking-[0.1em] text-zinc-500 sm:text-[0.65rem]">
-              {categoryLabel(product.category, locale)}
+              {categoryName}
             </p>
           </div>
           <div className="mt-2 min-w-0 sm:flex sm:items-start sm:justify-between sm:gap-4">
