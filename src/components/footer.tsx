@@ -138,11 +138,11 @@ export async function Footer() {
                 {ZALO_PHONE}
               </a>
               <a
-                className="mt-3 inline-flex items-center gap-2 text-sm font-bold text-white/70 hover:text-white"
+                className="mt-3 flex items-center gap-2 text-sm font-bold text-white/70 hover:text-white"
                 href={`mailto:${CONTACT_EMAIL}`}
               >
                 <Mail size={18} />
-                {CONTACT_EMAIL}
+                <span className="break-all">{CONTACT_EMAIL}</span>
               </a>
             </div>
           </div>

@@ -124,19 +124,19 @@ export function AccountView({ title }: { title: string }) {
       </header>
 
       {/* Tab navigation */}
-      <nav className="flex gap-1 border-b border-black/10 mb-8 overflow-x-auto">
+      <nav className="flex border-b border-black/10 mb-8">
         {tabs.map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`flex items-center gap-2 px-4 py-3 text-sm font-bold whitespace-nowrap border-b-2 transition-colors ${
+            className={`flex flex-1 flex-col items-center gap-1 px-2 py-3 text-xs font-bold border-b-2 transition-colors sm:flex-row sm:flex-none sm:gap-2 sm:px-5 sm:text-sm ${
               activeTab === tab.key
                 ? "border-[#a72b1f] text-[#a72b1f]"
                 : "border-transparent text-zinc-500 hover:text-zinc-800"
             }`}
           >
             {tab.icon}
-            {tab.label}
+            <span>{tab.label}</span>
           </button>
         ))}
       </nav>

@@ -22,10 +22,6 @@ export function CartView() {
           <h1 className="mt-3 text-4xl font-black tracking-[-0.04em] sm:text-6xl">
             Giỏ hàng
           </h1>
-          <p className="mt-4 max-w-2xl text-sm leading-7 text-zinc-600">
-            Đây là giỏ hàng frontend để khách giữ mẫu, size và màu trước khi backend
-            checkout hoàn thiện.
-          </p>
 
           {!hydrated ? (
             <div className="mt-10 border border-dashed border-zinc-300 bg-white p-10 text-center">
