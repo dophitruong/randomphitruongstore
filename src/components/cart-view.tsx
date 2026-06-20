@@ -47,7 +47,7 @@ export function CartView() {
 
   return (
     <div className="container-shell py-10 sm:py-16">
-      <div className="grid gap-10 lg:grid-cols-[1fr_360px]">
+      <div className="grid gap-10 lg:grid-cols-[1fr_360px] xl:grid-cols-[1fr_380px] lg:gap-10 xl:gap-12">
         <section>
           <p className="eyebrow text-[#a72b1f]">Cart preview</p>
           <h1 className="mt-3 text-4xl font-black tracking-[-0.04em] sm:text-6xl">
