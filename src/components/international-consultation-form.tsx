@@ -106,7 +106,7 @@ export function InternationalConsultationForm({
 
   return (
     <form
-      className="grid max-w-2xl gap-5 border border-zinc-300 bg-white p-5 sm:grid-cols-2 sm:p-8"
+      className="grid max-w-2xl gap-5 border border-zinc-300 bg-white p-5 sm:grid-cols-2 xl:grid-cols-2 sm:p-8"
       onSubmit={handleSubmit(onSubmit)}
     >
       <FormField
