@@ -61,7 +61,7 @@ export default async function OrderPage({ params, searchParams }: PageProps) {
         <h1 className="mt-2 text-4xl font-black tracking-[-0.04em] sm:text-5xl">{t("title")}</h1>
       </header>
 
-      <div className="grid gap-10 lg:grid-cols-[1fr_380px]">
+      <div className="grid gap-10 lg:grid-cols-[1fr_380px] xl:grid-cols-[1fr_400px] lg:gap-10 xl:gap-12">
         <section>
           <h2 className="text-xl font-black mb-4">{t("customerInfo")}</h2>
           <dl className="grid gap-3 text-sm">
