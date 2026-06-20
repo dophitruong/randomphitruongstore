@@ -1,6 +1,6 @@
 "use client";
 
-import { Minus, Plus, Trash2 } from "lucide-react";
+import { Minus, Plus, Trash2, CreditCard } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useLocale } from "next-intl";
@@ -8,11 +8,42 @@ import type { Locale } from "@/i18n/request";
 import { useAuth } from "@/context/auth-context";
 import { formatPrice } from "@/lib/format";
 import { useCart } from "./cart-provider";
+import { useRouter } from "next/navigation";
 
 export function CartView() {
   const locale = useLocale() as Locale;
+  const router = useRouter();
   const { user, loading: authLoading } = useAuth();
-  const { items, subtotal, updateQuantity, removeItem, itemKey, hydrated } = useCart();
+  const { items, subtotal, updateQuantity, removeItem, itemKey, hydrated, clearCart } = useCart();
+
+  async function handleCheckout() {
+    if (items.length === 0) return;
+
+    const response = await fetch("/api/orders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        shippingRegion: "VIETNAM",
+        paymentMethod: "DEPOSIT_50_BANK_ZALO",
+        noChangePolicyAck: true,
+        items: items.map((item) => ({
+          productId: item.productId,
+          ...(item.productVariantId ? { productVariantId: item.productVariantId } : {}),
+          quantity: item.quantity,
+          size: item.size,
+          color: item.color
+        }))
+      })
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success) {
+      alert(result.error ?? "Unable to create order");
+      return;
+    }
+
+    clearCart();
+    router.push(`/order/${result.data.id}`);
+  }
 
   return (
     <div className="container-shell py-10 sm:py-16">
@@ -109,10 +140,14 @@ export function CartView() {
             <span>Tạm tính</span>
             <span>{formatPrice(subtotal, locale)}</span>
           </div>
-          <p className="mt-4 text-xs leading-6 text-zinc-500">
-            Checkout nhiều sản phẩm sẽ được nối backend sau. Hiện tại khách có thể
-            giữ danh sách hoặc checkout từng sản phẩm từ trang chi tiết.
-          </p>
+          <button
+            onClick={handleCheckout}
+            disabled={items.length === 0}
+            className="mt-5 button-primary w-full"
+          >
+            <CreditCard size={17} className="mr-2" />
+            Thanh toán ({items.length} sản phẩm)
+          </button>
           <div className="mt-5 grid gap-3">
             {!authLoading && user ? (
               <>
