@@ -6,9 +6,7 @@ import { buildSePaySuccessUrl, buildSePayCancelUrl, createSePayPayment } from "@
 import { z } from "zod";
 
 const createPaymentSchema = z.object({
-  orderId: z.string().min(1),
-  amount: z.coerce.number().int().positive(),
-  description: z.string().min(1).max(500)
+  orderId: z.string().uuid(),
 });
 
 export async function POST(request: Request) {
@@ -22,37 +20,46 @@ export async function POST(request: Request) {
     const { data: { user } } = await supabase.auth.getUser();
     const userEmail = normalizeEmail(user?.email);
 
-    const order = await getPrisma().order.findFirst({
-      where: {
-        OR: [
-          { id: parsed.data.orderId },
-          { orderNumber: parsed.data.orderId }
-        ],
-        ...(userEmail ? { customer: { email: userEmail } } : {})
-      },
-      include: { payments: true }
+    const order = await getPrisma().order.findUnique({
+      where: { id: parsed.data.orderId },
+      include: { payments: true, customer: true }
     });
 
     if (!order) {
       return err("Order not found", 404);
     }
 
+    // Ownership check: if user is authenticated, order must belong to them
+    if (userEmail && order.customer?.email !== userEmail) {
+      return err("Order not found", 404);
+    }
+
+    // Validate order status
     if (order.status !== "PENDING_ONLINE_PAYMENT") {
       return err("Order is not pending online payment", 400);
     }
 
-    const payment = order.payments[0];
-    if (!payment || payment.paymentStatus !== "PENDING") {
-      return err("Payment already processed", 400);
+    // Validate payment method
+    if (order.paymentMethod !== "ONLINE_100_SEPAY") {
+      return err("Invalid payment method for this order", 400);
     }
+
+    const payment = order.payments.find(p => p.paymentStatus === "PENDING");
+    if (!payment) {
+      return err("No pending payment found", 400);
+    }
+
+    // Use stored payment amount and description, not client-provided
+    const amount = payment.amount;
+    const description = `Thanh toan don hang ${order.orderNumber}`;
 
     const successUrl = buildSePaySuccessUrl(order.orderNumber);
     const cancelUrl = buildSePayCancelUrl(order.orderNumber);
 
     const { paymentUrl, transactionId } = await createSePayPayment({
       orderNumber: order.orderNumber,
-      amount: parsed.data.amount,
-      description: parsed.data.description,
+      amount,
+      description,
       returnUrl: successUrl,
       cancelUrl
     });
