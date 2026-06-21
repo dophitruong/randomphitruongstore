@@ -6,6 +6,7 @@ import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { BankTransferBox } from "@/components/bank-transfer-box";
 import { formatPrice } from "@/lib/format";
+import { PaymentButtons } from "@/components/payment-buttons";
 
 export const dynamic = "force-dynamic";
 
@@ -127,54 +128,12 @@ export default async function OrderPage({ params, searchParams }: PageProps) {
                 />
                 <p className="mt-4 text-sm text-zinc-500">{t("deposit")}</p>
               </>
-            ) : payment?.gatewayProvider === "sepay" ? (
-              <div className="space-y-3">
-                <p className="text-sm text-zinc-600">{t("paymentSandboxNote")}</p>
-                <button
-                  onClick={() => {
-                    window.location.href = `/api/payment/sepay?orderId=${encodeURIComponent(order.orderNumber)}&amount=${payment?.amount ?? order.totalAmount}&description=Thanh toan don hang ${order.orderNumber}`;
-                  }}
-                  className="button-primary w-full"
-                >
-                  Thanh toán qua SePay
-                </button>
-                <button
-                  onClick={() => {
-                    window.location.href = `/api/payment/vnpay-placeholder?orderId=${encodeURIComponent(order.orderNumber)}`;
-                  }}
-                  className="button-secondary w-full border border-zinc-300 bg-white py-2 text-sm font-bold hover:bg-zinc-50"
-                >
-                  VNPay (placeholder)
-                </button>
-                <button
-                  onClick={() => {
-                    window.location.href = `/api/payment/momo-placeholder?orderId=${encodeURIComponent(order.orderNumber)}`;
-                  }}
-                  className="w-full border border-zinc-300 bg-white py-2 text-sm font-bold hover:bg-zinc-50"
-                >
-                  MoMo (placeholder)
-                </button>
-              </div>
             ) : (
-              <div className="space-y-3">
-                <p className="text-sm text-zinc-600">{t("paymentSandboxNote")}</p>
-                <button
-                  onClick={() => {
-                    window.location.href = `/api/payment/vnpay-placeholder?orderId=${encodeURIComponent(order.orderNumber)}`;
-                  }}
-                  className="button-primary w-full"
-                >
-                  VNPay (placeholder)
-                </button>
-                <button
-                  onClick={() => {
-                    window.location.href = `/api/payment/momo-placeholder?orderId=${encodeURIComponent(order.orderNumber)}`;
-                  }}
-                  className="w-full border border-zinc-300 bg-white py-2 text-sm font-bold hover:bg-zinc-50"
-                >
-                  MoMo (placeholder)
-                </button>
-              </div>
+              <PaymentButtons
+                orderId={order.id}
+                orderNumber={order.orderNumber}
+                amount={payment?.amount ?? order.totalAmount}
+              />
             )}
             <p className="mt-4 text-xs text-zinc-500">
               Trạng thái: <span className="font-bold">{order.status}</span>
