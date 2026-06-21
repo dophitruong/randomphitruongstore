@@ -6,7 +6,7 @@ import { buildSePaySuccessUrl, buildSePayCancelUrl, createSePayPayment } from "@
 import { z } from "zod";
 
 const createPaymentSchema = z.object({
-  orderId: z.string().uuid(),
+  orderId: z.string().min(1),
   amount: z.coerce.number().int().positive(),
   description: z.string().min(1).max(500)
 });
@@ -24,7 +24,10 @@ export async function POST(request: Request) {
 
     const order = await getPrisma().order.findFirst({
       where: {
-        orderNumber: parsed.data.orderId,
+        OR: [
+          { id: parsed.data.orderId },
+          { orderNumber: parsed.data.orderId }
+        ],
         ...(userEmail ? { customer: { email: userEmail } } : {})
       },
       include: { payments: true }
