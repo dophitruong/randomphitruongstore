@@ -475,6 +475,7 @@ model Payment {
   @@index([bankAccountId])
   @@index([paymentStatus, createdAt])
   @@unique([gatewayProvider, gatewayTransactionId])
+  @@unique([gatewayProvider, gatewayOrderId])
 }
 
 model PaymentProof {
