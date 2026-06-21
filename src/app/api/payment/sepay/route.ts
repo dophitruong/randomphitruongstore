@@ -2,7 +2,14 @@ import { err, handlePrismaError, ok, zodDetails } from "@/lib/api-response";
 import { getPrisma } from "@/lib/prisma";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { normalizeEmail } from "@/lib/customer-account";
-import { buildSePaySuccessUrl, buildSePayCancelUrl, createSePayPayment } from "@/lib/sepay";
+import {
+  buildSePayCancelUrl,
+  buildSePayCheckout,
+  buildSePayErrorUrl,
+  buildSePaySuccessUrl,
+  isLocalSePaySandbox
+} from "@/lib/sepay";
+import { SITE_URL } from "@/lib/constants";
 import { z } from "zod";
 
 const createPaymentSchema = z.object({
@@ -53,27 +60,31 @@ export async function POST(request: Request) {
     const amount = payment.amount;
     const description = `Thanh toan don hang ${order.orderNumber}`;
 
-    const successUrl = buildSePaySuccessUrl(order.orderNumber);
-    const cancelUrl = buildSePayCancelUrl(order.orderNumber);
-
-    const { paymentUrl, transactionId } = await createSePayPayment({
-      orderNumber: order.orderNumber,
-      amount,
-      description,
-      returnUrl: successUrl,
-      cancelUrl
-    });
-
     await getPrisma().payment.update({
       where: { id: payment.id },
       data: {
         gatewayProvider: "sepay",
-        gatewayTransactionId: transactionId,
         gatewayOrderId: order.orderNumber
       }
     });
 
-    return ok({ paymentUrl });
+    if (isLocalSePaySandbox()) {
+      return ok({
+        paymentUrl: `${SITE_URL}/api/payment/sepay-placeholder?orderId=${encodeURIComponent(order.orderNumber)}`
+      });
+    }
+
+    return ok({
+      checkout: buildSePayCheckout({
+        orderNumber: order.orderNumber,
+        amount,
+        description,
+        customerId: order.customerId,
+        successUrl: buildSePaySuccessUrl(order.orderNumber),
+        errorUrl: buildSePayErrorUrl(order.orderNumber),
+        cancelUrl: buildSePayCancelUrl(order.orderNumber)
+      })
+    });
   } catch (error) {
     return handlePrismaError(error);
   }

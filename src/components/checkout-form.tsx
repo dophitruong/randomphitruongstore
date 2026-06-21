@@ -10,6 +10,7 @@ import { z } from "zod";
 import type { Locale } from "@/i18n/request";
 import { ZALO_URL } from "@/lib/constants";
 import { formatPrice } from "@/lib/format";
+import { navigateToPayment } from "@/lib/payment-navigation";
 import type { ProductWithImages } from "@/types";
 import { BankTransferBox } from "./bank-transfer-box";
 import { InternationalShippingNotice } from "./international-shipping-notice";
@@ -153,8 +154,7 @@ export function CheckoutForm({
         })
       });
       const paymentResult = await paymentResponse.json();
-      if (paymentResult.success && paymentResult.data?.paymentUrl) {
-        window.location.assign(paymentResult.data.paymentUrl);
+      if (paymentResult.success && navigateToPayment(paymentResult.data)) {
         return;
       }
       setServerError(paymentResult.error ?? "Unable to create SePay payment");

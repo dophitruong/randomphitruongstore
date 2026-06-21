@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { CreditCard, Loader2 } from "lucide-react";
+import { navigateToPayment } from "@/lib/payment-navigation";
 
 interface PaymentButtonsProps {
   orderId: string;
@@ -32,8 +33,7 @@ export function PaymentButtons({
       });
 
       const result = await response.json();
-      if (result.success && result.data?.paymentUrl) {
-        window.location.assign(result.data.paymentUrl);
+      if (result.success && navigateToPayment(result.data)) {
       } else {
         alert(result.error ?? "Failed to initiate SePay payment");
       }

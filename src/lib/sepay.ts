@@ -1,153 +1,141 @@
+import { timingSafeEqual } from "node:crypto";
+import { SePayPgClient } from "sepay-pg-node";
+import { z } from "zod";
 import { SITE_URL } from "@/lib/constants";
-import { createHmac, timingSafeEqual } from "crypto";
 
-interface SePayCreatePaymentResponse {
-  success: boolean;
-  data?: {
-    paymentUrl: string;
-    transactionId: string;
-    orderCode: string;
-  };
-  message?: string;
-}
+export type SePayEnvironment = "sandbox" | "production";
 
-interface SePayWebhookPayload {
-  transactionId: string;
-  orderCode: string;
-  amount: number;
-  status: "SUCCESS" | "FAILED" | "PENDING";
-  gateway: string;
-  description?: string;
-  accountNumber?: string;
-  referenceCode?: string;
-  transactionDate: string;
-  content: string;
-  transferAmount: number;
-  accumulated: number;
-  subAccount: string | null;
-}
+type SePayConfig = {
+  environment: SePayEnvironment;
+  merchantId: string;
+  merchantSecretKey: string;
+};
 
-interface SePayInitResponse {
-  success: boolean;
-  data?: {
-    checkoutUrl: string;
-    transactionId: string;
-  };
-  message?: string;
-}
-
-export async function createSePayPayment({
-  orderNumber,
-  amount,
-  description,
-  returnUrl,
-  cancelUrl
-}: {
+type SePayCheckoutInput = {
   orderNumber: string;
   amount: number;
   description: string;
-  returnUrl: string;
+  customerId?: string;
+  successUrl: string;
+  errorUrl: string;
   cancelUrl: string;
-}): Promise<{ paymentUrl: string; transactionId: string }> {
-  if (process.env.SEPAY_ENVIRONMENT === "sandbox") {
-    return {
-      paymentUrl: `${SITE_URL}/api/payment/sepay-placeholder?orderId=${encodeURIComponent(orderNumber)}`,
-      transactionId: `sandbox-${orderNumber}-${Date.now()}`
-    };
+};
+
+export const sePayIpnSchema = z.object({
+  timestamp: z.number().int(),
+  notification_type: z.enum(["ORDER_PAID", "TRANSACTION_VOID"]),
+  order: z.object({
+    id: z.string().min(1),
+    order_id: z.string().min(1),
+    order_status: z.string().min(1),
+    order_currency: z.string().min(1),
+    order_amount: z.string().min(1),
+    order_invoice_number: z.string().min(1),
+    custom_data: z.unknown().optional(),
+    user_agent: z.string().optional(),
+    ip_address: z.string().optional(),
+    order_description: z.string().optional()
+  }).passthrough(),
+  transaction: z.object({
+    id: z.string().min(1),
+    payment_method: z.string().min(1),
+    transaction_id: z.string().min(1),
+    transaction_type: z.string().min(1),
+    transaction_date: z.string().min(1),
+    transaction_status: z.string().min(1),
+    transaction_amount: z.string().min(1),
+    transaction_currency: z.string().min(1)
+  }).passthrough(),
+  customer: z.object({
+    id: z.string().min(1),
+    customer_id: z.string().nullable().optional()
+  }).passthrough()
+}).passthrough();
+
+export type SePayIpnPayload = z.infer<typeof sePayIpnSchema>;
+
+export function buildSePayCheckout(
+  input: SePayCheckoutInput,
+  config: SePayConfig = sePayConfigFromEnvironment()
+) {
+  if (!Number.isSafeInteger(input.amount) || input.amount <= 0) {
+    throw new Error("SePay payment amount must be a positive integer");
   }
 
-  const merchantId = process.env.SEPAY_MERCHANT_ID;
-  const secretKey = process.env.SEPAY_SECRET_KEY;
-  const apiUrl = process.env.SEPAY_API_URL ?? "https://my.sepay.vn/v1/checkout/init";
-
-  if (!merchantId || !secretKey) {
-    throw new Error("SEPAY_MERCHANT_ID and SEPAY_SECRET_KEY not configured");
-  }
-
-  const payload = {
-    merchantId,
-    orderCode: orderNumber,
-    amount,
-    description,
-    returnUrl,
-    cancelUrl
-  };
-
-  const signature = generateSignature(payload, secretKey);
-
-  const response = await fetch(apiUrl, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Merchant-Id": merchantId,
-      "X-Signature": signature
-    },
-    body: JSON.stringify(payload)
+  const client = new SePayPgClient({
+    env: config.environment,
+    merchant_id: config.merchantId,
+    secret_key: config.merchantSecretKey
+  });
+  const fields = client.checkout.initOneTimePaymentFields({
+    operation: "PURCHASE",
+    payment_method: "BANK_TRANSFER",
+    order_invoice_number: input.orderNumber,
+    order_amount: input.amount,
+    currency: "VND",
+    order_description: input.description,
+    ...(input.customerId ? { customer_id: input.customerId } : {}),
+    success_url: input.successUrl,
+    error_url: input.errorUrl,
+    cancel_url: input.cancelUrl
   });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`SePay API error: ${response.status} ${errorText}`);
-  }
-
-  const data: SePayInitResponse = await response.json();
-
-  if (!data.success || !data.data?.checkoutUrl) {
-    throw new Error(data.message ?? "Failed to create SePay payment");
-  }
-
   return {
-    paymentUrl: data.data.checkoutUrl,
-    transactionId: data.data.transactionId || orderNumber
+    action: client.checkout.initCheckoutUrl(),
+    method: "POST" as const,
+    fields
   };
 }
 
-function generateSignature(payload: Record<string, unknown>, secretKey: string): string {
-  const sortedKeys = Object.keys(payload).sort();
-  const signatureString = sortedKeys
-    .map((key) => `${key}=${payload[key]}`)
-    .join("&");
-
-  return createHmac("sha256", secretKey)
-    .update(signatureString)
-    .digest("hex");
+export function parseSePayIpn(payload: unknown): SePayIpnPayload {
+  return sePayIpnSchema.parse(payload);
 }
 
-export function verifySePayWebhook(
-  request: Request,
-  payload: SePayWebhookPayload
-): boolean {
-  const webhookSecret = process.env.SEPAY_WEBHOOK_SECRET;
-
-  if (!webhookSecret) {
+export function verifySePayIpnSecret(
+  headers: Headers,
+  expectedSecret = sePayIpnSecretFromEnvironment()
+) {
+  const suppliedSecret = headers.get("X-Secret-Key");
+  if (!expectedSecret || !suppliedSecret) {
     return false;
   }
 
-  const signature = request.headers.get("X-Sepay-Signature") ??
-                    request.headers.get("X-Webhook-Signature") ??
-                    request.headers.get("X-Signature");
+  const supplied = Buffer.from(suppliedSecret);
+  const expected = Buffer.from(expectedSecret);
+  return supplied.length === expected.length && timingSafeEqual(supplied, expected);
+}
 
-  if (!signature) {
-    return false;
+export function isLocalSePaySandbox() {
+  return process.env.SEPAY_ENVIRONMENT === "sandbox";
+}
+
+export function sePayConfigFromEnvironment(): SePayConfig {
+  const environment = process.env.SEPAY_ENVIRONMENT === "production"
+    ? "production"
+    : "sandbox";
+  const merchantId = process.env.SEPAY_MERCHANT_ID;
+  const merchantSecretKey =
+    process.env.SEPAY_MERCHANT_SECRET_KEY ?? process.env.SEPAY_SECRET_KEY;
+
+  if (!merchantId || !merchantSecretKey) {
+    throw new Error(
+      "SEPAY_MERCHANT_ID and SEPAY_MERCHANT_SECRET_KEY are required"
+    );
   }
 
-  const sortedKeys = Object.keys(payload).sort();
-  const signatureString = sortedKeys
-    .map((key) => `${key}=${payload[key as keyof SePayWebhookPayload]}`)
-    .join("&");
+  return { environment, merchantId, merchantSecretKey };
+}
 
-  const expectedSignature = createHmac("sha256", webhookSecret)
-    .update(signatureString)
-    .digest("hex");
-
-  return timingSafeEqual(
-    Buffer.from(signature),
-    Buffer.from(expectedSignature)
-  );
+export function sePayIpnSecretFromEnvironment() {
+  return process.env.SEPAY_IPN_SECRET_KEY ?? process.env.SEPAY_MERCHANT_SECRET_KEY ?? "";
 }
 
 export function buildSePaySuccessUrl(orderNumber: string): string {
   return `${SITE_URL}/checkout/success?orderId=${encodeURIComponent(orderNumber)}&gateway=sepay`;
+}
+
+export function buildSePayErrorUrl(orderNumber: string): string {
+  return `${SITE_URL}/checkout/cancel?orderId=${encodeURIComponent(orderNumber)}&gateway=sepay&status=error`;
 }
 
 export function buildSePayCancelUrl(orderNumber: string): string {

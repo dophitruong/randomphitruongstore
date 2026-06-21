@@ -1,74 +1,73 @@
-import { getPrisma } from "@/lib/prisma";
-import { verifySePayWebhook } from "@/lib/sepay";
-import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
-
-interface SePayWebhookPayload {
-  transactionId: string;
-  orderCode: string;
-  amount: number;
-  status: "SUCCESS" | "FAILED" | "PENDING";
-  gateway: string;
-  description?: string;
-  accountNumber?: string;
-  referenceCode?: string;
-  transactionDate: string;
-  content: string;
-  transferAmount: number;
-  accumulated: number;
-  subAccount: string | null;
-}
+import { NextResponse } from "next/server";
+import { getPrisma } from "@/lib/prisma";
+import { parseSePayIpn, verifySePayIpnSecret } from "@/lib/sepay";
 
 export async function POST(request: Request) {
-  const payload: SePayWebhookPayload = await request.json();
+  if (!verifySePayIpnSecret(request.headers)) {
+    console.error("[SePay IPN] Invalid X-Secret-Key");
+    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  }
 
-  if (!verifySePayWebhook(request, payload)) {
-    console.error("[SePay Webhook] Invalid signature");
-    return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+  let payload;
+  try {
+    payload = parseSePayIpn(await request.json());
+  } catch {
+    return NextResponse.json({ success: false, error: "Invalid IPN payload" }, { status: 400 });
+  }
+
+  if (
+    payload.notification_type !== "ORDER_PAID" ||
+    payload.order.order_status !== "CAPTURED" ||
+    payload.transaction.transaction_status !== "APPROVED"
+  ) {
+    return NextResponse.json({ success: true });
   }
 
   try {
-    if (payload.status !== "SUCCESS") {
-      console.log(`[SePay Webhook] Non-success status: ${payload.status}`);
-      return NextResponse.json({ message: "Non-success status ignored" }, { status: 200 });
-    }
-
     const order = await getPrisma().order.findUnique({
-      where: { orderNumber: payload.orderCode },
+      where: { orderNumber: payload.order.order_invoice_number },
       include: { payments: true }
     });
 
-    if (!order) {
-      console.error(`[SePay Webhook] Order not found: ${payload.orderCode}`);
-      return NextResponse.json({ error: "Order not found" }, { status: 404 });
+    if (!order || order.paymentMethod !== "ONLINE_100_SEPAY") {
+      console.error(`[SePay IPN] Order not found: ${payload.order.order_invoice_number}`);
+      return NextResponse.json({ success: false, error: "Order not found" }, { status: 404 });
     }
 
-    const payment = order.payments.find(p => p.gatewayTransactionId === payload.transactionId || p.paymentStatus === "PENDING");
+    const transactionId = payload.transaction.transaction_id;
+    const payment = order.payments.find(
+      (item) =>
+        item.gatewayTransactionId === transactionId || item.paymentStatus === "PENDING"
+    );
     if (!payment) {
-      console.error(`[SePay Webhook] No pending payment for order: ${payload.orderCode}`);
-      return NextResponse.json({ error: "No pending payment" }, { status: 404 });
+      return NextResponse.json({ success: true });
     }
 
-    if (payment.gatewayTransactionId === payload.transactionId && payment.paymentStatus === "PAID") {
-      console.log(`[SePay Webhook] Already processed transaction: ${payload.transactionId}`);
-      return NextResponse.json({ success: true, message: "Already processed" });
+    if (
+      payment.gatewayTransactionId === transactionId &&
+      payment.paymentStatus === "PAID"
+    ) {
+      return NextResponse.json({ success: true });
     }
 
     const gatewayResponse = JSON.parse(JSON.stringify(payload)) as Prisma.JsonObject;
 
-    await getPrisma().$transaction(async (tx) => {
-      await tx.payment.update({
+    await getPrisma().$transaction(async (transaction) => {
+      await transaction.payment.update({
         where: { id: payment.id },
         data: {
           paymentStatus: "PAID",
           paidAt: new Date(),
+          gatewayProvider: "sepay",
+          gatewayOrderId: payload.order.order_invoice_number,
           gatewayResponse,
-          gatewayTransactionId: payload.transactionId,
-          transactionReference: payload.referenceCode
+          gatewayTransactionId: transactionId,
+          transactionReference: payload.transaction.id
         }
       });
 
-      await tx.order.update({
+      await transaction.order.update({
         where: { id: order.id },
         data: {
           status: "PAID_FULL",
@@ -77,18 +76,18 @@ export async function POST(request: Request) {
         }
       });
 
-      await tx.orderStatusHistory.create({
+      await transaction.orderStatusHistory.create({
         data: {
           orderId: order.id,
           status: "PAID_FULL",
-          note: `SePay payment confirmed. Amount: ${payload.transferAmount}. Trans: ${payload.transactionId}`
+          note: `SePay payment confirmed. Amount: ${payload.transaction.transaction_amount}. Transaction: ${transactionId}`
         }
       });
     });
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("[SePay Webhook Error]", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    console.error("[SePay IPN] Processing failed", error);
+    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }
