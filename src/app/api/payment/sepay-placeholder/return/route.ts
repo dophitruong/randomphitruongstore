@@ -34,42 +34,13 @@ export async function GET(request: Request) {
     });
   }
 
-  if (status === "success") {
-    await getPrisma().$transaction([
-      getPrisma().payment.updateMany({
-        where: { orderId: order.id, paymentType: "FULL_PAYMENT" },
-        data: {
-          paymentStatus: "PAID",
-          paidAt: new Date(),
-          gatewayProvider: SEPAY_SANDBOX_PROVIDER,
-          transactionReference: sepaySandboxReference(order.orderNumber),
-          gatewayOrderId: order.orderNumber,
-          gatewayResponse: {
-            sandbox: true,
-            provider: SEPAY_SANDBOX_PROVIDER,
-            status: "success"
-          }
-        }
-      }),
-      getPrisma().order.update({
-        where: { id: order.id },
-        data: {
-          status: "PAID_FULL",
-          remainingAmount: 0,
-          statusHistory: {
-            create: {
-              status: "PAID_FULL",
-              note: "SePay sandbox payment marked as paid."
-            }
-          }
-        }
-      })
-    ]);
+  const isPaid = order.status === "PAID_FULL" || order.payments.some(p => p.paymentStatus === "PAID");
 
+  if (isPaid) {
     return paymentResultResponse({
       gateway: "SePay Sandbox",
-      title: "Payment marked as successful",
-      body: "The sandbox payment was completed and the order was updated to paid in the database.",
+      title: "Payment confirmed",
+      body: "The payment has been verified and your order is being processed.",
       orderNumber: order.orderNumber,
       primaryHref: "/account",
       primaryLabel: "View account"
@@ -77,32 +48,18 @@ export async function GET(request: Request) {
   }
 
   if (status === "cancelled") {
-    await getPrisma().payment.updateMany({
-      where: { orderId: order.id, paymentType: "FULL_PAYMENT" },
-      data: {
-        paymentStatus: "FAILED",
-        gatewayProvider: SEPAY_SANDBOX_PROVIDER,
-        gatewayOrderId: order.orderNumber,
-        gatewayResponse: {
-          sandbox: true,
-          provider: SEPAY_SANDBOX_PROVIDER,
-          status: "cancelled"
-        }
-      }
-    });
-
     return paymentResultResponse({
       gateway: "SePay Sandbox",
       title: "Payment cancelled",
-      body: "The sandbox payment was cancelled. The order remains pending online payment and can be retried from checkout/admin flow later.",
+      body: "The sandbox payment was cancelled. The order remains pending online payment.",
       orderNumber: order.orderNumber
     });
   }
 
   return paymentResultResponse({
     gateway: "SePay Sandbox",
-    title: "Invalid payment result",
-    body: "The sandbox result status is not supported.",
+    title: "Payment pending",
+    body: "We are waiting for payment confirmation. This may take a few minutes.",
     orderNumber: order.orderNumber
   });
 }
