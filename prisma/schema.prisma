@@ -474,6 +474,7 @@ model Payment {
   @@index([orderId])
   @@index([bankAccountId])
   @@index([paymentStatus, createdAt])
+  @@index([gatewayProvider, gatewayTransactionId])
 }
 
 model PaymentProof {
