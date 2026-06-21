@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
+import { getPrisma } from "@/lib/prisma";
+import { notFound } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "Thanh toán bị hủy",
@@ -21,6 +23,23 @@ export default async function CancelPage({ searchParams }: PageProps) {
   const orderId = params.orderId ?? "";
   const gateway = params.gateway ?? "";
 
+  if (!orderId) {
+    notFound();
+  }
+
+  const order = await getPrisma().order.findFirst({
+    where: {
+      OR: [
+        { id: orderId },
+        { orderNumber: orderId }
+      ]
+    }
+  });
+
+  if (!order) {
+    notFound();
+  }
+
   return (
     <div className="container-shell min-h-[60vh] py-20 text-center">
       <div className="mx-auto max-w-lg">
@@ -31,7 +50,7 @@ export default async function CancelPage({ searchParams }: PageProps) {
         </div>
         <h1 className="mt-6 text-3xl font-black">{t("paymentCancelled")}</h1>
         <p className="mt-3 text-zinc-600">
-          {t("paymentCancelledBody", { orderId })}
+          {t("paymentCancelledBody", { orderId: order.orderNumber })}
         </p>
         {gateway && (
           <p className="mt-2 text-sm text-zinc-500">
@@ -39,7 +58,7 @@ export default async function CancelPage({ searchParams }: PageProps) {
           </p>
         )}
         <div className="mt-8 flex gap-3 justify-center">
-          <Link className="button-primary" href={`/account`}>
+          <Link className="button-primary" href="/account">
             {t("viewAccount")}
           </Link>
           <Link className="button-secondary" href="/shop">
