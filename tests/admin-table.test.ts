@@ -7,11 +7,14 @@ import { AdminTable } from "../src/components/admin-table";
 describe("AdminTable empty state", () => {
   it("renders the configured empty message across all columns", () => {
     const html = renderToStaticMarkup(
-      createElement(AdminTable, {
-        headers: ["Order", "Status"],
-        emptyMessage: "No orders yet.",
-        children: null
-      })
+      createElement(
+        AdminTable,
+        {
+          headers: ["Order", "Status"],
+          emptyMessage: "No orders yet."
+        },
+        null
+      )
     );
 
     assert.match(html, /<td[^>]*col[Ss]pan="2"[^>]*>No orders yet\.<\/td>/);
@@ -19,11 +22,14 @@ describe("AdminTable empty state", () => {
 
   it("renders the empty state for an empty fragment", () => {
     const html = renderToStaticMarkup(
-      createElement(AdminTable, {
-        headers: ["Order"],
-        emptyMessage: "No orders yet.",
-        children: createElement(Fragment)
-      })
+      createElement(
+        AdminTable,
+        {
+          headers: ["Order"],
+          emptyMessage: "No orders yet."
+        },
+        createElement(Fragment)
+      )
     );
 
     assert.match(html, />No orders yet\.<\/td>/);
@@ -31,15 +37,18 @@ describe("AdminTable empty state", () => {
 
   it("renders rows without the empty message when records exist", () => {
     const html = renderToStaticMarkup(
-      createElement(AdminTable, {
-        headers: ["Order"],
-        emptyMessage: "No orders yet.",
-        children: createElement(
+      createElement(
+        AdminTable,
+        {
+          headers: ["Order"],
+          emptyMessage: "No orders yet."
+        },
+        createElement(
           "tr",
           null,
           createElement("td", null, "ORDER-001")
         )
-      })
+      )
     );
 
     assert.doesNotMatch(html, /No orders yet\./);
