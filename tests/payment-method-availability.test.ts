@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { access, readFile } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import { describe, it } from "node:test";
 import { orderInputSchema } from "../src/lib/validations";
 
@@ -23,20 +23,29 @@ const checkoutInput = {
 };
 
 describe("existing payment method availability", () => {
-  it("continues accepting VNPay and MoMo orders", () => {
+  it("rejects removed VNPay and MoMo payment methods", () => {
     for (const paymentMethod of ["ONLINE_100_VNPAY", "ONLINE_100_MOMO"]) {
       assert.equal(
         orderInputSchema.safeParse({ ...checkoutInput, paymentMethod }).success,
-        true
+        false,
+        `${paymentMethod} should no longer be accepted`
       );
     }
   });
 
-  it("keeps VNPay and MoMo in checkout UI and preserves their routes", async () => {
+  it("accepts DEPOSIT_50_BANK_ZALO and ONLINE_100_SEPAY", () => {
+    for (const paymentMethod of ["DEPOSIT_50_BANK_ZALO", "ONLINE_100_SEPAY"]) {
+      assert.equal(
+        orderInputSchema.safeParse({ ...checkoutInput, paymentMethod }).success,
+        true,
+        `${paymentMethod} should be accepted`
+      );
+    }
+  });
+
+  it("VNPay and MoMo are removed from checkout UI", async () => {
     const checkout = await readFile("src/components/checkout-form.tsx", "utf8");
-    assert.match(checkout, /value="ONLINE_100_VNPAY"/);
-    assert.match(checkout, /value="ONLINE_100_MOMO"/);
-    await access("src/app/api/payment/vnpay-placeholder/route.ts");
-    await access("src/app/api/payment/momo-placeholder/route.ts");
+    assert.doesNotMatch(checkout, /value="ONLINE_100_VNPAY"/, "VNPay should be removed from UI");
+    assert.doesNotMatch(checkout, /value="ONLINE_100_MOMO"/, "MoMo should be removed from UI");
   });
 });
