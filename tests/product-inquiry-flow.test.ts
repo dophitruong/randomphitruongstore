@@ -1,10 +1,12 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
+  adminInquiryPresentationUrls,
   createProductInquiry,
   listAdminProductInquiries,
   updateProductInquiryStatus
 } from "../src/lib/product-inquiry";
+import { productInquiryInputSchema } from "../src/lib/validations";
 
 const inquiryInput = {
   fullName: "Nguyen Van A",
@@ -17,6 +19,65 @@ const inquiryInput = {
 };
 
 describe("product inquiry flow", () => {
+  it("rejects unsafe inspiration image URLs before storing inquiries", () => {
+    for (const inspirationUrl of [
+      "javascript:alert(1)",
+      "data:image/svg+xml;base64,PHN2Zy8+",
+      "international:KOREA:Jacket",
+      "/not-uploads/image.webp",
+      "/uploads/../secret.webp"
+    ]) {
+      assert.equal(
+        productInquiryInputSchema.safeParse({
+          ...inquiryInput,
+          inspirationUrl
+        }).success,
+        false,
+        `${inspirationUrl} should be rejected`
+      );
+    }
+
+    assert.equal(
+      productInquiryInputSchema.safeParse({
+        ...inquiryInput,
+        inspirationUrl: "/uploads/customer-inspiration.webp"
+      }).success,
+      true
+    );
+  });
+
+  it("selects only safe admin image and link URLs for historical inquiries", () => {
+    assert.deepEqual(
+      adminInquiryPresentationUrls({
+        images: [{ imageUrl: "javascript:alert(1)" }],
+        externalProductUrl: "international:KOREA:Jacket"
+      }),
+      { imageUrl: null, linkUrl: null }
+    );
+
+    assert.deepEqual(
+      adminInquiryPresentationUrls({
+        images: [{ imageUrl: "/uploads/customer-inspiration.png" }],
+        externalProductUrl: "international:KOREA:Jacket"
+      }),
+      {
+        imageUrl: "/uploads/customer-inspiration.png",
+        linkUrl: "/uploads/customer-inspiration.png"
+      }
+    );
+
+    assert.deepEqual(
+      adminInquiryPresentationUrls({
+        images: [],
+        externalProductUrl: "https://example.com/product"
+      }),
+      {
+        imageUrl: null,
+        linkUrl: "https://example.com/product"
+      }
+    );
+  });
+
   it("creates ProductInquiry without a legacy request mirror", async () => {
     let createdProductInquiry: unknown;
     let customerLookupWhere: Record<string, unknown> | null = null;

@@ -1,4 +1,8 @@
 import { normalizeEmail } from "@/lib/customer-account";
+import {
+  safeInquiryImageUrl,
+  safeInquiryLinkUrl
+} from "@/lib/inquiry-url";
 import type { ProductInquiryInput } from "@/lib/validations";
 
 type InquiryStatusInput = "NEW" | "CONTACTED" | "QUOTED" | "CLOSED";
@@ -99,6 +103,10 @@ export async function createProductInquiry({
 }) {
   const email = normalizeEmail(userEmail);
   const authUserId = normalizeSupabaseUserId(supabaseUserId);
+  const inspirationUrl = safeInquiryImageUrl(input.inspirationUrl);
+  if (!inspirationUrl) {
+    throw new Error("Invalid inspiration image URL");
+  }
 
   return prisma.$transaction(async (transaction) => {
     const customer = authUserId
@@ -116,13 +124,13 @@ export async function createProductInquiry({
         phone: input.phone,
         ...(email ? { email } : {}),
         instagramHandle: input.socialContact,
-        externalProductUrl: input.inspirationUrl,
+        externalProductUrl: inspirationUrl,
         customerMessage: input.note || null,
         preferredSize: input.desiredSize,
         preferredColor: input.desiredColor,
         images: {
           create: {
-            imageUrl: input.inspirationUrl
+            imageUrl: inspirationUrl
           }
         }
       },
@@ -136,6 +144,24 @@ export function listAdminProductInquiries(prisma: ProductInquiryListStore) {
     include: adminProductInquiryInclude,
     orderBy: { createdAt: "desc" }
   });
+}
+
+export function adminInquiryPresentationUrls({
+  images,
+  externalProductUrl
+}: {
+  images: Array<{ imageUrl: string | null }>;
+  externalProductUrl: string | null;
+}) {
+  const imageUrl =
+    images.map((image) => safeInquiryImageUrl(image.imageUrl)).find(Boolean) ??
+    safeInquiryImageUrl(externalProductUrl);
+  const linkUrl = safeInquiryLinkUrl(externalProductUrl) ?? imageUrl;
+
+  return {
+    imageUrl,
+    linkUrl
+  };
 }
 
 export function updateProductInquiryStatus(
