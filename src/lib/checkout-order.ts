@@ -226,7 +226,8 @@ export async function createCheckoutOrder({
     depositPaymentAmount === null ? 0 : totalAmount - depositPaymentAmount;
   const paymentOption = isDeposit ? "DEPOSIT_50" : "ONLINE_100";
   const paymentAmount = depositPaymentAmount ?? totalAmount;
-  const normalizedEmail = normalizeEmail(userEmail) ?? normalizeEmail(input.email);
+  const authenticatedEmail = normalizeEmail(userEmail);
+  const normalizedEmail = authenticatedEmail ?? normalizeEmail(input.email);
   if (!normalizedEmail) {
     throw new CheckoutOrderError("A valid email is required", 400);
   }
@@ -238,7 +239,8 @@ export async function createCheckoutOrder({
     const customer = await findOrCreateCustomer(
       transaction,
       normalizedEmail,
-      customerData
+      customerData,
+      Boolean(authenticatedEmail)
     );
 
     const order = await transaction.order.create({
@@ -299,8 +301,16 @@ function customerDataFromCheckout(
 async function findOrCreateCustomer(
   transaction: CheckoutOrderTransaction,
   email: string,
-  customerData: CustomerCheckoutData
+  customerData: CustomerCheckoutData,
+  canUpdateExistingCustomer: boolean
 ) {
+  if (!canUpdateExistingCustomer) {
+    return transaction.customer.create({
+      data: customerData,
+      select: { id: true }
+    });
+  }
+
   const customer = await transaction.customer.findFirst({
     where: { email },
     orderBy: { updatedAt: "desc" },

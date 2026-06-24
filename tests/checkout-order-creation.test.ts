@@ -179,6 +179,101 @@ describe("checkout ERD order creation", () => {
     });
   });
 
+  it("creates a separate guest customer for anonymous checkout when the submitted email already exists", async () => {
+    const existingCustomerData = {
+      id: "existing-customer",
+      fullName: "Existing Customer",
+      phone: "0911111111",
+      email: "guest@example.com"
+    };
+    let createdCustomerData: Record<string, unknown> | null = null;
+    let updatedExistingCustomerData: Record<string, unknown> | null = null;
+    const prisma = {
+      product: {
+        findMany: async () => [
+          {
+            id: catalogProductId,
+            nameVi: "Sukajan Hac Song",
+            nameEn: "Crane Sukajan",
+            basePrice: 2400000
+          }
+        ]
+      },
+      productVariant: {
+        findMany: async () => [
+          {
+            id: selectedVariantId,
+            productId: catalogProductId,
+            size: "M",
+            colorVi: "Black",
+            colorEn: "Black",
+            priceAdjustment: 90000,
+            isAvailable: true
+          }
+        ]
+      },
+      $transaction: async <T>(callback: (transaction: {
+        customer: {
+          findFirst: () => Promise<{ id: string } | null>;
+          create: (args: { data: Record<string, unknown> }) => Promise<{ id: string }>;
+          update: (args: { data: Record<string, unknown> }) => Promise<{ id: string }>;
+        };
+        order: {
+          create: (args: { data: Record<string, unknown> }) => Promise<Record<string, unknown>>;
+        };
+      }) => Promise<T>) => callback({
+        customer: {
+          findFirst: async () => ({ id: existingCustomerData.id }),
+          create: async ({ data }) => {
+            createdCustomerData = data;
+            return { id: "guest-customer" };
+          },
+          update: async ({ data }) => {
+            updatedExistingCustomerData = data;
+            return { id: existingCustomerData.id };
+          }
+        },
+        order: {
+          create: async ({ data }) => {
+            return {
+              id: "order-1",
+              orderNumber: data.orderNumber,
+              customerId: data.customerId
+            };
+          }
+        }
+      })
+    };
+
+    const order = (await createCheckoutOrder({
+      prisma,
+      input: {
+        ...validOrderInput,
+        fullName: "Imposter Checkout",
+        phone: "0999999999",
+        email: "GUEST@example.com"
+      },
+      userEmail: null,
+      generateOrderNumber: () => "RPT-0003",
+      generateTrackingToken: () => "guest-secret-token",
+      now: () => new Date("2026-06-18T00:00:00.000Z")
+    })) as unknown as { customerId: string };
+
+    assert.deepEqual(existingCustomerData, {
+      id: "existing-customer",
+      fullName: "Existing Customer",
+      phone: "0911111111",
+      email: "guest@example.com"
+    });
+    assert.equal(updatedExistingCustomerData, null);
+    assert.deepEqual(createdCustomerData, {
+      fullName: "Imposter Checkout",
+      phone: "0999999999",
+      email: "guest@example.com"
+    });
+    assert.equal(order.customerId, "guest-customer");
+  });
+
   it("rejects a product variant that does not belong to the selected product", async () => {
     const prisma = {
       product: {
