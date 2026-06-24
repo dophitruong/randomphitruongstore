@@ -30,6 +30,8 @@ cp .env.example .env.local
 | `ADMIN_BOOTSTRAP_NAME` | Tên hiển thị cho admin đầu tiên |
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase Dashboard → Project Settings → API → Project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase Dashboard → Project Settings → API → anon/public key |
+| `UPLOAD_DRIVER` | `local` cho dev/persistent server, `supabase` nếu dùng Supabase Storage |
+| `SUPABASE_SERVICE_ROLE_KEY` | Bắt buộc khi `UPLOAD_DRIVER=supabase`; chỉ đặt ở server env |
 | `SEPAY_ENVIRONMENT` | `sandbox` khi local, `production` khi deploy production |
 | `SEPAY_MERCHANT_ID` | SePay Payment Gateway merchant ID |
 | `SEPAY_MERCHANT_SECRET_KEY` | SePay merchant secret |

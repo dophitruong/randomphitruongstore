@@ -20,11 +20,14 @@ const weakOrPlaceholderValues = new Set([
   "change-this-long-random-secret",
   "password",
   "postgres",
+  "replace-with-a-long-random-admin-password",
+  "replace-with-a-long-random-sandbox-secret",
   "secret",
   "shared-password",
   "test-secret",
   "your-admin-password",
   "your-anon-key",
+  "your-service-role-key",
   "your-merchant-id",
   "your-merchant-secret-key",
   "the-x-secret-key-configured-in-sepay"
@@ -32,9 +35,12 @@ const weakOrPlaceholderValues = new Set([
 
 const placeholderFragments = [
   "change-this",
+  "replace-with",
   "your-",
   "placeholder"
 ];
+
+const uploadDrivers = new Set(["local", "supabase"]);
 
 const localDatabaseHosts = new Set([
   "localhost",
@@ -54,6 +60,7 @@ export function validateRuntimeEnvironment(env: Environment = process.env) {
   addConfiguredValueIssues("NEXT_PUBLIC_SUPABASE_ANON_KEY", env.NEXT_PUBLIC_SUPABASE_ANON_KEY, issues, {
     minLength: 20
   });
+  addProductionUploadIssues(env, issues);
 
   if (env.SEPAY_ENVIRONMENT !== "production") {
     issues.push("SEPAY_ENVIRONMENT must be set to production when NODE_ENV=production.");
@@ -153,6 +160,23 @@ function addUrlIssues(
   if (localDatabaseHosts.has(url.hostname)) {
     issues.push(`${name} must not point to localhost in production.`);
   }
+}
+
+function addProductionUploadIssues(env: Environment, issues: string[]) {
+  const uploadDriver = env.UPLOAD_DRIVER?.trim() || "local";
+  if (!uploadDrivers.has(uploadDriver)) {
+    issues.push("UPLOAD_DRIVER must be either local or supabase.");
+  }
+
+  addConfiguredValueIssues(
+    "SUPABASE_SERVICE_ROLE_KEY",
+    env.SUPABASE_SERVICE_ROLE_KEY,
+    issues,
+    {
+      minLength: 32,
+      required: uploadDriver === "supabase"
+    }
+  );
 }
 
 function addConfiguredValueIssues(

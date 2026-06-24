@@ -45,6 +45,48 @@ describe("production environment validation", () => {
     assert.doesNotThrow(() => validateRuntimeEnvironment(validProductionEnv()));
   });
 
+  it("rejects replace-with placeholders copied from the example env", () => {
+    assert.throws(
+      () => validateRuntimeEnvironment(validProductionEnv({
+        ADMIN_BOOTSTRAP_PASSWORD: "replace-with-a-long-random-admin-password",
+        SEPAY_SANDBOX_SECRET: "replace-with-a-long-random-sandbox-secret"
+      })),
+      (error: unknown) => {
+        assert.ok(error instanceof EnvironmentValidationError);
+        assert.match(error.message, /ADMIN_BOOTSTRAP_PASSWORD must not use/);
+        assert.match(error.message, /SEPAY_SANDBOX_SECRET must not use/);
+        return true;
+      }
+    );
+  });
+
+  it("validates the Supabase service role key used by upload storage", () => {
+    assert.throws(
+      () => validateRuntimeEnvironment(validProductionEnv({
+        UPLOAD_DRIVER: "supabase",
+        SUPABASE_SERVICE_ROLE_KEY: "your-service-role-key"
+      })),
+      (error: unknown) => {
+        assert.ok(error instanceof EnvironmentValidationError);
+        assert.match(error.message, /SUPABASE_SERVICE_ROLE_KEY must be at least 32/);
+        assert.match(error.message, /SUPABASE_SERVICE_ROLE_KEY must not use/);
+        return true;
+      }
+    );
+
+    assert.throws(
+      () => validateRuntimeEnvironment(validProductionEnv({
+        UPLOAD_DRIVER: "supabase"
+      })),
+      /SUPABASE_SERVICE_ROLE_KEY is required/
+    );
+
+    assert.doesNotThrow(() => validateRuntimeEnvironment(validProductionEnv({
+      UPLOAD_DRIVER: "supabase",
+      SUPABASE_SERVICE_ROLE_KEY: "supabase-service-role-live-key-32-chars"
+    })));
+  });
+
   it("is exposed through the startup validation entry point used by instrumentation", () => {
     withEnv(
       {

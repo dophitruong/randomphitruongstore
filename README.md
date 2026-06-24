@@ -78,7 +78,10 @@ Open `http://localhost:3000`. Admin sign-in is at
 | `ADMIN_BOOTSTRAP_PASSWORD` | Optional one-time seed password for the first admin account |
 | `ADMIN_BOOTSTRAP_NAME` | Optional display name for the first admin account |
 | `NEXT_PUBLIC_SITE_URL` | Canonical origin for metadata and sitemap |
-| `UPLOAD_DRIVER` | Upload implementation; currently supports `local` |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL for customer auth and optional upload storage |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon/public key for customer auth |
+| `UPLOAD_DRIVER` | Upload implementation; supports `local` and `supabase` |
+| `SUPABASE_SERVICE_ROLE_KEY` | Required when `UPLOAD_DRIVER=supabase`; keep server-side only |
 | `SEPAY_ENVIRONMENT` | `sandbox` for the signed local simulator or `production` for SePay |
 | `SEPAY_MERCHANT_ID` | SePay Payment Gateway merchant ID |
 | `SEPAY_MERCHANT_SECRET_KEY` | SePay merchant secret used to sign checkout forms |
