@@ -6,6 +6,7 @@ import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { BankTransferBox } from "@/components/bank-transfer-box";
 import { formatPrice } from "@/lib/format";
+import { guestOrderAccessToken } from "@/lib/guest-order-cookie";
 import { PaymentButtons } from "@/components/payment-buttons";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { canAccessOrder } from "@/lib/order-access";
@@ -14,7 +15,6 @@ export const dynamic = "force-dynamic";
 
 type PageProps = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ token?: string }>;
 };
 
 export const metadata: Metadata = {
@@ -22,9 +22,8 @@ export const metadata: Metadata = {
   description: "Secure order details and payment"
 };
 
-export default async function OrderPage({ params, searchParams }: PageProps) {
+export default async function OrderPage({ params }: PageProps) {
   const { id } = await params;
-  const { token } = await searchParams;
   const t = await getTranslations("checkout");
   const supabase = await getSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -44,10 +43,12 @@ export default async function OrderPage({ params, searchParams }: PageProps) {
     }
   });
 
+  const accessToken = order ? await guestOrderAccessToken(order.id) : null;
+
   if (!order || !canAccessOrder({
     authenticatedUserId: user?.id,
     customerSupabaseUserId: order.customer.supabaseUserId,
-    accessToken: token,
+    accessToken,
     storedTokenHash: order.trackingToken
   })) {
     notFound();
@@ -133,7 +134,6 @@ export default async function OrderPage({ params, searchParams }: PageProps) {
             ) : (
               <PaymentButtons
                 orderId={order.id}
-                accessToken={token}
               />
             )}
             <p className="mt-4 text-xs text-zinc-500">

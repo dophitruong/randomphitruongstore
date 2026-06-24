@@ -2,6 +2,7 @@ import { err, handlePrismaError, ok, zodDetails } from "@/lib/api-response";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { CheckoutOrderError, createCheckoutOrder } from "@/lib/checkout-order";
 import { orderNumber } from "@/lib/format";
+import { setGuestOrderAccessCookies } from "@/lib/guest-order-cookie";
 import { getPrisma } from "@/lib/prisma";
 import { rateLimitPolicies, rateLimitRequest } from "@/lib/rate-limit";
 import { orderInputSchema } from "@/lib/validations";
@@ -48,7 +49,18 @@ export async function POST(request: Request) {
       generateOrderNumber: orderNumber
     });
 
-    return ok(order, 201);
+    const { trackingToken, ...responseOrder } = order as {
+      id: string;
+      orderNumber: string;
+      trackingToken: string;
+    } & Record<string, unknown>;
+    await setGuestOrderAccessCookies({
+      orderId: responseOrder.id,
+      orderNumber: responseOrder.orderNumber,
+      token: trackingToken
+    });
+
+    return ok(responseOrder, 201);
   } catch (error) {
     if (error instanceof SyntaxError) {
       return err("Invalid JSON payload", 400);

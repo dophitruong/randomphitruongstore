@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { getPrisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
+import { guestOrderAccessToken } from "@/lib/guest-order-cookie";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { canAccessOrder } from "@/lib/order-access";
 
@@ -15,7 +16,6 @@ type PageProps = {
   searchParams: Promise<{
     orderId?: string;
     gateway?: string;
-    token?: string;
   }>;
 };
 
@@ -25,7 +25,6 @@ export default async function CancelPage({ searchParams }: PageProps) {
   const common = await getTranslations("common");
   const orderId = params.orderId ?? "";
   const gateway = params.gateway ?? "";
-  const token = params.token;
 
   if (!orderId) {
     notFound();
@@ -40,10 +39,11 @@ export default async function CancelPage({ searchParams }: PageProps) {
 
   const supabase = await getSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();
+  const accessToken = order ? await guestOrderAccessToken(order.orderNumber) : null;
   if (!order || !canAccessOrder({
     authenticatedUserId: user?.id,
     customerSupabaseUserId: order.customer.supabaseUserId,
-    accessToken: token,
+    accessToken,
     storedTokenHash: order.trackingToken
   })) {
     notFound();

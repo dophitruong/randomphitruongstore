@@ -64,7 +64,6 @@ describe("SePay local sandbox", () => {
       successAction: "https://shop.example/api/payment/sepay-placeholder/return",
       successFields: {
         orderId: "RPT-0001",
-        token: "guest-token",
         proof: "signed-proof"
       },
       cancelUrl: "https://shop.example/cancel",
@@ -74,6 +73,7 @@ describe("SePay local sandbox", () => {
 
     assert.match(html, /<form[^>]+method="post"/i);
     assert.match(html, /name="proof" value="signed-proof"/);
+    assert.doesNotMatch(html, /name="token"/);
     assert.doesNotMatch(html, /href="[^"]+status=success/);
   });
 });
