@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { createClient } from "@supabase/supabase-js";
 
 const maxImageSize = 5 * 1024 * 1024;
 
@@ -21,16 +22,6 @@ export class UploadValidationError extends Error {
   ) {
     super(message);
     this.name = "UploadValidationError";
-  }
-}
-
-class LocalUploadStorage implements UploadStorage {
-  async save(upload: ValidatedImageUpload) {
-    const fileName = `${Date.now()}-${randomUUID()}.${upload.extension}`;
-    const uploadDirectory = path.join(process.cwd(), "public", "uploads");
-    await mkdir(uploadDirectory, { recursive: true });
-    await writeFile(path.join(uploadDirectory, fileName), upload.bytes);
-    return `/uploads/${fileName}`;
   }
 }
 
@@ -81,11 +72,47 @@ function detectImageType(bytes: Buffer): Omit<ValidatedImageUpload, "bytes"> | n
   return null;
 }
 
+class LocalUploadStorage implements UploadStorage {
+  async save(upload: ValidatedImageUpload) {
+    const fileName = `${Date.now()}-${randomUUID()}.${upload.extension}`;
+    const uploadDirectory = path.join(process.cwd(), "public", "uploads");
+    await mkdir(uploadDirectory, { recursive: true });
+    await writeFile(path.join(uploadDirectory, fileName), upload.bytes);
+    return `/uploads/${fileName}`;
+  }
+}
+
+class SupabaseUploadStorage implements UploadStorage {
+  async save(upload: ValidatedImageUpload) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!supabaseUrl || !serviceRoleKey) {
+      throw new Error(
+        "NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required for Supabase upload driver"
+      );
+    }
+
+    const fileName = `${Date.now()}-${randomUUID()}.${upload.extension}`;
+
+    const supabase = createClient(supabaseUrl, serviceRoleKey);
+    const { error } = await supabase.storage
+      .from("uploads")
+      .upload(fileName, upload.bytes, { contentType: upload.mimeType });
+
+    if (error) throw new Error(`Supabase Storage upload failed: ${error.message}`);
+
+    const { data } = supabase.storage.from("uploads").getPublicUrl(fileName);
+    return data.publicUrl;
+  }
+}
+
 export function getUploadStorage(): UploadStorage {
   const driver = process.env.UPLOAD_DRIVER ?? "local";
-  if (driver !== "local") {
-    throw new Error(`Unsupported upload driver: ${driver}`);
+  if (driver === "supabase") {
+    return new SupabaseUploadStorage();
   }
-
-  return new LocalUploadStorage();
+  if (driver === "local") {
+    return new LocalUploadStorage();
+  }
+  throw new Error(`Unsupported upload driver: ${driver}`);
 }
