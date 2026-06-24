@@ -1,4 +1,5 @@
 import { err, ok, zodDetails } from "@/lib/api-response";
+import { registrationClientResult } from "@/lib/auth-registration";
 import {
   rateLimitIdentifier,
   rateLimitPolicies,
@@ -34,12 +35,16 @@ export async function POST(request: Request) {
   });
 
   if (error) {
-    // Supabase returns specific error messages — map the common ones
-    if (error.message.includes("already registered")) {
-      return err("An account with this email already exists", 409);
-    }
-    return err(error.message, 400);
+    console.warn("[Auth Registration]", {
+      message: error.message,
+      status: error.status
+    });
   }
 
-  return ok({ user: data.user }, 201);
+  const result = registrationClientResult({
+    user: data.user,
+    error
+  });
+
+  return ok(result.body, result.status);
 }
