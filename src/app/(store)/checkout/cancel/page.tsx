@@ -34,10 +34,7 @@ export default async function CancelPage({ searchParams }: PageProps) {
 
   const order = await getPrisma().order.findFirst({
     where: {
-      OR: [
-        { id: orderId },
-        { orderNumber: orderId }
-      ]
+      orderNumber: orderId
     },
     include: { customer: true }
   });
