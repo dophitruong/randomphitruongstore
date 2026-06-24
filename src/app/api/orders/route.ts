@@ -3,6 +3,7 @@ import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { CheckoutOrderError, createCheckoutOrder } from "@/lib/checkout-order";
 import { orderNumber } from "@/lib/format";
 import { getPrisma } from "@/lib/prisma";
+import { rateLimitPolicies, rateLimitRequest } from "@/lib/rate-limit";
 import { orderInputSchema } from "@/lib/validations";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -24,6 +25,9 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const limited = await rateLimitRequest(request, rateLimitPolicies.checkoutOrderIp);
+    if (limited) return limited;
+
     const body = await request.json();
     const parsed = orderInputSchema.safeParse(body);
     if (!parsed.success) {

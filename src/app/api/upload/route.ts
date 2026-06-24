@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server";
+import { rateLimitPolicies, rateLimitRequest } from "@/lib/rate-limit";
 import { getUploadStorage } from "@/lib/upload";
 
 const allowedTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
 const maxSize = 5 * 1024 * 1024;
 
 export async function POST(request: Request) {
+  const limited = await rateLimitRequest(request, rateLimitPolicies.uploadIp);
+  if (limited) return limited;
+
   const data = await request.formData();
   const file = data.get("file");
 

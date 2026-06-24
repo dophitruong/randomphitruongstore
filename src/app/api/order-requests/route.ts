@@ -2,6 +2,7 @@ import { err, handlePrismaError, ok, zodDetails } from "@/lib/api-response";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { normalizeEmail } from "@/lib/customer-account";
 import { getPrisma } from "@/lib/prisma";
+import { rateLimitPolicies, rateLimitRequest } from "@/lib/rate-limit";
 import {
   createProductInquiry,
   listAdminProductInquiries
@@ -22,6 +23,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const limited = await rateLimitRequest(request, rateLimitPolicies.inquiryIp);
+  if (limited) return limited;
+
   const parsed = productInquiryInputSchema.safeParse(await request.json());
   if (!parsed.success) {
     return err("Invalid request data", 400, zodDetails(parsed.error));
