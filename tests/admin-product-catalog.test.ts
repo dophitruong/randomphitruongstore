@@ -5,6 +5,7 @@ import {
   buildProductVariantSyncPlan,
   productMatchesVariantFilters
 } from "../src/lib/product-catalog";
+import { MAX_PRODUCT_IMAGES } from "../src/lib/product-images";
 import { productInputSchema } from "../src/lib/validations";
 
 const productInput = {
@@ -137,6 +138,81 @@ describe("admin product catalog write model", () => {
         unit: "cm"
       }
     ]);
+  });
+
+  it("keeps a one-image product payload compatible", () => {
+    const parsed = productInputSchema.parse({
+      ...productInput,
+      images: ["/uploads/crane-front.webp"]
+    });
+    const write = buildProductCatalogWrite(parsed);
+
+    assert.deepEqual(write.images, [
+      {
+        url: "/uploads/crane-front.webp",
+        altVi: "Sukajan Hac Song",
+        altEn: "Crane Sukajan",
+        sortOrder: 0
+      }
+    ]);
+  });
+
+  it("uses submitted image order as contiguous sort order and primary image", () => {
+    const parsed = productInputSchema.parse({
+      ...productInput,
+      images: [
+        "/uploads/crane-detail.webp",
+        "/uploads/crane-front.webp",
+        "/uploads/crane-back.webp"
+      ]
+    });
+    const write = buildProductCatalogWrite(parsed);
+
+    assert.deepEqual(
+      write.images.map((image) => ({
+        url: image.url,
+        sortOrder: image.sortOrder
+      })),
+      [
+        { url: "/uploads/crane-detail.webp", sortOrder: 0 },
+        { url: "/uploads/crane-front.webp", sortOrder: 1 },
+        { url: "/uploads/crane-back.webp", sortOrder: 2 }
+      ]
+    );
+    assert.equal(write.images[0]?.url, "/uploads/crane-detail.webp");
+  });
+
+  it("rejects products with more than the maximum image count", () => {
+    const parsed = productInputSchema.safeParse({
+      ...productInput,
+      images: Array.from(
+        { length: MAX_PRODUCT_IMAGES + 1 },
+        (_, index) => `/uploads/crane-${index}.webp`
+      )
+    });
+
+    assert.equal(parsed.success, false);
+  });
+
+  it("rejects duplicate product image URLs", () => {
+    const parsed = productInputSchema.safeParse({
+      ...productInput,
+      images: ["/uploads/crane-front.webp", "/uploads/crane-front.webp"]
+    });
+
+    assert.equal(parsed.success, false);
+  });
+
+  it("continues to accept existing local paths and absolute image URLs", () => {
+    const parsed = productInputSchema.safeParse({
+      ...productInput,
+      images: [
+        "/uploads/crane-front.webp",
+        "https://images.unsplash.com/photo-123"
+      ]
+    });
+
+    assert.equal(parsed.success, true);
   });
 
   it("rejects products that do not define explicit variants", () => {
