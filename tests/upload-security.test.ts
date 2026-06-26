@@ -41,6 +41,19 @@ describe("secure upload flow", () => {
     );
   });
 
+  it("rejects images larger than the upload size limit", async () => {
+    const oversized = new File(
+      [new Uint8Array(5 * 1024 * 1024 + 1)],
+      "oversized.png",
+      { type: "image/png" }
+    );
+
+    await assert.rejects(
+      validateImageUpload(oversized),
+      /Image must be 5 MB or smaller/
+    );
+  });
+
   it("creates scoped one-time upload intents without storing raw tokens", async () => {
     const intents = new Map<string, UploadIntentRecord>();
     const prisma = fakeUploadIntentPrisma(intents);
