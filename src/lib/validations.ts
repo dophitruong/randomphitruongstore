@@ -1,5 +1,10 @@
 import { z } from "zod";
 import { isSafeInquiryImageUrl } from "@/lib/inquiry-url";
+import {
+  duplicateProductImageUrlIndex,
+  isSupportedProductImageUrl,
+  MAX_PRODUCT_IMAGES
+} from "@/lib/product-images";
 
 const phoneSchema = z
   .string()
@@ -48,12 +53,29 @@ export const productInputSchema = z.object({
       z
         .string()
         .trim()
+        .min(1, "Image URL is required")
         .refine(
-          (value) => value.startsWith("/") || z.string().url().safeParse(value).success,
-      "Image must be an absolute URL or a local path"
+          isSupportedProductImageUrl,
+          "Image must be an absolute URL or a local path"
         )
     )
-    .min(1),
+    .min(1, "At least one product image is required")
+    .max(
+      MAX_PRODUCT_IMAGES,
+      `Products can have at most ${MAX_PRODUCT_IMAGES} images`
+    )
+    .superRefine((images, context) => {
+      const duplicateIndex = duplicateProductImageUrlIndex(images);
+      if (duplicateIndex === -1) {
+        return;
+      }
+
+      context.addIssue({
+        code: "custom",
+        message: "Duplicate product images are not allowed",
+        path: [duplicateIndex]
+      });
+    }),
   variants: z.array(productVariantInputSchema).min(1),
   sizeCharts: z.array(productSizeChartInputSchema).optional(),
   materialVi: z.string().trim().min(2),
