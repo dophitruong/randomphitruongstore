@@ -31,3 +31,38 @@ export function duplicateProductImageUrlIndex(urls: string[]) {
     return false;
   });
 }
+
+export function removeProductImageUrl(urls: string[], index: number) {
+  return urls.filter((_, currentIndex) => currentIndex !== index);
+}
+
+export function moveProductImageUrl(
+  urls: string[],
+  index: number,
+  direction: "earlier" | "later"
+) {
+  const targetIndex = direction === "earlier" ? index - 1 : index + 1;
+  if (
+    index < 0 ||
+    index >= urls.length ||
+    targetIndex < 0 ||
+    targetIndex >= urls.length
+  ) {
+    return [...urls];
+  }
+
+  const next = [...urls];
+  const [selected] = next.splice(index, 1);
+  next.splice(targetIndex, 0, selected);
+  return next;
+}
+
+export function setPrimaryProductImageUrl(urls: string[], index: number) {
+  if (index <= 0 || index >= urls.length) {
+    return [...urls];
+  }
+
+  const next = [...urls];
+  const [selected] = next.splice(index, 1);
+  return [selected, ...next];
+}

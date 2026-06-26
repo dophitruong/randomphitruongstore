@@ -13,8 +13,17 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
+import {
+  duplicateProductImageUrlIndex,
+  isSupportedProductImageUrl,
+  MAX_PRODUCT_IMAGES,
+  moveProductImageUrl,
+  removeProductImageUrl,
+  setPrimaryProductImageUrl,
+  splitProductImageUrls
+} from "@/lib/product-images";
 import type { ProductWithImages } from "@/types";
 import { AdminTable } from "./admin-table";
 
@@ -52,7 +61,41 @@ const formSchema = z.object({
   basePrice: z.number().int().positive(),
   orderLeadTimeMinDays: z.number().int().positive(),
   orderLeadTimeMaxDays: z.number().int().positive(),
-  images: z.string().trim().min(5),
+  images: z.string().superRefine((value, context) => {
+    const urls = splitProductImageUrls(value);
+    if (urls.length === 0) {
+      context.addIssue({
+        code: "custom",
+        message: "At least one product image is required"
+      });
+      return;
+    }
+
+    if (urls.length > MAX_PRODUCT_IMAGES) {
+      context.addIssue({
+        code: "custom",
+        message: `Products can have at most ${MAX_PRODUCT_IMAGES} images`
+      });
+    }
+
+    const invalidIndex = urls.findIndex(
+      (url) => !isSupportedProductImageUrl(url)
+    );
+    if (invalidIndex !== -1) {
+      context.addIssue({
+        code: "custom",
+        message: `Image ${invalidIndex + 1} must be an absolute URL or a local path`
+      });
+    }
+
+    const duplicateIndex = duplicateProductImageUrlIndex(urls);
+    if (duplicateIndex !== -1) {
+      context.addIssue({
+        code: "custom",
+        message: `Image ${duplicateIndex + 1} duplicates an existing image`
+      });
+    }
+  }),
   variants: z.string().trim(),
   sizeCharts: z.string().trim().optional(),
   materialVi: z.string().trim().min(2),
@@ -212,19 +255,18 @@ export function AdminProductManager({
   const {
     register,
     handleSubmit,
+    control,
     getValues,
     reset,
     setValue,
-    watch,
     formState: { errors, isSubmitting }
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: defaults
   });
-  const imageUrls = watch("images")
-    .split(/\r?\n/)
-    .map((u) => u.trim())
-    .filter(Boolean);
+  const imageText = useWatch({ control, name: "images" });
+  const imageUrls = splitProductImageUrls(imageText);
+  const imageUploadLimitReached = imageUrls.length >= MAX_PRODUCT_IMAGES;
   const [isUploading, setIsUploading] = useState(false);
   const filteredProducts = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -305,6 +347,13 @@ export function AdminProductManager({
     setOpen(true);
   }
 
+  function updateImageUrls(urls: string[]) {
+    setValue("images", urls.join("\n"), {
+      shouldDirty: true,
+      shouldValidate: true
+    });
+  }
+
   async function save(values: FormValues) {
     setServerError("");
     const variants = parseVariantRows(values.variants);
@@ -316,10 +365,7 @@ export function AdminProductManager({
       body: JSON.stringify({
         ...values,
         categoryId: values.categoryId,
-        images: values.images
-          .split(/\r?\n/)
-          .map((value) => value.trim())
-          .filter(Boolean),
+        images: splitProductImageUrls(values.images),
         variants,
         sizeCharts
       })
@@ -339,10 +385,26 @@ export function AdminProductManager({
     }
 
     setServerError("");
+    const selectedFiles = Array.from(files);
+    const currentUrls = splitProductImageUrls(getValues("images"));
+    const remainingSlots = MAX_PRODUCT_IMAGES - currentUrls.length;
+
+    if (remainingSlots <= 0) {
+      setServerError(`Products can have at most ${MAX_PRODUCT_IMAGES} images`);
+      return;
+    }
+
+    if (selectedFiles.length > remainingSlots) {
+      setServerError(
+        `You can add ${remainingSlots} more image${remainingSlots === 1 ? "" : "s"}`
+      );
+      return;
+    }
+
     setIsUploading(true);
     try {
       const uploadedUrls: string[] = [];
-      for (const file of Array.from(files)) {
+      for (const file of selectedFiles) {
         const formData = new FormData();
         formData.append("file", file);
         formData.append("purpose", "ADMIN_PRODUCT_IMAGE");
@@ -357,14 +419,7 @@ export function AdminProductManager({
         uploadedUrls.push(result.url);
       }
 
-      const currentUrls = getValues("images")
-        .split(/\r?\n/)
-        .map((value) => value.trim())
-        .filter(Boolean);
-      setValue("images", [...currentUrls, ...uploadedUrls].join("\n"), {
-        shouldDirty: true,
-        shouldValidate: true
-      });
+      updateImageUrls([...currentUrls, ...uploadedUrls]);
     } catch (error) {
       setServerError(
         error instanceof Error ? error.message : "Unable to upload image"
@@ -462,9 +517,35 @@ export function AdminProductManager({
             <td className="px-4 py-4">
               <p className="font-bold">{product.nameEn}</p>
               <p className="mt-1 text-xs text-zinc-500">{product.slug}</p>
+              {product.images.length > 0 ? (
+                <div className="mt-3 flex max-w-[320px] gap-2 overflow-x-auto pb-1">
+                  {product.images.map((image, index) => (
+                    <div
+                      className="relative size-12 shrink-0 overflow-hidden border border-zinc-200 bg-zinc-100"
+                      key={image.id}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        alt={`${product.nameEn} image ${index + 1}`}
+                        className="h-full w-full object-cover"
+                        src={image.url}
+                      />
+                      {index === 0 ? (
+                        <span className="absolute inset-x-0 bottom-0 bg-black/70 px-1 py-0.5 text-center text-[0.5rem] font-black uppercase tracking-[0.08em] text-white">
+                          Primary
+                        </span>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="mt-2 text-xs text-zinc-400">No images</p>
+              )}
             </td>
             <td className="px-4 py-4">
-              <CategoryBadge category={product.categoryRecord?.nameEn ?? "Uncategorized"} />
+              <CategoryBadge
+                category={product.categoryRecord?.nameEn ?? "Uncategorized"}
+              />
             </td>
             <td className="px-4 py-4">
               {new Intl.NumberFormat("vi-VN").format(product.basePrice)}{" "}
@@ -656,18 +737,30 @@ export function AdminProductManager({
                   label="Image URLs (one per line)"
                   error={errors.images?.message}
                 >
-                  <label className="mb-3 flex min-h-32 cursor-pointer flex-col items-center justify-center border border-dashed border-zinc-300 bg-zinc-50 p-5 text-center transition-colors hover:border-[#a72b1f] hover:bg-red-50/40">
+                  <label
+                    aria-disabled={isUploading || imageUploadLimitReached}
+                    className={`mb-3 flex min-h-32 flex-col items-center justify-center border border-dashed p-5 text-center transition-colors ${
+                      imageUploadLimitReached
+                        ? "cursor-not-allowed border-zinc-200 bg-zinc-100 text-zinc-400"
+                        : "cursor-pointer border-zinc-300 bg-zinc-50 hover:border-[#a72b1f] hover:bg-red-50/40"
+                    }`}
+                  >
                     <ImagePlus className="text-[#a72b1f]" size={28} />
                     <span className="mt-3 text-sm font-bold">
-                      {isUploading ? "Uploading images..." : "Upload product images"}
+                      {isUploading
+                        ? "Uploading images..."
+                        : imageUploadLimitReached
+                          ? "Image limit reached"
+                          : "Upload product images"}
                     </span>
                     <span className="mt-1 text-xs text-zinc-500">
-                      JPG, PNG or WebP. Max 5 MB per image. Select multiple at once.
+                      JPG, PNG or WebP. Max 5 MB per image. {imageUrls.length}/
+                      {MAX_PRODUCT_IMAGES} images.
                     </span>
                     <input
                       accept="image/jpeg,image/png,image/webp"
                       className="sr-only"
-                      disabled={isUploading}
+                      disabled={isUploading || imageUploadLimitReached}
                       multiple
                       onChange={(event) => {
                         void uploadProductImages(event.target.files);
@@ -677,30 +770,107 @@ export function AdminProductManager({
                     />
                   </label>
                   {imageUrls.length > 0 && (
-                    <div className="mb-3 grid grid-cols-4 gap-2">
+                    <div className="mb-3 grid gap-3 sm:grid-cols-2">
                       {imageUrls.map((url, index) => (
-                        <div className="relative aspect-square overflow-hidden border border-zinc-200 bg-zinc-100" key={`${url}-${index}`}>
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img alt={`Product preview ${index + 1}`} className="h-full w-full object-cover" src={url} />
-                          <button
-                            aria-label={`Remove image ${index + 1}`}
-                            className="absolute right-1 top-1 rounded-full bg-black/60 p-0.5 text-white hover:bg-black"
-                            onClick={() => {
-                              const next = imageUrls.filter((_, i) => i !== index);
-                              setValue("images", next.join("\n"), { shouldDirty: true, shouldValidate: true });
-                            }}
-                            type="button"
-                          >
-                            <X size={12} />
-                          </button>
-                          {index === 0 && (
-                            <span className="absolute bottom-1 left-1 rounded bg-black/60 px-1 py-0.5 text-[0.6rem] font-bold text-white">MAIN</span>
-                          )}
+                        <div
+                          className="grid gap-3 border border-zinc-200 bg-white p-2 sm:grid-cols-[96px_1fr]"
+                          key={`${url}-${index}`}
+                        >
+                          <div className="relative aspect-square overflow-hidden bg-zinc-100">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              alt={`Product preview ${index + 1}`}
+                              className="h-full w-full object-cover"
+                              src={url}
+                            />
+                            {index === 0 ? (
+                              <span className="absolute bottom-1 left-1 bg-black/70 px-1.5 py-0.5 text-[0.6rem] font-bold uppercase tracking-[0.08em] text-white">
+                                Primary
+                              </span>
+                            ) : null}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="truncate text-xs font-bold text-zinc-900">
+                              Image {index + 1}
+                            </p>
+                            <p className="mt-1 truncate text-[0.65rem] text-zinc-500">
+                              {url}
+                            </p>
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              <button
+                                aria-label={`Move image ${index + 1} earlier`}
+                                className="grid size-8 place-items-center border border-zinc-300 bg-white text-zinc-800 transition-colors hover:border-zinc-900 hover:bg-zinc-900 hover:text-white disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-300"
+                                disabled={index === 0}
+                                onClick={() =>
+                                  updateImageUrls(
+                                    moveProductImageUrl(
+                                      imageUrls,
+                                      index,
+                                      "earlier"
+                                    )
+                                  )
+                                }
+                                title="Move earlier"
+                                type="button"
+                              >
+                                <ChevronLeft size={15} />
+                              </button>
+                              <button
+                                aria-label={`Move image ${index + 1} later`}
+                                className="grid size-8 place-items-center border border-zinc-300 bg-white text-zinc-800 transition-colors hover:border-zinc-900 hover:bg-zinc-900 hover:text-white disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-300"
+                                disabled={index === imageUrls.length - 1}
+                                onClick={() =>
+                                  updateImageUrls(
+                                    moveProductImageUrl(
+                                      imageUrls,
+                                      index,
+                                      "later"
+                                    )
+                                  )
+                                }
+                                title="Move later"
+                                type="button"
+                              >
+                                <ChevronRight size={15} />
+                              </button>
+                              <button
+                                aria-label={`Set image ${index + 1} as primary`}
+                                className="min-h-8 border border-zinc-300 bg-white px-2 text-[0.65rem] font-bold uppercase tracking-[0.08em] text-zinc-800 transition-colors hover:border-zinc-900 hover:bg-zinc-900 hover:text-white disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-300"
+                                disabled={index === 0}
+                                onClick={() =>
+                                  updateImageUrls(
+                                    setPrimaryProductImageUrl(imageUrls, index)
+                                  )
+                                }
+                                title="Set as primary"
+                                type="button"
+                              >
+                                Primary
+                              </button>
+                              <button
+                                aria-label={`Remove image ${index + 1}`}
+                                className="grid size-8 place-items-center border border-red-200 bg-white text-red-700 transition-colors hover:border-red-700 hover:bg-red-700 hover:text-white"
+                                onClick={() =>
+                                  updateImageUrls(
+                                    removeProductImageUrl(imageUrls, index)
+                                  )
+                                }
+                                title="Remove image"
+                                type="button"
+                              >
+                                <X size={14} />
+                              </button>
+                            </div>
+                          </div>
                         </div>
                       ))}
                     </div>
                   )}
-                  <textarea className="field min-h-12 text-xs text-zinc-400" placeholder="Image URLs (one per line) — or upload above" {...register("images")} />
+                  <textarea
+                    className="field min-h-12 text-xs text-zinc-400"
+                    placeholder="Image URLs (one per line) — or upload above"
+                    {...register("images")}
+                  />
                 </AdminField>
               </div>
               <div className="sm:col-span-2">
