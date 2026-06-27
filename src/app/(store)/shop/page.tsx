@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
 import { ProductFilters } from "@/components/product-filters";
 import type { Locale } from "@/i18n/request";
-import { getPrisma } from "@/lib/prisma";
+import { createPerfContext, withPerfTiming } from "@/lib/perf-diagnostics";
+import { getPublicShopProducts } from "@/lib/public-catalog";
 
 export const dynamic = "force-dynamic";
 
@@ -13,18 +14,16 @@ export const metadata: Metadata = {
 };
 
 export default async function ShopPage() {
+  const perf = createPerfContext("store.shop");
   const locale = (await getLocale()) as Locale;
   const t = await getTranslations("shop");
   const common = await getTranslations("common");
-  const products = await getPrisma().product.findMany({
-    where: { isActive: true, stockStatus: "IN_STOCK" },
-    include: {
-      categoryRecord: true,
-      images: { orderBy: { sortOrder: "asc" }, take: 1 },
-      variants: { orderBy: [{ size: "asc" }, { colorVi: "asc" }] }
-    },
-    orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }]
-  });
+  const products = await withPerfTiming(
+    perf,
+    "shop.load-products",
+    () => getPublicShopProducts(),
+    { cache: "unknown" }
+  );
 
   return (
     <div className="container-shell py-12 sm:py-20">

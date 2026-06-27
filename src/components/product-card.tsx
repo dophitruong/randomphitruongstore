@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Locale } from "@/i18n/request";
 import { productBasePrice } from "@/lib/product-pricing";
-import type { ProductWithImages } from "@/types";
+import type { CatalogProductDTO } from "@/types";
 import { Money } from "./money";
 import { OrderBadge } from "./order-badge";
 
@@ -12,7 +12,7 @@ export function ProductCard({
   orderLabel,
   detailsLabel
 }: {
-  product: ProductWithImages;
+  product: CatalogProductDTO;
   locale: Locale;
   orderLabel: string;
   detailsLabel: string;

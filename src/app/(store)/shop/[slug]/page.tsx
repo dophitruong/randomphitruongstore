@@ -8,7 +8,8 @@ import { PurchasePanel } from "@/components/purchase-panel";
 import type { Locale } from "@/i18n/request";
 import { productVariantColors, productVariantSizes } from "@/lib/product-catalog";
 import { productBasePrice } from "@/lib/product-pricing";
-import { getPrisma } from "@/lib/prisma";
+import { createPerfContext, withPerfTiming } from "@/lib/perf-diagnostics";
+import { getPublicProductBySlug } from "@/lib/public-catalog";
 
 export const dynamic = "force-dynamic";
 
@@ -18,10 +19,13 @@ export async function generateMetadata({
   params
 }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const product = await getPrisma().product.findUnique({
-    where: { slug },
-    include: { images: { orderBy: { sortOrder: "asc" }, take: 1 } }
-  });
+  const perf = createPerfContext("store.product.metadata");
+  const product = await withPerfTiming(
+    perf,
+    "product.load-metadata",
+    () => getPublicProductBySlug(slug),
+    { cache: "unknown" }
+  );
   if (!product) {
     return { title: "Product not found" };
   }
@@ -38,17 +42,16 @@ export async function generateMetadata({
 
 export default async function ProductPage({ params }: PageProps) {
   const { slug } = await params;
+  const perf = createPerfContext("store.product");
   const locale = (await getLocale()) as Locale;
   const t = await getTranslations("product");
   const common = await getTranslations("common");
-  const product = await getPrisma().product.findFirst({
-    where: { slug, isActive: true, stockStatus: "IN_STOCK" },
-    include: {
-      images: { orderBy: { sortOrder: "asc" } },
-      variants: { orderBy: [{ size: "asc" }, { colorVi: "asc" }] },
-      sizeCharts: { orderBy: { size: "asc" } }
-    }
-  });
+  const product = await withPerfTiming(
+    perf,
+    "product.load-product",
+    () => getPublicProductBySlug(slug),
+    { cache: "unknown" }
+  );
   if (!product) {
     notFound();
   }

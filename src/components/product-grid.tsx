@@ -1,5 +1,5 @@
 import type { Locale } from "@/i18n/request";
-import type { ProductWithImages } from "@/types";
+import type { CatalogProductDTO } from "@/types";
 import { ProductCard } from "./product-card";
 
 export function ProductGrid({
@@ -8,7 +8,7 @@ export function ProductGrid({
   orderLabel,
   detailsLabel
 }: {
-  products: ProductWithImages[];
+  products: CatalogProductDTO[];
   locale: Locale;
   orderLabel: string;
   detailsLabel: string;
