@@ -28,7 +28,7 @@ export default async function ShopPage() {
   return (
     <div className="container-shell py-12 sm:py-20">
       <header className="mb-12 max-w-3xl">
-        <p className="eyebrow text-zinc-500">random.phitruong collection</p>
+        <p className="eyebrow text-zinc-500">{t("eyebrow")}</p>
         <h1 className="mt-4 text-5xl font-black tracking-[-0.05em] sm:text-7xl">
           {t("title")}
         </h1>
@@ -43,6 +43,8 @@ export default async function ShopPage() {
           color: t("color"),
           price: t("price"),
           noResults: t("noResults"),
+          noImage: t("noImage"),
+          outOfStock: t("outOfStock"),
           order: common("orderTime"),
           details: common("viewDetails")
         }}

@@ -91,11 +91,17 @@ export default async function ProductPage({ params }: PageProps) {
           <section className="mb-6 overflow-x-auto border border-zinc-300">
             <table className="w-full min-w-[460px] text-left text-xs">
               <caption className="border-b border-zinc-300 px-4 py-3 text-left text-sm font-black">
-                Size chart
+                {t("sizeChart")}
               </caption>
               <thead className="bg-zinc-100">
                 <tr>
-                  {["Size", "Shoulder", "Chest", "Length", "Sleeve"].map((label) => (
+                  {[
+                    t("measurementSize"),
+                    t("shoulder"),
+                    t("chest"),
+                    t("length"),
+                    t("sleeve")
+                  ].map((label) => (
                     <th className="px-4 py-3 font-bold" key={label}>
                       {label}
                     </th>

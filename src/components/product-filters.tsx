@@ -30,6 +30,8 @@ export function ProductFilters({
     color: string;
     price: string;
     noResults: string;
+    noImage: string;
+    outOfStock: string;
     order: string;
     details: string;
   };
@@ -160,7 +162,9 @@ export function ProductFilters({
           <ProductGrid
             detailsLabel={labels.details}
             locale={locale}
+            noImageLabel={labels.noImage}
             orderLabel={labels.order}
+            outOfStockLabel={labels.outOfStock}
             products={filtered}
           />
         ) : (
