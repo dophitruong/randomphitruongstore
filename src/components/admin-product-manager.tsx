@@ -560,17 +560,17 @@ export function AdminProductManager({
               className="mt-6 grid gap-5 sm:grid-cols-2"
               onSubmit={handleSubmit(save)}
             >
-              <AdminField label="Name (VI)" error={errors.nameVi?.message}>
+              <AdminField label="Name (VI) / Tên (Tiếng Việt)" error={errors.nameVi?.message}>
                 <input className="field" {...register("nameVi")} />
               </AdminField>
-              <AdminField label="Name (EN)" error={errors.nameEn?.message}>
+              <AdminField label="Name (EN) / Tên (Tiếng Anh)" error={errors.nameEn?.message}>
                 <input className="field" {...register("nameEn")} />
               </AdminField>
-              <AdminField label="Slug" error={errors.slug?.message}>
+              <AdminField label="Slug / Đường dẫn tĩnh (vd: sukajan-hac-song)" error={errors.slug?.message}>
                 <input className="field" {...register("slug")} />
               </AdminField>
               <AdminField
-                label="Catalog category"
+                label="Catalog category / Danh mục sản phẩm"
                 error={errors.categoryId?.message}
               >
                 <select className="field" {...register("categoryId")}>
@@ -582,7 +582,7 @@ export function AdminProductManager({
                 </select>
               </AdminField>
               <AdminField
-                label="Base price (VND)"
+                label="Base price (VND) / Giá gốc (VND)"
                 error={errors.basePrice?.message}
               >
                 <input
@@ -592,7 +592,7 @@ export function AdminProductManager({
                 />
               </AdminField>
               <AdminField
-                label="Lead time min days"
+                label="Lead time min days / Hẹn giao tối thiểu (ngày)"
                 error={errors.orderLeadTimeMinDays?.message}
               >
                 <input
@@ -602,7 +602,7 @@ export function AdminProductManager({
                 />
               </AdminField>
               <AdminField
-                label="Lead time max days"
+                label="Lead time max days / Hẹn giao tối đa (ngày)"
                 error={errors.orderLeadTimeMaxDays?.message}
               >
                 <input
@@ -611,19 +611,44 @@ export function AdminProductManager({
                   {...register("orderLeadTimeMaxDays", { valueAsNumber: true })}
                 />
               </AdminField>
+              {/* Bilingual Guidance Box */}
+              <div className="sm:col-span-2 border-l-4 border-amber-500 bg-amber-50 p-4 text-amber-900 text-xs space-y-3 rounded-r-md">
+                <h4 className="font-bold text-sm uppercase tracking-wide flex items-center gap-1.5">
+                  💡 Guide & Instructions / Hướng dẫn nhập liệu
+                </h4>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-1">
+                    <p className="font-bold text-[#a72b1f]">🇺🇸 ENGLISH GUIDE</p>
+                    <ul className="list-disc list-inside space-y-1 text-zinc-700">
+                      <li><strong>Price Adjustment:</strong> Value added to base price. E.g. base is 1,500,000 and adjustment is 100,000 &rarr; final variant price is 1,600,000 VND. Set <code className="bg-zinc-200 px-1 rounded">0</code> for no adjustment.</li>
+                      <li><strong>Color (EN):</strong> Color name shown to English storefront users (e.g., "Black", "Navy").</li>
+                      <li><strong>Size Chart:</strong> Enter measurements (Shoulder, Chest, etc.) for each size. Select unit (<code className="bg-zinc-200 px-1 rounded">cm</code> / <code className="bg-zinc-200 px-1 rounded">inch</code>). Leave empty if not applicable.</li>
+                    </ul>
+                  </div>
+                  <div className="space-y-1 border-t sm:border-t-0 sm:border-l border-amber-200 pt-3 sm:pt-0 sm:pl-4">
+                    <p className="font-bold text-[#a72b1f]">🇻🇳 HƯỚNG DẪN TIẾNG VIỆT</p>
+                    <ul className="list-disc list-inside space-y-1 text-zinc-700">
+                      <li><strong>Điều chỉnh giá:</strong> Số tiền cộng thêm vào giá gốc. VD: Giá gốc 1.500.000đ, điều chỉnh giá là 100.000đ &rarr; giá biến thể này là 1.600.000đ. Nhập <code className="bg-zinc-200 px-1 rounded">0</code> nếu không đổi.</li>
+                      <li><strong>Màu (VI):</strong> Tên màu hiển thị ở giao diện tiếng Việt (vd: "Đen", "Xanh Navy").</li>
+                      <li><strong>Bảng Size:</strong> Nhập kích thước vai, ngực, dài áo, tay áo tương ứng từng size. Chọn đơn vị <code className="bg-zinc-200 px-1 rounded">cm</code> / <code className="bg-zinc-200 px-1 rounded">inch</code>. Bỏ trống nếu không có.</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
               {/* Variants Section */}
               <div className="sm:col-span-2 border border-zinc-200 p-4 bg-zinc-50/50">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
                   <div>
-                    <h3 className="text-sm font-bold text-zinc-950">Product Variants</h3>
-                    <p className="text-xs text-zinc-500 mt-0.5">Manage product sizing, colors, pricing adjustments, and availability.</p>
+                    <h3 className="text-sm font-bold text-zinc-950">Product Variants / Biến thể sản phẩm</h3>
+                    <p className="text-xs text-zinc-500 mt-0.5">Manage product sizing, colors, pricing adjustments, and availability. / Quản lý kích thước, màu sắc, điều chỉnh giá và trạng thái còn hàng.</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => appendVariant({ size: "", colorVi: "", colorEn: "", priceAdjustment: 0, isAvailable: true })}
                     className="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold uppercase tracking-wider bg-zinc-900 text-white hover:bg-[#a72b1f] transition-colors"
                   >
-                    <Plus size={14} /> Add Variant
+                    <Plus size={14} /> Add Variant / Thêm biến thể
                   </button>
                 </div>
 
@@ -635,12 +660,12 @@ export function AdminProductManager({
                   <table className="w-full text-left text-xs bg-white min-w-[500px]">
                     <thead className="bg-zinc-100 uppercase tracking-wider text-zinc-700 font-bold border-b border-zinc-200">
                       <tr>
-                        <th className="px-3 py-2.5 w-[80px]">Size *</th>
-                        <th className="px-3 py-2.5">Color (VI) *</th>
-                        <th className="px-3 py-2.5">Color (EN)</th>
-                        <th className="px-3 py-2.5 w-[140px]">Price Adj (VND)</th>
-                        <th className="px-3 py-2.5 w-[80px] text-center">Available</th>
-                        <th className="px-3 py-2.5 w-[60px] text-center">Remove</th>
+                        <th className="px-3 py-2.5 w-[90px]">Size / Size *</th>
+                        <th className="px-3 py-2.5">Color (VI) / Màu (VI) *</th>
+                        <th className="px-3 py-2.5">Color (EN) / Màu (EN)</th>
+                        <th className="px-3 py-2.5 w-[160px]">Price Adj / Chênh giá (VND)</th>
+                        <th className="px-3 py-2.5 w-[100px] text-center">Available / Có sẵn</th>
+                        <th className="px-3 py-2.5 w-[70px] text-center">Remove / Xóa</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-zinc-200">
@@ -713,15 +738,15 @@ export function AdminProductManager({
               <div className="sm:col-span-2 border border-zinc-200 p-4 bg-zinc-50/50">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
                   <div>
-                    <h3 className="text-sm font-bold text-zinc-950">Product Size Chart</h3>
-                    <p className="text-xs text-zinc-500 mt-0.5">Define detailed measurements for each size size chart reference.</p>
+                    <h3 className="text-sm font-bold text-zinc-950">Product Size Chart / Bảng Size sản phẩm</h3>
+                    <p className="text-xs text-zinc-500 mt-0.5">Define detailed measurements for each size size chart reference. / Định nghĩa số đo chi tiết cho từng kích thước của sản phẩm.</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => appendSizeChart({ size: "", shoulder: undefined, chest: undefined, length: undefined, sleeve: undefined, unit: "cm" })}
                     className="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold uppercase tracking-wider bg-zinc-900 text-white hover:bg-[#a72b1f] transition-colors"
                   >
-                    <Plus size={14} /> Add Size Row
+                    <Plus size={14} /> Add Size Row / Thêm hàng kích thước
                   </button>
                 </div>
 
@@ -733,13 +758,13 @@ export function AdminProductManager({
                   <table className="w-full text-left text-xs bg-white min-w-[500px]">
                     <thead className="bg-zinc-100 uppercase tracking-wider text-zinc-700 font-bold border-b border-zinc-200">
                       <tr>
-                        <th className="px-3 py-2.5 w-[80px]">Size *</th>
-                        <th className="px-3 py-2.5">Shoulder</th>
-                        <th className="px-3 py-2.5">Chest</th>
-                        <th className="px-3 py-2.5">Length</th>
-                        <th className="px-3 py-2.5">Sleeve</th>
-                        <th className="px-3 py-2.5 w-[80px]">Unit</th>
-                        <th className="px-3 py-2.5 w-[60px] text-center">Remove</th>
+                        <th className="px-3 py-2.5 w-[90px]">Size / Size *</th>
+                        <th className="px-3 py-2.5">Shoulder / Vai</th>
+                        <th className="px-3 py-2.5">Chest / Ngực</th>
+                        <th className="px-3 py-2.5">Length / Dài</th>
+                        <th className="px-3 py-2.5">Sleeve / Tay</th>
+                        <th className="px-3 py-2.5 w-[95px]">Unit / Đơn vị</th>
+                        <th className="px-3 py-2.5 w-[70px] text-center">Remove / Xóa</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-zinc-200">
@@ -829,21 +854,21 @@ export function AdminProductManager({
                   )}
                 </div>
               </div>
-              <AdminField label="Material (VI)" error={errors.materialVi?.message}>
+              <AdminField label="Material (VI) / Chất liệu (Tiếng Việt)" error={errors.materialVi?.message}>
                 <input className="field" {...register("materialVi")} />
               </AdminField>
-              <AdminField label="Material (EN)" error={errors.materialEn?.message}>
+              <AdminField label="Material (EN) / Chất liệu (Tiếng Anh)" error={errors.materialEn?.message}>
                 <input className="field" {...register("materialEn")} />
               </AdminField>
-              <AdminField label="Stock status" error={errors.stockStatus?.message}>
+              <AdminField label="Stock status / Trạng thái kho hàng" error={errors.stockStatus?.message}>
                 <select className="field" {...register("stockStatus")}>
-                  <option value="IN_STOCK">In stock</option>
-                  <option value="OUT_OF_STOCK">Out of stock</option>
+                  <option value="IN_STOCK">In stock / Còn hàng</option>
+                  <option value="OUT_OF_STOCK">Out of stock / Hết hàng</option>
                 </select>
               </AdminField>
               <div className="sm:col-span-2">
                 <AdminField
-                  label="Image URLs (one per line)"
+                  label="Image URLs / Link hình ảnh (mỗi dòng một link hoặc upload phía dưới)"
                   error={errors.images?.message}
                 >
                   <label
@@ -857,14 +882,14 @@ export function AdminProductManager({
                     <ImagePlus className="text-[#a72b1f]" size={28} />
                     <span className="mt-3 text-sm font-bold">
                       {isUploading
-                        ? "Uploading images..."
+                        ? "Uploading images... / Đang tải ảnh lên..."
                         : imageUploadLimitReached
-                          ? "Image limit reached"
-                          : "Upload product images"}
+                          ? "Image limit reached / Đã đạt giới hạn ảnh"
+                          : "Upload product images / Tải ảnh sản phẩm"}
                     </span>
                     <span className="mt-1 text-xs text-zinc-500">
                       JPG, PNG or WebP. Max 5 MB per image. {imageUrls.length}/
-                      {MAX_PRODUCT_IMAGES} images.
+                      {MAX_PRODUCT_IMAGES} images. / Định dạng JPG, PNG hoặc WebP. Tối đa 5 MB mỗi ảnh. {imageUrls.length}/{MAX_PRODUCT_IMAGES} ảnh.
                     </span>
                     <input
                       accept="image/jpeg,image/png,image/webp"
@@ -984,7 +1009,7 @@ export function AdminProductManager({
               </div>
               <div className="sm:col-span-2">
                 <AdminField
-                  label="Description (VI)"
+                  label="Description (VI) / Mô tả sản phẩm (Tiếng Việt)"
                   error={errors.descriptionVi?.message}
                 >
                   <textarea
@@ -995,7 +1020,7 @@ export function AdminProductManager({
               </div>
               <div className="sm:col-span-2">
                 <AdminField
-                  label="Description (EN)"
+                  label="Description (EN) / Mô tả sản phẩm (Tiếng Anh)"
                   error={errors.descriptionEn?.message}
                 >
                   <textarea
@@ -1004,13 +1029,13 @@ export function AdminProductManager({
                   />
                 </AdminField>
               </div>
-              <label className="flex items-center gap-2 text-sm font-bold">
+              <label className="flex items-center gap-2 text-sm font-bold cursor-pointer">
                 <input type="checkbox" {...register("isFeatured")} />
-                Featured
+                Featured / Nổi bật
               </label>
-              <label className="flex items-center gap-2 text-sm font-bold">
+              <label className="flex items-center gap-2 text-sm font-bold cursor-pointer">
                 <input type="checkbox" {...register("isActive")} />
-                Active
+                Active / Hoạt động
               </label>
               {serverError ? (
                 <p className="error-text sm:col-span-2">{serverError}</p>
@@ -1020,7 +1045,7 @@ export function AdminProductManager({
                 disabled={isSubmitting}
                 type="submit"
               >
-                {isSubmitting ? "Saving..." : "Save product"}
+                {isSubmitting ? "Saving... / Đang lưu..." : "Save product / Lưu sản phẩm"}
               </button>
             </form>
           </div>
