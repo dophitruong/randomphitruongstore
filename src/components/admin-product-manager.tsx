@@ -144,7 +144,7 @@ export function AdminProductManager({
   const [serverError, setServerError] = useState("");
   const [query, setQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("ALL");
-  const [visibilityFilter, setVisibilityFilter] = useState("ALL");
+  const [visibilityFilter, setVisibilityFilter] = useState("ACTIVE");
   const [stockFilter, setStockFilter] = useState("ALL");
   const [page, setPage] = useState(1);
   const {
@@ -376,10 +376,10 @@ export function AdminProductManager({
           onChange={(event) => updateCategory(event.target.value)}
           value={categoryFilter}
         >
-          <option value="ALL">All categories</option>
+          <option value="ALL">All categories / Tất cả danh mục</option>
           {categoryOptions.map((category) => (
             <option key={category.id} value={category.id}>
-              {category.nameEn}
+              {category.nameEn} / {category.nameVi}
             </option>
           ))}
         </select>
@@ -389,10 +389,10 @@ export function AdminProductManager({
           onChange={(event) => updateVisibility(event.target.value)}
           value={visibilityFilter}
         >
-          <option value="ALL">All status</option>
-          <option value="ACTIVE">Active</option>
-          <option value="INACTIVE">Inactive</option>
-          <option value="FEATURED">Featured</option>
+          <option value="ACTIVE">Active / Hoạt động</option>
+          <option value="ALL">All status / Tất cả trạng thái</option>
+          <option value="INACTIVE">Inactive / Không hoạt động (Lưu trữ)</option>
+          <option value="FEATURED">Featured / Nổi bật</option>
         </select>
         <select
           aria-label="Filter by stock"
@@ -400,9 +400,9 @@ export function AdminProductManager({
           onChange={(event) => updateStock(event.target.value)}
           value={stockFilter}
         >
-          <option value="ALL">All stock</option>
-          <option value="IN_STOCK">In stock</option>
-          <option value="OUT_OF_STOCK">Out of stock</option>
+          <option value="ALL">All stock / Tất cả tồn kho</option>
+          <option value="IN_STOCK">In stock / Còn hàng</option>
+          <option value="OUT_OF_STOCK">Out of stock / Hết hàng</option>
         </select>
         <button
           className="inline-flex min-h-11 items-center justify-center gap-2 bg-[#171715] px-5 text-xs font-bold uppercase tracking-[0.1em] text-white transition-colors hover:bg-[#a72b1f] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a72b1f]"
