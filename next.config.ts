@@ -13,7 +13,7 @@ const contentSecurityPolicy = [
   "form-action 'self' https://pay.sepay.vn",
   "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https://images.unsplash.com https://qr.sepay.vn",
+  "img-src 'self' data: blob: https://images.unsplash.com https://qr.sepay.vn https://*.supabase.co",
   "font-src 'self' data:",
   "connect-src 'self' https://*.supabase.co",
   ...(isProduction ? ["upgrade-insecure-requests"] : [])
