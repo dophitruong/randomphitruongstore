@@ -656,7 +656,8 @@ export function AdminProductManager({
                   <p className="text-xs font-bold text-red-600 mb-3">{errors.variants.message}</p>
                 )}
 
-                <div className="overflow-x-auto border border-zinc-200">
+                {/* Desktop View */}
+                <div className="hidden md:block overflow-x-auto border border-zinc-200">
                   <table className="w-full text-left text-xs bg-white min-w-[500px]">
                     <thead className="bg-zinc-100 uppercase tracking-wider text-zinc-700 font-bold border-b border-zinc-200">
                       <tr>
@@ -732,6 +733,86 @@ export function AdminProductManager({
                     </div>
                   )}
                 </div>
+
+                {/* Mobile View */}
+                <div className="block md:hidden space-y-3">
+                  {variantFields.map((field, index) => (
+                    <div key={field.id} className="bg-white border border-zinc-200 p-4 rounded-md shadow-sm relative space-y-3">
+                      <div className="absolute top-2 right-2">
+                        <button
+                          type="button"
+                          onClick={() => removeVariant(index)}
+                          className="text-zinc-400 hover:text-red-600 p-2 transition-colors inline-flex items-center justify-center bg-zinc-50 hover:bg-red-50 rounded-full"
+                          title="Remove variant"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                      
+                      <div className="pr-10 grid grid-cols-2 gap-3">
+                        <label className="block">
+                          <span className="text-[10px] uppercase font-bold text-zinc-500">Size / Kích thước *</span>
+                          <input
+                            className="field mt-1 py-1.5 px-2 text-xs w-full font-bold"
+                            placeholder="e.g. M"
+                            {...register(`variants.${index}.size` as const)}
+                          />
+                          {errors.variants?.[index]?.size?.message && (
+                            <p className="text-[10px] text-red-600 mt-0.5">{errors.variants[index].size.message}</p>
+                          )}
+                        </label>
+                        <label className="block">
+                          <span className="text-[10px] uppercase font-bold text-zinc-500">Price Adj / Chênh giá (VND)</span>
+                          <input
+                            type="number"
+                            className="field mt-1 py-1.5 px-2 text-xs w-full font-bold text-[#a72b1f]"
+                            placeholder="0"
+                            {...register(`variants.${index}.priceAdjustment` as const, { valueAsNumber: true })}
+                          />
+                        </label>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <label className="block">
+                          <span className="text-[10px] uppercase font-bold text-zinc-500">Color (VI) / Màu (VI) *</span>
+                          <input
+                            className="field mt-1 py-1.5 px-2 text-xs w-full"
+                            placeholder="e.g. Đen"
+                            {...register(`variants.${index}.colorVi` as const)}
+                          />
+                          {errors.variants?.[index]?.colorVi?.message && (
+                            <p className="text-[10px] text-red-600 mt-0.5">{errors.variants[index].colorVi.message}</p>
+                          )}
+                        </label>
+                        <label className="block">
+                          <span className="text-[10px] uppercase font-bold text-zinc-500">Color (EN) / Màu (EN)</span>
+                          <input
+                            className="field mt-1 py-1.5 px-2 text-xs w-full"
+                            placeholder="e.g. Black"
+                            {...register(`variants.${index}.colorEn` as const)}
+                          />
+                        </label>
+                      </div>
+
+                      <div className="flex items-center justify-between border-t border-zinc-100 pt-3">
+                        <label className="flex items-center gap-2 text-xs font-bold cursor-pointer">
+                          <input
+                            type="checkbox"
+                            className="size-4 rounded border-zinc-300 text-[#a72b1f] focus:ring-[#a72b1f] accent-black"
+                            {...register(`variants.${index}.isAvailable` as const)}
+                          />
+                          Available / Có sẵn
+                        </label>
+                        <span className="text-[10px] text-zinc-400 font-bold">Variant #{index + 1}</span>
+                      </div>
+                    </div>
+                  ))}
+                  {variantFields.length === 0 && (
+                    <div className="p-6 text-center text-zinc-500 bg-white border border-dashed border-zinc-300 rounded-md">
+                      No variants added. Click "Add Variant / Thêm biến thể" to create one.
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Size Chart Section */}
@@ -754,7 +835,8 @@ export function AdminProductManager({
                   <p className="text-xs font-bold text-red-600 mb-3">{errors.sizeCharts.message}</p>
                 )}
 
-                <div className="overflow-x-auto border border-zinc-200">
+                {/* Desktop View */}
+                <div className="hidden md:block overflow-x-auto border border-zinc-200">
                   <table className="w-full text-left text-xs bg-white min-w-[500px]">
                     <thead className="bg-zinc-100 uppercase tracking-wider text-zinc-700 font-bold border-b border-zinc-200">
                       <tr>
@@ -850,6 +932,111 @@ export function AdminProductManager({
                   {sizeChartFields.length === 0 && (
                     <div className="p-6 text-center text-zinc-500 bg-white">
                       No size chart measurements added. Click "Add Size Row" to create one.
+                    </div>
+                  )}
+                </div>
+
+                {/* Mobile View */}
+                <div className="block md:hidden space-y-3">
+                  {sizeChartFields.map((field, index) => (
+                    <div key={field.id} className="bg-white border border-zinc-200 p-4 rounded-md shadow-sm relative space-y-3">
+                      <div className="absolute top-2 right-2">
+                        <button
+                          type="button"
+                          onClick={() => removeSizeChart(index)}
+                          className="text-zinc-400 hover:text-red-600 p-2 transition-colors inline-flex items-center justify-center bg-zinc-50 hover:bg-red-50 rounded-full"
+                          title="Remove row"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                      
+                      <div className="pr-10 grid grid-cols-2 gap-3">
+                        <label className="block">
+                          <span className="text-[10px] uppercase font-bold text-zinc-500">Size / Size *</span>
+                          <input
+                            className="field mt-1 py-1.5 px-2 text-xs w-full font-bold"
+                            placeholder="e.g. M"
+                            {...register(`sizeCharts.${index}.size` as const)}
+                          />
+                          {errors.sizeCharts?.[index]?.size?.message && (
+                            <p className="text-[10px] text-red-600 mt-0.5">{errors.sizeCharts[index].size.message}</p>
+                          )}
+                        </label>
+                        <label className="block">
+                          <span className="text-[10px] uppercase font-bold text-zinc-500">Unit / Đơn vị</span>
+                          <select
+                            className="field mt-1 py-1.5 px-2 text-xs w-full font-bold"
+                            {...register(`sizeCharts.${index}.unit` as const)}
+                          >
+                            <option value="cm">cm</option>
+                            <option value="inch">inch</option>
+                          </select>
+                        </label>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <label className="block">
+                          <span className="text-[10px] uppercase font-bold text-zinc-500">Shoulder / Vai</span>
+                          <input
+                            type="number"
+                            step="any"
+                            className="field mt-1 py-1.5 px-2 text-xs w-full"
+                            placeholder="-"
+                            {...register(`sizeCharts.${index}.shoulder` as const, {
+                              setValueAs: (value) => (value === "" || value === null || value === undefined ? undefined : Number(value))
+                            })}
+                          />
+                        </label>
+                        <label className="block">
+                          <span className="text-[10px] uppercase font-bold text-zinc-500">Chest / Ngực</span>
+                          <input
+                            type="number"
+                            step="any"
+                            className="field mt-1 py-1.5 px-2 text-xs w-full"
+                            placeholder="-"
+                            {...register(`sizeCharts.${index}.chest` as const, {
+                              setValueAs: (value) => (value === "" || value === null || value === undefined ? undefined : Number(value))
+                            })}
+                          />
+                        </label>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <label className="block">
+                          <span className="text-[10px] uppercase font-bold text-zinc-500">Length / Dài</span>
+                          <input
+                            type="number"
+                            step="any"
+                            className="field mt-1 py-1.5 px-2 text-xs w-full"
+                            placeholder="-"
+                            {...register(`sizeCharts.${index}.length` as const, {
+                              setValueAs: (value) => (value === "" || value === null || value === undefined ? undefined : Number(value))
+                            })}
+                          />
+                        </label>
+                        <label className="block">
+                          <span className="text-[10px] uppercase font-bold text-zinc-500">Sleeve / Tay</span>
+                          <input
+                            type="number"
+                            step="any"
+                            className="field mt-1 py-1.5 px-2 text-xs w-full"
+                            placeholder="-"
+                            {...register(`sizeCharts.${index}.sleeve` as const, {
+                              setValueAs: (value) => (value === "" || value === null || value === undefined ? undefined : Number(value))
+                            })}
+                          />
+                        </label>
+                      </div>
+                      
+                      <div className="flex justify-end border-t border-zinc-100 pt-2">
+                        <span className="text-[10px] text-zinc-400 font-bold">Size Chart #{index + 1}</span>
+                      </div>
+                    </div>
+                  ))}
+                  {sizeChartFields.length === 0 && (
+                    <div className="p-6 text-center text-zinc-500 bg-white border border-dashed border-zinc-300 rounded-md">
+                      No size chart measurements added. Click "Add Size Row / Thêm hàng kích thước" to create one.
                     </div>
                   )}
                 </div>
