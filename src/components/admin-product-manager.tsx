@@ -12,7 +12,7 @@ import {
   X
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm, useWatch, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 import {
@@ -178,6 +178,19 @@ export function AdminProductManager({
   const imageUrls = splitProductImageUrls(imageText);
   const imageUploadLimitReached = imageUrls.length >= MAX_PRODUCT_IMAGES;
   const [isUploading, setIsUploading] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsMounted(true);
+    const mediaQuery = window.matchMedia("(max-width: 767px)");
+    setIsMobile(mediaQuery.matches);
+
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mediaQuery.addEventListener("change", handler);
+    return () => mediaQuery.removeEventListener("change", handler);
+  }, []);
   const filteredProducts = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
     return products.filter((product) => {
@@ -664,7 +677,8 @@ export function AdminProductManager({
                 )}
 
                 {/* Desktop View */}
-                <div className="hidden md:block overflow-x-auto border border-zinc-200">
+                {(!isMounted || !isMobile) && (
+                  <div className="hidden md:block overflow-x-auto border border-zinc-200">
                   <table className="w-full text-left text-xs bg-white min-w-[500px]">
                     <thead className="bg-zinc-100 uppercase tracking-wider text-zinc-700 font-bold border-b border-zinc-200">
                       <tr>
@@ -744,10 +758,12 @@ export function AdminProductManager({
                       No variants added. Click &quot;Add Variant&quot; to create one.
                     </div>
                   )}
-                </div>
+                  </div>
+                )}
 
                 {/* Mobile View */}
-                <div className="block md:hidden space-y-3">
+                {isMounted && isMobile && (
+                  <div className="block md:hidden space-y-3">
                   {variantFields.map((field, index) => (
                     <div key={field.id} className="bg-white border border-zinc-200 p-4 rounded-md shadow-sm relative space-y-3">
                       <div className="absolute top-2 right-2">
@@ -829,7 +845,8 @@ export function AdminProductManager({
                       No variants added. Click &quot;Add Variant / Thêm biến thể&quot; to create one.
                     </div>
                   )}
-                </div>
+                  </div>
+                )}
               </div>
 
               {/* Size Chart Section */}
@@ -853,7 +870,8 @@ export function AdminProductManager({
                 )}
 
                 {/* Desktop View */}
-                <div className="hidden md:block overflow-x-auto border border-zinc-200">
+                {(!isMounted || !isMobile) && (
+                  <div className="hidden md:block overflow-x-auto border border-zinc-200">
                   <table className="w-full text-left text-xs bg-white min-w-[500px]">
                     <thead className="bg-zinc-100 uppercase tracking-wider text-zinc-700 font-bold border-b border-zinc-200">
                       <tr>
@@ -963,10 +981,12 @@ export function AdminProductManager({
                       No size chart measurements added. Click &quot;Add Size Row&quot; to create one.
                     </div>
                   )}
-                </div>
+                  </div>
+                )}
 
                 {/* Mobile View */}
-                <div className="block md:hidden space-y-3">
+                {isMounted && isMobile && (
+                  <div className="block md:hidden space-y-3">
                   {sizeChartFields.map((field, index) => (
                     <div key={field.id} className="bg-white border border-zinc-200 p-4 rounded-md shadow-sm relative space-y-3">
                       <div className="absolute top-2 right-2">
@@ -1080,7 +1100,8 @@ export function AdminProductManager({
                       No size chart measurements added. Click &quot;Add Size Row / Thêm hàng kích thước&quot; to create one.
                     </div>
                   )}
-                </div>
+                  </div>
+                )}
               </div>
               <AdminField label="Material (VI) / Chất liệu (Tiếng Việt)" error={errors.materialVi?.message}>
                 <input className="field" {...register("materialVi")} />
