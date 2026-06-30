@@ -39,7 +39,14 @@ const optionalMeasurementSchema = z.number().positive().optional();
 const formSchema = z.object({
   nameVi: z.string().trim().min(2),
   nameEn: z.string().trim().min(2),
-  slug: z.string().trim().regex(/^[a-z0-9àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễđìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹ]+(?:-[a-z0-9àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễđìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹ]+)*$/),
+  slug: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .regex(
+      /^[a-z0-9àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễđìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹ]+(?:-[a-z0-9àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễđìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹ]+)*$/,
+      "Slug only allows lowercase letters, numbers, and hyphens (e.g. sukajan-hac-song) / Slug chỉ được chứa chữ thường không dấu hoặc có dấu tiếng Việt, số và dấu gạch ngang."
+    ),
   descriptionVi: z.string().trim().min(10),
   descriptionEn: z.string().trim().min(10),
   categoryId: z.string().uuid(),
