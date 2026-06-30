@@ -13,6 +13,33 @@ export function ProductGallery({
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const selected = images[active];
 
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX);
+    setTouchEnd(null);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe) {
+      setActive((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+    } else if (isRightSwipe) {
+      setActive((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+    }
+  };
+
   useEffect(() => {
     if (!lightboxOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -30,29 +57,66 @@ export function ProductGallery({
 
   return (
     <div>
-      <button
-        type="button"
-        onClick={() => setLightboxOpen(true)}
-        className="relative block w-full aspect-[4/5] max-h-[60vh] sm:max-h-none overflow-hidden bg-zinc-100 cursor-zoom-in"
-        aria-label="Zoom product image"
+      <div
+        className="relative group/gallery"
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
       >
-        {selected ? (
-          <Image
-            alt={selected.alt}
-            className="object-contain"
-            fill
-            priority
-            sizes="(max-width: 1024px) 100vw, 55vw"
-            src={selected.url}
-          />
-        ) : null}
-      </button>
+        <button
+          type="button"
+          onClick={() => setLightboxOpen(true)}
+          className="relative block w-full aspect-square sm:aspect-[4/5] max-h-[70vh] sm:max-h-none overflow-hidden bg-zinc-50 cursor-zoom-in"
+          aria-label="Zoom product image"
+        >
+          {selected ? (
+            <Image
+              alt={selected.alt}
+              className="object-contain"
+              fill
+              priority
+              sizes="(max-width: 1024px) 100vw, 55vw"
+              src={selected.url}
+            />
+          ) : null}
+        </button>
+
+        {images.length > 1 && (
+          <>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setActive((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+              }}
+              className="absolute left-3 top-1/2 -translate-y-1/2 z-10 hidden sm:grid size-9 place-items-center rounded-full bg-white/90 hover:bg-white text-zinc-900 shadow-md border border-zinc-200 transition-all active:scale-95 md:opacity-0 md:group-hover/gallery:opacity-100"
+              aria-label="Previous image"
+            >
+              <ChevronLeft size={18} />
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setActive((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+              }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 z-10 hidden sm:grid size-9 place-items-center rounded-full bg-white/90 hover:bg-white text-zinc-900 shadow-md border border-zinc-200 transition-all active:scale-95 md:opacity-0 md:group-hover/gallery:opacity-100"
+              aria-label="Next image"
+            >
+              <ChevronRight size={18} />
+            </button>
+            <div className="absolute right-4 bottom-4 z-10 px-2.5 py-1 rounded-full bg-black/60 text-white text-[10px] font-black sm:hidden tracking-wider">
+              {active + 1} / {images.length}
+            </div>
+          </>
+        )}
+      </div>
       {images.length > 1 ? (
-        <div className="mt-3 flex gap-2.5 overflow-x-auto pb-2 scrollbar-none sm:grid sm:grid-cols-4 sm:gap-3 sm:overflow-x-visible sm:pb-0">
+        <div className="mt-3 hidden sm:grid sm:grid-cols-4 sm:gap-3">
           {images.map((image, index) => (
             <button
               aria-label={`View image ${index + 1}`}
-              className={`relative w-[72px] aspect-square shrink-0 overflow-hidden border sm:w-auto sm:shrink ${
+              className={`relative aspect-square overflow-hidden border ${
                 active === index ? "border-black" : "border-transparent"
               }`}
               key={`${image.url}-${index}`}

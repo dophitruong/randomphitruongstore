@@ -4,6 +4,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Money } from "@/components/money";
 import { ProductGallery } from "@/components/product-gallery";
+import { ProductDescription } from "@/components/product-description";
 import { PurchasePanel } from "@/components/purchase-panel";
 import type { Locale } from "@/i18n/request";
 import { productVariantColors, productVariantSizes } from "@/lib/product-catalog";
@@ -65,14 +66,14 @@ export default async function ProductPage({ params }: PageProps) {
   const availableColors = productVariantColors(product.variants);
 
   return (
-    <div className="container-shell grid gap-10 py-8 sm:py-14 lg:grid-cols-[1.15fr_0.85fr] xl:grid-cols-[1.2fr_0.8fr] lg:gap-16 xl:gap-20">
+    <div className="grid gap-6 pb-14 sm:py-14 lg:grid-cols-[1.15fr_0.85fr] xl:grid-cols-[1.2fr_0.8fr] lg:gap-16 xl:gap-20 sm:container-shell w-full min-w-0 overflow-x-hidden">
       <ProductGallery
         images={product.images.map((image) => ({
           url: image.url,
           alt: locale === "vi" ? image.altVi : image.altEn
         }))}
       />
-      <section className="lg:sticky lg:top-24 lg:h-fit">
+      <section className="px-4 sm:px-0 lg:sticky lg:top-24 lg:h-fit min-w-0">
         <p className="eyebrow text-zinc-500">{common("orderTime")}</p>
         <h1 className="mt-4 text-4xl font-black tracking-[-0.04em] sm:text-6xl">
           {name}
@@ -85,7 +86,11 @@ export default async function ProductPage({ params }: PageProps) {
             </span>
           )}
         </p>
-        <p className="mt-6 text-sm leading-7 text-zinc-600">{description}</p>
+        <ProductDescription
+          description={description}
+          readMoreLabel={t("readMore")}
+          readLessLabel={t("readLess")}
+        />
         <dl className="my-7 border-y border-zinc-300 py-5 text-sm">
           <div className="flex justify-between gap-4">
             <dt className="font-bold">{t("material")}</dt>

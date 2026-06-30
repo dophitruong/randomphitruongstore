@@ -96,7 +96,9 @@
     "shoulder": "Shoulder",
     "chest": "Chest",
     "length": "Length",
-    "sleeve": "Sleeve"
+    "sleeve": "Sleeve",
+    "readMore": "Read more",
+    "readLess": "Read less"
   },
   "auth": {
     "eyebrow": "Customer account",
