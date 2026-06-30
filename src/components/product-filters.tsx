@@ -53,7 +53,7 @@ export function ProductFilters({
 
   const categories = uniqueCategories(products);
   const sizes = [...new Set(products.flatMap((product) => productVariantSizes(product.variants)))];
-  const colors = [...new Set(products.flatMap((product) => productVariantColors(product.variants)))];
+  const colors = [...new Set(products.flatMap((product) => productVariantColors(product.variants, locale)))];
   const activeFilterCount = [
     category !== "ALL",
     size !== "ALL",

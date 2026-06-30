@@ -96,8 +96,14 @@ export function productVariantSizes(variants: ProductOptionVariant[] = []) {
   return [...new Set(availableProductVariants(variants).map((variant) => variant.size))];
 }
 
-export function productVariantColors(variants: ProductOptionVariant[] = []) {
-  return [...new Set(availableProductVariants(variants).map((variant) => variant.colorVi))];
+export function productVariantColors(variants: ProductOptionVariant[] = [], locale: string = "vi") {
+  return [
+    ...new Set(
+      availableProductVariants(variants).map((variant) =>
+        locale === "vi" ? variant.colorVi : (variant.colorEn || variant.colorVi)
+      )
+    )
+  ];
 }
 
 export function findAvailableProductVariant(
