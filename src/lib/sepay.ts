@@ -156,16 +156,16 @@ export function sePayIpnSecretFromEnvironment() {
   return process.env.SEPAY_IPN_SECRET_KEY ?? process.env.SEPAY_MERCHANT_SECRET_KEY ?? "";
 }
 
-export function buildSePaySuccessUrl(orderNumber: string): string {
-  return buildPaymentResultUrl("/checkout/success", orderNumber);
+export function buildSePaySuccessUrl(orderNumber: string, baseUrl?: string): string {
+  return buildPaymentResultUrl("/checkout/success", orderNumber, undefined, baseUrl);
 }
 
-export function buildSePayErrorUrl(orderNumber: string): string {
-  return buildPaymentResultUrl("/checkout/cancel", orderNumber, "error");
+export function buildSePayErrorUrl(orderNumber: string, baseUrl?: string): string {
+  return buildPaymentResultUrl("/checkout/cancel", orderNumber, "error", baseUrl);
 }
 
-export function buildSePayCancelUrl(orderNumber: string): string {
-  return buildPaymentResultUrl("/checkout/cancel", orderNumber);
+export function buildSePayCancelUrl(orderNumber: string, baseUrl?: string): string {
+  return buildPaymentResultUrl("/checkout/cancel", orderNumber, undefined, baseUrl);
 }
 
 export function buildSePayWebhookUrl(): string {
@@ -175,9 +175,11 @@ export function buildSePayWebhookUrl(): string {
 function buildPaymentResultUrl(
   pathname: string,
   orderNumber: string,
-  status?: string
+  status?: string,
+  baseUrl?: string
 ) {
-  const url = new URL(pathname, SITE_URL);
+  const base = baseUrl || SITE_URL;
+  const url = new URL(pathname, base);
   url.searchParams.set("orderId", orderNumber);
   url.searchParams.set("gateway", "sepay");
   if (status) url.searchParams.set("status", status);
