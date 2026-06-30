@@ -73,7 +73,7 @@ export default async function ProductPage({ params }: PageProps) {
           alt: locale === "vi" ? image.altVi : image.altEn
         }))}
       />
-      <section className="px-4 sm:px-0 lg:sticky lg:top-24 lg:h-fit min-w-0">
+      <section className="px-4 lg:pl-0 lg:pr-8 xl:pr-16 lg:sticky lg:top-24 lg:h-fit min-w-0">
         <p className="eyebrow text-zinc-400">{common("orderTime")}</p>
         <h1 className="mt-4 text-3xl sm:text-4xl font-black tracking-tight text-zinc-900">
           {name}
