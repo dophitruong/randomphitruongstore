@@ -99,9 +99,13 @@ export async function POST(request: Request) {
       }
     });
 
+    const host = request.headers.get("x-forwarded-host") || request.headers.get("host") || "";
+    const protocol = request.headers.get("x-forwarded-proto") || "https";
+    const origin = host ? `${protocol}://${host}` : SITE_URL;
+
     if (isLocalSePaySandbox()) {
       return ok({
-        paymentUrl: `${SITE_URL}/api/payment/sepay-placeholder?orderId=${encodeURIComponent(order.orderNumber)}`
+        paymentUrl: `${origin}/api/payment/sepay-placeholder?orderId=${encodeURIComponent(order.orderNumber)}`
       });
     }
 
@@ -111,9 +115,9 @@ export async function POST(request: Request) {
         amount,
         description,
         customerId: order.customerId,
-        successUrl: buildSePaySuccessUrl(order.orderNumber),
-        errorUrl: buildSePayErrorUrl(order.orderNumber),
-        cancelUrl: buildSePayCancelUrl(order.orderNumber)
+        successUrl: buildSePaySuccessUrl(order.orderNumber, origin),
+        errorUrl: buildSePayErrorUrl(order.orderNumber, origin),
+        cancelUrl: buildSePayCancelUrl(order.orderNumber, origin)
       })
     });
   } catch (error) {
