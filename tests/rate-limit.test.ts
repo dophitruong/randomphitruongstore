@@ -4,7 +4,8 @@ import { describe, it } from "node:test";
 import {
   buildRateLimitKey,
   consumeRateLimit,
-  clientIpFromRequest
+  clientIpFromRequest,
+  rateLimitPolicies
 } from "../src/lib/rate-limit";
 
 describe("database-backed rate limiting", () => {
@@ -99,7 +100,7 @@ describe("database-backed rate limiting", () => {
         "paymentInitiationIp",
         "paymentInitiationOrder"
       ],
-      ["../src/app/api/upload/route.ts", "uploadIp"],
+      ["../src/app/api/upload/route.ts", "adminUploadAccount", "uploadIp"],
       ["../src/app/api/upload/intent/route.ts", "uploadIp"]
     ] as const;
 
@@ -113,6 +114,30 @@ describe("database-backed rate limiting", () => {
         );
       }
     }
+  });
+
+  it("allows authenticated admins to upload several product image batches", () => {
+    const imagesPerProduct = 10;
+    const consecutiveProducts = 4;
+
+    assert.ok(
+      rateLimitPolicies.adminUploadAccount.limit >=
+        imagesPerProduct * consecutiveProducts,
+      "Admin product uploads should not hit the public upload ceiling"
+    );
+    assert.equal(rateLimitPolicies.uploadIp.limit, 20);
+  });
+
+  it("keeps admin uploads out of the public upload rate-limit bucket", async () => {
+    const source = await readFile(
+      new URL("../src/app/api/upload/route.ts", import.meta.url),
+      "utf8"
+    );
+
+    assert.match(source, /const admin = await getCurrentAdmin\(\)/);
+    assert.match(source, /rateLimitPolicies\.adminUploadAccount/);
+    assert.match(source, /rateLimitPolicies\.uploadIp/);
+    assert.doesNotMatch(source, /isAdminAuthenticated/);
   });
 });
 
