@@ -12,7 +12,7 @@ import {
   X
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm, useWatch, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 import {
@@ -39,7 +39,14 @@ const optionalMeasurementSchema = z.number().positive().optional();
 const formSchema = z.object({
   nameVi: z.string().trim().min(2),
   nameEn: z.string().trim().min(2),
-  slug: z.string().trim().regex(/^[a-z0-9àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễđìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹ]+(?:-[a-z0-9àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễđìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹ]+)*$/),
+  slug: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .regex(
+      /^[a-z0-9àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễđìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹ]+(?:-[a-z0-9àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễđìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹ]+)*$/,
+      "Slug only allows lowercase letters, numbers, and hyphens (e.g. sukajan-hac-song) / Slug chỉ được chứa chữ thường không dấu hoặc có dấu tiếng Việt, số và dấu gạch ngang."
+    ),
   descriptionVi: z.string().trim().min(10),
   descriptionEn: z.string().trim().min(10),
   categoryId: z.string().uuid(),
@@ -171,6 +178,28 @@ export function AdminProductManager({
   const imageUrls = splitProductImageUrls(imageText);
   const imageUploadLimitReached = imageUrls.length >= MAX_PRODUCT_IMAGES;
   const [isUploading, setIsUploading] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsMounted(true);
+    const mediaQuery = window.matchMedia("(max-width: 767px)");
+    setIsMobile(mediaQuery.matches);
+
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mediaQuery.addEventListener("change", handler);
+
+    const handleFocus = () => {
+      window.scrollTo(window.scrollX, window.scrollY);
+    };
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      mediaQuery.removeEventListener("change", handler);
+      window.removeEventListener("focus", handleFocus);
+    };
+  }, []);
   const filteredProducts = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
     return products.filter((product) => {
@@ -558,7 +587,19 @@ export function AdminProductManager({
             </div>
             <form
               className="mt-6 grid gap-5 sm:grid-cols-2"
-              onSubmit={handleSubmit(save)}
+              onSubmit={handleSubmit(save, (errs) => {
+                const firstErrorKey = Object.keys(errs)[0];
+                if (firstErrorKey) {
+                  const errorElement = document.getElementsByName(firstErrorKey)[0] ||
+                                       document.querySelector(`[name^="${firstErrorKey}"]`);
+                  if (errorElement) {
+                    errorElement.scrollIntoView({ behavior: "smooth", block: "center" });
+                    if (typeof (errorElement as HTMLElement).focus === "function") {
+                      (errorElement as HTMLElement).focus();
+                    }
+                  }
+                }
+              })}
             >
               <AdminField label="Name (VI) / Tên (Tiếng Việt)" error={errors.nameVi?.message}>
                 <input className="field" {...register("nameVi")} />
@@ -657,7 +698,8 @@ export function AdminProductManager({
                 )}
 
                 {/* Desktop View */}
-                <div className="hidden md:block overflow-x-auto border border-zinc-200">
+                {(!isMounted || !isMobile) && (
+                  <div className="hidden md:block overflow-x-auto border border-zinc-200">
                   <table className="w-full text-left text-xs bg-white min-w-[500px]">
                     <thead className="bg-zinc-100 uppercase tracking-wider text-zinc-700 font-bold border-b border-zinc-200">
                       <tr>
@@ -703,8 +745,13 @@ export function AdminProductManager({
                             <input
                               type="number"
                               className="field py-1 px-2 text-xs w-full"
-                              {...register(`variants.${index}.priceAdjustment` as const, { valueAsNumber: true })}
+                              {...register(`variants.${index}.priceAdjustment` as const, {
+                                setValueAs: (value) => (value === "" || value === null || value === undefined || Number.isNaN(Number(value)) ? 0 : Number(value))
+                              })}
                             />
+                            {errors.variants?.[index]?.priceAdjustment?.message && (
+                              <p className="text-[10px] text-red-600 mt-0.5">{errors.variants[index].priceAdjustment.message}</p>
+                            )}
                           </td>
                           <td className="p-2 text-center">
                             <input
@@ -732,10 +779,12 @@ export function AdminProductManager({
                       No variants added. Click &quot;Add Variant&quot; to create one.
                     </div>
                   )}
-                </div>
+                  </div>
+                )}
 
                 {/* Mobile View */}
-                <div className="block md:hidden space-y-3">
+                {isMounted && isMobile && (
+                  <div className="block md:hidden space-y-3">
                   {variantFields.map((field, index) => (
                     <div key={field.id} className="bg-white border border-zinc-200 p-4 rounded-md shadow-sm relative space-y-3">
                       <div className="absolute top-2 right-2">
@@ -767,8 +816,13 @@ export function AdminProductManager({
                             type="number"
                             className="field mt-1 py-1.5 px-2 text-xs w-full font-bold text-[#a72b1f]"
                             placeholder="0"
-                            {...register(`variants.${index}.priceAdjustment` as const, { valueAsNumber: true })}
+                            {...register(`variants.${index}.priceAdjustment` as const, {
+                              setValueAs: (value) => (value === "" || value === null || value === undefined || Number.isNaN(Number(value)) ? 0 : Number(value))
+                            })}
                           />
+                          {errors.variants?.[index]?.priceAdjustment?.message && (
+                            <p className="text-[10px] text-red-600 mt-0.5">{errors.variants[index].priceAdjustment.message}</p>
+                          )}
                         </label>
                       </div>
 
@@ -812,7 +866,8 @@ export function AdminProductManager({
                       No variants added. Click &quot;Add Variant / Thêm biến thể&quot; to create one.
                     </div>
                   )}
-                </div>
+                  </div>
+                )}
               </div>
 
               {/* Size Chart Section */}
@@ -836,7 +891,8 @@ export function AdminProductManager({
                 )}
 
                 {/* Desktop View */}
-                <div className="hidden md:block overflow-x-auto border border-zinc-200">
+                {(!isMounted || !isMobile) && (
+                  <div className="hidden md:block overflow-x-auto border border-zinc-200">
                   <table className="w-full text-left text-xs bg-white min-w-[500px]">
                     <thead className="bg-zinc-100 uppercase tracking-wider text-zinc-700 font-bold border-b border-zinc-200">
                       <tr>
@@ -872,6 +928,9 @@ export function AdminProductManager({
                                 setValueAs: (value) => (value === "" || value === null || value === undefined ? undefined : Number(value))
                               })}
                             />
+                            {errors.sizeCharts?.[index]?.shoulder?.message && (
+                              <p className="text-[9px] text-red-600 mt-0.5">{errors.sizeCharts[index].shoulder.message}</p>
+                            )}
                           </td>
                           <td className="p-2">
                             <input
@@ -883,6 +942,9 @@ export function AdminProductManager({
                                 setValueAs: (value) => (value === "" || value === null || value === undefined ? undefined : Number(value))
                               })}
                             />
+                            {errors.sizeCharts?.[index]?.chest?.message && (
+                              <p className="text-[9px] text-red-600 mt-0.5">{errors.sizeCharts[index].chest.message}</p>
+                            )}
                           </td>
                           <td className="p-2">
                             <input
@@ -894,6 +956,9 @@ export function AdminProductManager({
                                 setValueAs: (value) => (value === "" || value === null || value === undefined ? undefined : Number(value))
                               })}
                             />
+                            {errors.sizeCharts?.[index]?.length?.message && (
+                              <p className="text-[9px] text-red-600 mt-0.5">{errors.sizeCharts[index].length.message}</p>
+                            )}
                           </td>
                           <td className="p-2">
                             <input
@@ -905,6 +970,9 @@ export function AdminProductManager({
                                 setValueAs: (value) => (value === "" || value === null || value === undefined ? undefined : Number(value))
                               })}
                             />
+                            {errors.sizeCharts?.[index]?.sleeve?.message && (
+                              <p className="text-[9px] text-red-600 mt-0.5">{errors.sizeCharts[index].sleeve.message}</p>
+                            )}
                           </td>
                           <td className="p-2">
                             <select
@@ -934,10 +1002,12 @@ export function AdminProductManager({
                       No size chart measurements added. Click &quot;Add Size Row&quot; to create one.
                     </div>
                   )}
-                </div>
+                  </div>
+                )}
 
                 {/* Mobile View */}
-                <div className="block md:hidden space-y-3">
+                {isMounted && isMobile && (
+                  <div className="block md:hidden space-y-3">
                   {sizeChartFields.map((field, index) => (
                     <div key={field.id} className="bg-white border border-zinc-200 p-4 rounded-md shadow-sm relative space-y-3">
                       <div className="absolute top-2 right-2">
@@ -987,6 +1057,9 @@ export function AdminProductManager({
                               setValueAs: (value) => (value === "" || value === null || value === undefined ? undefined : Number(value))
                             })}
                           />
+                          {errors.sizeCharts?.[index]?.shoulder?.message && (
+                            <p className="text-[10px] text-red-600 mt-0.5">{errors.sizeCharts[index].shoulder.message}</p>
+                          )}
                         </label>
                         <label className="block">
                           <span className="text-[10px] uppercase font-bold text-zinc-500">Chest / Ngực</span>
@@ -999,6 +1072,9 @@ export function AdminProductManager({
                               setValueAs: (value) => (value === "" || value === null || value === undefined ? undefined : Number(value))
                             })}
                           />
+                          {errors.sizeCharts?.[index]?.chest?.message && (
+                            <p className="text-[10px] text-red-600 mt-0.5">{errors.sizeCharts[index].chest.message}</p>
+                          )}
                         </label>
                       </div>
 
@@ -1014,6 +1090,9 @@ export function AdminProductManager({
                               setValueAs: (value) => (value === "" || value === null || value === undefined ? undefined : Number(value))
                             })}
                           />
+                          {errors.sizeCharts?.[index]?.length?.message && (
+                            <p className="text-[10px] text-red-600 mt-0.5">{errors.sizeCharts[index].length.message}</p>
+                          )}
                         </label>
                         <label className="block">
                           <span className="text-[10px] uppercase font-bold text-zinc-500">Sleeve / Tay</span>
@@ -1026,6 +1105,9 @@ export function AdminProductManager({
                               setValueAs: (value) => (value === "" || value === null || value === undefined ? undefined : Number(value))
                             })}
                           />
+                          {errors.sizeCharts?.[index]?.sleeve?.message && (
+                            <p className="text-[10px] text-red-600 mt-0.5">{errors.sizeCharts[index].sleeve.message}</p>
+                          )}
                         </label>
                       </div>
                       
@@ -1039,7 +1121,8 @@ export function AdminProductManager({
                       No size chart measurements added. Click &quot;Add Size Row / Thêm hàng kích thước&quot; to create one.
                     </div>
                   )}
-                </div>
+                  </div>
+                )}
               </div>
               <AdminField label="Material (VI) / Chất liệu (Tiếng Việt)" error={errors.materialVi?.message}>
                 <input className="field" {...register("materialVi")} />

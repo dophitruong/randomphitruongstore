@@ -10,6 +10,7 @@
     "orderNow": "Đặt hàng",
     "orderTime": "Order 7-10 ngày",
     "language": "Ngôn ngữ",
+    "currency": "Tiền tệ",
     "loading": "Đang xử lý...",
     "submit": "Gửi yêu cầu",
     "close": "Đóng",
@@ -95,7 +96,9 @@
     "shoulder": "Vai",
     "chest": "Ngực",
     "length": "Dài áo",
-    "sleeve": "Tay áo"
+    "sleeve": "Tay áo",
+    "readMore": "Đọc thêm",
+    "readLess": "Thu gọn"
   },
   "auth": {
     "eyebrow": "Tài khoản khách hàng",

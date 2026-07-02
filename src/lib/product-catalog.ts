@@ -96,8 +96,18 @@ export function productVariantSizes(variants: ProductOptionVariant[] = []) {
   return [...new Set(availableProductVariants(variants).map((variant) => variant.size))];
 }
 
-export function productVariantColors(variants: ProductOptionVariant[] = []) {
-  return [...new Set(availableProductVariants(variants).map((variant) => variant.colorVi))];
+export function productVariantColors(variants: ProductOptionVariant[] = [], locale: string = "vi") {
+  const allColors: string[] = [];
+  availableProductVariants(variants).forEach((variant) => {
+    const colorStr = locale === "vi" ? variant.colorVi : (variant.colorEn || variant.colorVi);
+    colorStr.split(",").forEach((c) => {
+      const trimmed = c.trim();
+      if (trimmed) {
+        allColors.push(trimmed);
+      }
+    });
+  });
+  return [...new Set(allColors)];
 }
 
 export function findAvailableProductVariant(
@@ -105,11 +115,13 @@ export function findAvailableProductVariant(
   size: string,
   color: string
 ) {
-  return availableProductVariants(variants).find(
-    (variant) =>
-      variant.size === size &&
-      (variant.colorVi === color || variant.colorEn === color)
-  );
+  return availableProductVariants(variants).find((variant) => {
+    if (variant.size !== size) return false;
+    const colorsVi = variant.colorVi.split(",").map(c => c.trim().toLowerCase());
+    const colorsEn = (variant.colorEn || variant.colorVi).split(",").map(c => c.trim().toLowerCase());
+    const normalizedColor = color.trim().toLowerCase();
+    return colorsVi.includes(normalizedColor) || colorsEn.includes(normalizedColor);
+  });
 }
 
 export function productMatchesVariantFilters(
@@ -131,11 +143,22 @@ export function productMatchesVariantFilters(
     return true;
   }
 
-  return availableProductVariants(variants).some(
-    (variant) =>
-      (!selectedSize || variant.size === size) &&
-      (!selectedColor || variant.colorVi === color || variant.colorEn === color)
-  );
+  return availableProductVariants(variants).some((variant) => {
+    if (selectedSize && variant.size !== size) {
+      return false;
+    }
+    if (selectedColor) {
+      const colorsVi = variant.colorVi.split(",").map((c) => c.trim().toLowerCase());
+      const colorsEn = (variant.colorEn || variant.colorVi)
+        .split(",")
+        .map((c) => c.trim().toLowerCase());
+      const normalizedColor = color.trim().toLowerCase();
+      if (!colorsVi.includes(normalizedColor) && !colorsEn.includes(normalizedColor)) {
+        return false;
+      }
+    }
+    return true;
+  });
 }
 
 export function buildProductVariantSyncPlan({

@@ -20,22 +20,17 @@ export function AdminStatusSelect({
 
   async function update(status: string) {
     setPending(true);
-    try {
-      const response = await fetch(endpoint, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status })
-      });
-      if (response.ok) {
-        router.refresh();
-      } else {
-        const data = await response.json().catch(() => ({}));
-        setError(data?.error ?? "Cập nhật thất bại");
-      }
-    } catch {
-      setError("Lỗi kết nối, vui lòng thử lại");
-    } finally {
-      setPending(false);
+    const response = await fetch(endpoint, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status })
+    });
+    setPending(false);
+    if (response.ok) {
+      router.refresh();
+    } else {
+      const data = await response.json().catch(() => ({}));
+      alert(data.error || "Failed to update order status / Lỗi khi cập nhật trạng thái");
     }
   }
 

@@ -10,6 +10,7 @@
     "orderNow": "Order now",
     "orderTime": "7-10 day order",
     "language": "Language",
+    "currency": "Currency",
     "loading": "Processing...",
     "submit": "Submit request",
     "close": "Close",
@@ -95,7 +96,9 @@
     "shoulder": "Shoulder",
     "chest": "Chest",
     "length": "Length",
-    "sleeve": "Sleeve"
+    "sleeve": "Sleeve",
+    "readMore": "Read more",
+    "readLess": "Read less"
   },
   "auth": {
     "eyebrow": "Customer account",

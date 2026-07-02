@@ -4,6 +4,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Money } from "@/components/money";
 import { ProductGallery } from "@/components/product-gallery";
+import { ProductDescription } from "@/components/product-description";
 import { PurchasePanel } from "@/components/purchase-panel";
 import type { Locale } from "@/i18n/request";
 import { productVariantColors, productVariantSizes } from "@/lib/product-catalog";
@@ -62,31 +63,44 @@ export default async function ProductPage({ params }: PageProps) {
   const material = locale === "vi" ? product.materialVi : product.materialEn;
   const basePrice = productBasePrice(product);
   const availableSizes = productVariantSizes(product.variants);
-  const availableColors = productVariantColors(product.variants);
+  const availableColors = productVariantColors(product.variants, locale);
 
   return (
-    <div className="container-shell grid gap-10 py-8 sm:py-14 lg:grid-cols-[1.15fr_0.85fr] xl:grid-cols-[1.2fr_0.8fr] lg:gap-16 xl:gap-20">
+    <div className="grid gap-10 lg:grid-cols-[0.85fr_1.15fr] xl:grid-cols-[0.8fr_1.2fr] lg:gap-12 xl:gap-16 sm:container-shell pb-14 sm:py-14 min-w-0 overflow-x-hidden">
       <ProductGallery
         images={product.images.map((image) => ({
           url: image.url,
           alt: locale === "vi" ? image.altVi : image.altEn
         }))}
       />
-      <section className="lg:sticky lg:top-24 lg:h-fit">
-        <p className="eyebrow text-zinc-500">{common("orderTime")}</p>
-        <h1 className="mt-4 text-4xl font-black tracking-[-0.04em] sm:text-6xl">
+      <section className="px-4 lg:pl-0 lg:pr-8 xl:pr-16 lg:sticky lg:top-24 lg:h-fit min-w-0">
+        <p className="eyebrow text-zinc-400">{common("orderTime")}</p>
+        <h1 className="mt-4 text-3xl sm:text-4xl font-black tracking-tight text-zinc-900">
           {name}
         </h1>
-        <p className="mt-5 text-2xl font-bold">
-          <Money amountVnd={basePrice} />
-        </p>
-        <p className="mt-6 text-sm leading-7 text-zinc-600">{description}</p>
-        <dl className="my-7 border-y border-zinc-300 py-5 text-sm">
-          <div className="flex justify-between gap-4">
-            <dt className="font-bold">{t("material")}</dt>
-            <dd className="text-right text-zinc-600">{material}</dd>
+        <div className="mt-5 bg-white/80 border border-zinc-200/50 p-4 rounded shadow-sm flex items-center gap-3">
+          <span className="text-3xl font-black text-[#a72b1f]">
+            <Money amountVnd={basePrice} />
+          </span>
+          {product.stockStatus === "OUT_OF_STOCK" && (
+            <span className="inline-flex items-center bg-red-100 text-red-800 text-xs font-bold px-2.5 py-0.5 rounded border border-red-200 uppercase tracking-wider">
+              {locale === "vi" ? "Hết hàng" : "Out of stock"}
+            </span>
+          )}
+        </div>
+          <ProductDescription
+            description={description}
+            readMoreLabel={t("readMore")}
+            readLessLabel={t("readLess")}
+          />
+          <div className="my-6 flex flex-col sm:flex-row sm:items-center gap-3">
+            <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider w-24 shrink-0">
+              {t("material")}
+            </span>
+            <span className="text-sm font-black text-zinc-900">
+              {material}
+            </span>
           </div>
-        </dl>
         {product.sizeCharts.length ? (
           <section className="mb-6 overflow-x-auto border border-zinc-300">
             <table className="w-full min-w-[460px] text-left text-xs">
@@ -156,6 +170,7 @@ export default async function ProductPage({ params }: PageProps) {
           variants={product.variants}
           imageUrl={product.images[0]?.url}
           sizes={availableSizes}
+          isOutOfStock={product.stockStatus === "OUT_OF_STOCK" || availableSizes.length === 0}
         />
       </section>
     </div>
