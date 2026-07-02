@@ -81,6 +81,11 @@ export const rateLimitPolicies = {
     limit: 10,
     windowMs: 60 * 60_000
   },
+  adminUploadAccount: {
+    scope: "admin-upload:account",
+    limit: 300,
+    windowMs: 60 * 60_000
+  },
   uploadIp: { scope: "upload:ip", limit: 20, windowMs: 60 * 60_000 }
 } satisfies Record<string, RateLimitPolicy>;
 

@@ -86,7 +86,15 @@ export default async function CheckoutPage({ searchParams }: PageProps) {
     "bankInstruction",
     "internationalCustoms",
     "warning",
-    "paymentAmount"
+    "paymentAmount",
+    "sepayRedirectTitle",
+    "sepayRedirectBody",
+    "sepayRedirectWarning",
+    "sepayRedirectCountdown",
+    "sepayRedirectPreparing",
+    "sepayRedirectAction",
+    "sepayRedirecting",
+    "sepayRedirectUnavailable"
   ] as const;
   const labels = Object.fromEntries(labelKeys.map((key) => [key, t(key)]));
 

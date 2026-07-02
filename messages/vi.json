@@ -180,7 +180,15 @@
     "paymentAmount": "Số tiền thanh toán",
     "payWithSePay": "Thanh toán qua SePay",
     "paymentError": "Không thể bắt đầu thanh toán SePay",
-    "paymentGenericError": "Đã xảy ra lỗi"
+    "paymentGenericError": "Đã xảy ra lỗi",
+    "sepayRedirectTitle": "Đơn hàng đã được tạo thành công!",
+    "sepayRedirectBody": "Thanh toán của bạn chưa hoàn tất. Bạn sẽ được chuyển sang cổng thanh toán SePay trong vài giây để hoàn tất thanh toán.",
+    "sepayRedirectWarning": "Vui lòng không đóng hoặc tải lại trang này.",
+    "sepayRedirectCountdown": "Đang chuyển hướng sau {seconds} giây...",
+    "sepayRedirectPreparing": "Đang chuẩn bị cổng thanh toán SePay...",
+    "sepayRedirectAction": "Tiếp tục thanh toán",
+    "sepayRedirecting": "Đang chuyển hướng...",
+    "sepayRedirectUnavailable": "Không thể chuyển tới trang thanh toán. Vui lòng thử lại từ trang chi tiết đơn hàng."
   },
   "request": {
     "eyebrow": "Tìm mẫu theo yêu cầu",

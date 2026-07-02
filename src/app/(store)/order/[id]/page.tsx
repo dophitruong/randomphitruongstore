@@ -57,6 +57,9 @@ export default async function OrderPage({ params }: PageProps) {
   }
 
   const isDeposit = order.paymentMethod === "DEPOSIT_50_BANK_ZALO";
+  const requiresSePayPayment =
+    order.paymentMethod === "ONLINE_100_SEPAY" &&
+    order.status === "PENDING_ONLINE_PAYMENT";
   const payment = order.payments[0];
   return (
     <div className="container-shell py-10 sm:py-16">
@@ -149,16 +152,24 @@ export default async function OrderPage({ params }: PageProps) {
                 />
                 <p className="mt-4 text-sm text-zinc-500">{t("deposit")}</p>
               </>
-            ) : (
+            ) : requiresSePayPayment ? (
               <PaymentButtons
                 orderId={order.id}
                 labels={{
                   pay: t("payWithSePay"),
                   error: t("paymentError"),
-                  genericError: t("paymentGenericError")
+                  genericError: t("paymentGenericError"),
+                  sepayRedirectTitle: t("sepayRedirectTitle"),
+                  sepayRedirectBody: t("sepayRedirectBody"),
+                  sepayRedirectWarning: t("sepayRedirectWarning"),
+                  sepayRedirectCountdown: t("sepayRedirectCountdown"),
+                  sepayRedirectPreparing: t("sepayRedirectPreparing"),
+                  sepayRedirectAction: t("sepayRedirectAction"),
+                  sepayRedirecting: t("sepayRedirecting"),
+                  sepayRedirectUnavailable: t("sepayRedirectUnavailable")
                 }}
               />
-            )}
+            ) : null}
             <p className="mt-4 text-xs text-zinc-500">
               {t("statusLabel")}: <span className="font-bold">{order.status}</span>
             </p>

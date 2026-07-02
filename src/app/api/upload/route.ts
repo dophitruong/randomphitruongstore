@@ -1,8 +1,12 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
-import { isAdminAuthenticated } from "@/lib/admin-auth";
+import { getCurrentAdmin } from "@/lib/admin-auth";
 import { getPrisma } from "@/lib/prisma";
-import { rateLimitPolicies, rateLimitRequest } from "@/lib/rate-limit";
+import {
+  rateLimitIdentifier,
+  rateLimitPolicies,
+  rateLimitRequest
+} from "@/lib/rate-limit";
 import {
   consumeUploadIntent,
   type UploadIntentPurpose
@@ -15,7 +19,13 @@ import {
 } from "@/lib/upload";
 
 export async function POST(request: Request) {
-  const limited = await rateLimitRequest(request, rateLimitPolicies.uploadIp);
+  const admin = await getCurrentAdmin();
+  const limited = admin
+    ? await rateLimitIdentifier({
+        policy: rateLimitPolicies.adminUploadAccount,
+        identifier: admin.id
+      })
+    : await rateLimitRequest(request, rateLimitPolicies.uploadIp);
   if (limited) return limited;
 
   const data = await request.formData();
@@ -26,7 +36,7 @@ export async function POST(request: Request) {
   }
 
   const purpose = String(data.get("purpose") ?? "PRODUCT_INQUIRY_IMAGE");
-  const isAdminUpload = await isAdminAuthenticated();
+  const isAdminUpload = Boolean(admin);
   if (purpose !== "PRODUCT_INQUIRY_IMAGE" && purpose !== "ADMIN_PRODUCT_IMAGE") {
     return NextResponse.json({ error: "Invalid upload purpose" }, { status: 400 });
   }
