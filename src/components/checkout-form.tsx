@@ -10,10 +10,14 @@ import { z } from "zod";
 import type { Locale } from "@/i18n/request";
 import { ZALO_URL } from "@/lib/constants";
 import { formatMoney } from "@/lib/currency";
-import { navigateToPayment } from "@/lib/payment-navigation";
+import {
+  hasPaymentDestination,
+  type PaymentCheckoutData
+} from "@/lib/payment-navigation";
 import type { ProductWithImages } from "@/types";
 import { BankTransferBox } from "./bank-transfer-box";
 import { InternationalShippingNotice } from "./international-shipping-notice";
+import { SePayRedirectNotice } from "./sepay-redirect-notice";
 import { useCart } from "./cart-provider";
 import { useCurrency } from "./currency-provider";
 import { Money } from "./money";
@@ -41,6 +45,7 @@ type CreatedOrder = {
   orderNumber: string;
   payments?: Array<{ amount: number }>;
   paymentMethod: CheckoutValues["paymentMethod"];
+  status: string;
 };
 
 export function CheckoutForm({
@@ -60,6 +65,8 @@ export function CheckoutForm({
   const { currency } = useCurrency();
   const { items: cartItems, subtotal: cartSubtotal, clearCart } = useCart();
   const [createdOrder, setCreatedOrder] = useState<CreatedOrder | null>(null);
+  const [sePayPaymentData, setSePayPaymentData] =
+    useState<PaymentCheckoutData | null>(null);
   const [serverError, setServerError] = useState("");
   const {
     register,
@@ -93,6 +100,7 @@ export function CheckoutForm({
 
   async function onSubmit(values: CheckoutValues) {
     setServerError("");
+    setSePayPaymentData(null);
 
     if (!product && cartItems.length === 0) {
       setServerError("Your cart is empty");
@@ -159,7 +167,12 @@ export function CheckoutForm({
         })
       });
       const paymentResult = await paymentResponse.json();
-      if (paymentResult.success && navigateToPayment(paymentResult.data)) {
+      if (
+        paymentResponse.ok &&
+        paymentResult.success &&
+        hasPaymentDestination(paymentResult.data)
+      ) {
+        setSePayPaymentData(paymentResult.data);
         return;
       }
       setServerError(paymentResult.error ?? "Unable to create SePay payment");
@@ -170,6 +183,10 @@ export function CheckoutForm({
   }
 
   if (createdOrder) {
+    const requiresSePayRedirect =
+      createdOrder.paymentMethod === "ONLINE_100_SEPAY" &&
+      createdOrder.status === "PENDING_ONLINE_PAYMENT";
+
     return (
       <section className="mx-auto max-w-2xl py-10">
         <p className="eyebrow text-zinc-500">{labels.success}</p>
@@ -188,6 +205,22 @@ export function CheckoutForm({
               title={labels.bankTitle}
             />
           </div>
+        ) : null}
+        {requiresSePayRedirect ? (
+          <SePayRedirectNotice
+            error={serverError}
+            labels={{
+              title: labels.sepayRedirectTitle,
+              body: labels.sepayRedirectBody,
+              warning: labels.sepayRedirectWarning,
+              countdown: labels.sepayRedirectCountdown,
+              preparing: labels.sepayRedirectPreparing,
+              action: labels.sepayRedirectAction,
+              redirecting: labels.sepayRedirecting,
+              unavailable: labels.sepayRedirectUnavailable
+            }}
+            paymentData={sePayPaymentData}
+          />
         ) : null}
       </section>
     );

@@ -180,7 +180,15 @@
     "paymentAmount": "Payment amount",
     "payWithSePay": "Pay with SePay",
     "paymentError": "Failed to initiate SePay payment",
-    "paymentGenericError": "An error occurred"
+    "paymentGenericError": "An error occurred",
+    "sepayRedirectTitle": "Order created successfully!",
+    "sepayRedirectBody": "Your payment is not complete yet. You will be redirected to the SePay payment gateway in a few seconds to complete your payment.",
+    "sepayRedirectWarning": "Please do not close or refresh this page.",
+    "sepayRedirectCountdown": "Redirecting in {seconds} seconds...",
+    "sepayRedirectPreparing": "Preparing the SePay payment gateway...",
+    "sepayRedirectAction": "Continue to Payment",
+    "sepayRedirecting": "Redirecting...",
+    "sepayRedirectUnavailable": "Payment navigation is unavailable. Please try again from your order details."
   },
   "request": {
     "eyebrow": "Custom sourcing",

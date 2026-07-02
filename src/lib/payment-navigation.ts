@@ -1,4 +1,4 @@
-type PaymentCheckoutData = {
+export type PaymentCheckoutData = {
   paymentUrl?: string;
   checkout?: {
     action: string;
@@ -7,8 +7,31 @@ type PaymentCheckoutData = {
   };
 };
 
+export function hasPaymentDestination(
+  data: PaymentCheckoutData | null | undefined
+): data is PaymentCheckoutData {
+  if (!data) return false;
+  if (typeof data.paymentUrl === "string" && data.paymentUrl.trim()) {
+    return true;
+  }
+
+  const checkout = data.checkout;
+  return Boolean(
+    checkout &&
+      typeof checkout.action === "string" &&
+      checkout.action.trim() &&
+      checkout.method === "POST" &&
+      checkout.fields &&
+      typeof checkout.fields === "object"
+  );
+}
+
 export function navigateToPayment(data: PaymentCheckoutData) {
-  if (data.paymentUrl) {
+  if (!hasPaymentDestination(data)) {
+    return false;
+  }
+
+  if (data.paymentUrl?.trim()) {
     window.location.assign(data.paymentUrl);
     return true;
   }
