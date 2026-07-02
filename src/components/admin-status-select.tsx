@@ -19,18 +19,24 @@ export function AdminStatusSelect({
   const [error, setError] = useState<string | null>(null);
 
   async function update(status: string) {
+    setError(null);
     setPending(true);
-    const response = await fetch(endpoint, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status })
-    });
-    setPending(false);
-    if (response.ok) {
-      router.refresh();
-    } else {
-      const data = await response.json().catch(() => ({}));
-      alert(data.error || "Failed to update order status / Lỗi khi cập nhật trạng thái");
+    try {
+      const response = await fetch(endpoint, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status })
+      });
+      if (response.ok) {
+        router.refresh();
+      } else {
+        const data = await response.json().catch(() => ({}));
+        setError(data.error || "Failed to update order status / Lỗi khi cập nhật trạng thái");
+      }
+    } catch {
+      setError("Failed to update order status / Lỗi khi cập nhật trạng thái");
+    } finally {
+      setPending(false);
     }
   }
 
@@ -39,7 +45,7 @@ export function AdminStatusSelect({
       <select
         className="min-h-10 min-w-44 border border-zinc-300 bg-white px-3 text-xs font-bold text-zinc-900 outline-none transition-colors hover:border-zinc-500 focus:border-[#a72b1f] focus:ring-2 focus:ring-[#a72b1f]/15 disabled:cursor-wait disabled:bg-zinc-100 disabled:text-zinc-400"
         disabled={pending}
-        onChange={(event) => { setError(null); update(event.target.value); }}
+        onChange={(event) => update(event.target.value)}
         value={value}
       >
         {statuses.map((status) => (
