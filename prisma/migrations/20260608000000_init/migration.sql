@@ -1,3 +1,14 @@
+◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+◇ injected env (1) from .env.local // tip: ⌘ enable debugging { debug: true }
+-- Squashed migration: replaces the entire previous migration chain with a single
+-- authoritative baseline generated from prisma/schema.prisma.
+--
+-- For EXISTING databases that already have the full schema applied:
+--   Run the following command to mark this migration as applied without re-running it:
+--   npx prisma migrate resolve --applied "20260608000000_init"
+--
+-- For FRESH databases: this migration will be applied normally by `prisma migrate deploy`.
+
 -- CreateSchema
 CREATE SCHEMA IF NOT EXISTS "public";
 
