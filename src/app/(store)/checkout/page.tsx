@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { CheckoutForm } from "@/components/checkout-form";
+import {
+  matchedProductVariantColor,
+  productVariantMatchesSelection
+} from "@/lib/product-catalog";
 import { getPrisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -36,11 +40,11 @@ export default async function CheckoutPage({ searchParams }: PageProps) {
     : null;
   const selectedVariant = params.variantId
     ? product?.variants.find(
-        (variant) =>
-          variant.id === params.variantId &&
-          variant.isAvailable &&
-          (!params.size || variant.size === params.size) &&
-          (!params.color || variant.colorVi === params.color || variant.colorEn === params.color)
+        (variant) => productVariantMatchesSelection(variant, {
+          variantId: params.variantId,
+          size: params.size,
+          color: params.color
+        })
       )
     : null;
 
@@ -54,6 +58,10 @@ export default async function CheckoutPage({ searchParams }: PageProps) {
       </div>
     );
   }
+  const selectedColor =
+    selectedVariant && params.color
+      ? (matchedProductVariantColor(selectedVariant, params.color) ?? "")
+      : (selectedVariant?.colorVi ?? "");
 
   const labelKeys = [
     "customerInfo",
@@ -91,7 +99,7 @@ export default async function CheckoutPage({ searchParams }: PageProps) {
       <CheckoutForm
         labels={{ ...labels, loading: common("loading") }}
         product={product}
-        selectedColor={selectedVariant?.colorVi ?? ""}
+        selectedColor={selectedColor}
         selectedSize={selectedVariant?.size ?? ""}
         selectedVariantId={selectedVariant?.id}
       />

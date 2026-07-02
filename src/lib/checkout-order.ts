@@ -3,6 +3,10 @@ import {
   generateOrderAccessToken,
   hashOrderAccessToken
 } from "@/lib/order-access";
+import {
+  productVariantMatchesSelection,
+  resolveSelectedProductVariantColor
+} from "@/lib/product-catalog";
 import type { Currency } from "@/lib/currency";
 import type { OrderInput } from "@/lib/validations";
 
@@ -19,6 +23,7 @@ type CatalogVariant = {
   colorVi: string;
   colorEn?: string;
   priceAdjustment: number;
+  isAvailable: boolean;
 };
 
 type CheckoutOrderStore = {
@@ -204,13 +209,14 @@ export async function createCheckoutOrder({
       }
     } else {
       // Fallback: find variant by size/color
-      const fallback = variants.find((v) => {
-        if (v.productId !== item.productId || v.size !== item.size) return false;
-        const colorsVi = v.colorVi.split(",").map(c => c.trim().toLowerCase());
-        const colorsEn = (v.colorEn || v.colorVi).split(",").map(c => c.trim().toLowerCase());
-        const normalizedColor = item.color.trim().toLowerCase();
-        return colorsVi.includes(normalizedColor) || colorsEn.includes(normalizedColor);
-      });
+      const fallback = variants.find(
+        (v) =>
+          v.productId === item.productId &&
+          productVariantMatchesSelection(v, {
+            size: item.size,
+            color: item.color
+          })
+      );
       if (!fallback) {
         throw new CheckoutOrderError("Product variant not found for legacy item", 400);
       }
@@ -218,18 +224,9 @@ export async function createCheckoutOrder({
     }
 
     const selectedSize = variant.size;
-    let selectedColor = variant.colorVi;
-
-    const colorsVi = variant.colorVi.split(",").map(c => c.trim());
-    const colorsEn = (variant.colorEn || variant.colorVi).split(",").map(c => c.trim());
-    const normalizedColor = item.color.trim().toLowerCase();
-    const matchedVi = colorsVi.find(c => c.toLowerCase() === normalizedColor);
-    const matchedEn = colorsEn.find(c => c.toLowerCase() === normalizedColor);
-
-    if (matchedVi) {
-      selectedColor = matchedVi;
-    } else if (matchedEn) {
-      selectedColor = matchedEn;
+    const selectedColor = resolveSelectedProductVariantColor(variant, item.color);
+    if (!selectedColor) {
+      throw new CheckoutOrderError("Invalid product variant color", 400);
     }
 
     const unitPrice = product.basePrice + variant.priceAdjustment;

@@ -33,6 +33,83 @@ type ProductOptionVariant = {
   isAvailable: boolean;
 };
 
+function splitColorValues(value: string | undefined) {
+  return (value ?? "")
+    .split(",")
+    .map((color) => color.trim())
+    .filter(Boolean);
+}
+
+function normalizeOptionValue(value: string) {
+  return value.trim().toLowerCase();
+}
+
+export function productVariantColorOptions(variant: ProductOptionVariant) {
+  const seen = new Set<string>();
+  const colors = [
+    ...splitColorValues(variant.colorVi),
+    ...splitColorValues(variant.colorEn || variant.colorVi)
+  ];
+
+  return colors.filter((color) => {
+    const key = normalizeOptionValue(color);
+    if (seen.has(key)) {
+      return false;
+    }
+    seen.add(key);
+    return true;
+  });
+}
+
+export function matchedProductVariantColor(
+  variant: ProductOptionVariant,
+  color: string
+) {
+  const normalizedColor = normalizeOptionValue(color);
+  if (!normalizedColor) {
+    return null;
+  }
+
+  return (
+    productVariantColorOptions(variant).find(
+      (option) => normalizeOptionValue(option) === normalizedColor
+    ) ?? null
+  );
+}
+
+export function resolveSelectedProductVariantColor(
+  variant: ProductOptionVariant,
+  color: string
+) {
+  const matchedColor = matchedProductVariantColor(variant, color);
+  if (matchedColor) {
+    return matchedColor;
+  }
+
+  const colors = productVariantColorOptions(variant);
+  return colors.length === 1 ? colors[0] : null;
+}
+
+export function productVariantMatchesSelection(
+  variant: ProductOptionVariant,
+  {
+    variantId,
+    size,
+    color
+  }: {
+    variantId?: string;
+    size?: string;
+    color?: string;
+  }
+) {
+  return (
+    (!variantId || variant.id === variantId) &&
+    variant.isAvailable &&
+    (!size || variant.size === size) &&
+    (!color || Boolean(matchedProductVariantColor(variant, color)))
+  );
+}
+
 function uniqueVariants(variants: Required<ProductCatalogVariant>[]) {
   const seen = new Set<string>();
   return variants.filter((variant) => {
@@ -100,12 +177,7 @@ export function productVariantColors(variants: ProductOptionVariant[] = [], loca
   const allColors: string[] = [];
   availableProductVariants(variants).forEach((variant) => {
     const colorStr = locale === "vi" ? variant.colorVi : (variant.colorEn || variant.colorVi);
-    colorStr.split(",").forEach((c) => {
-      const trimmed = c.trim();
-      if (trimmed) {
-        allColors.push(trimmed);
-      }
-    });
+    allColors.push(...splitColorValues(colorStr));
   });
   return [...new Set(allColors)];
 }
@@ -115,13 +187,9 @@ export function findAvailableProductVariant(
   size: string,
   color: string
 ) {
-  return availableProductVariants(variants).find((variant) => {
-    if (variant.size !== size) return false;
-    const colorsVi = variant.colorVi.split(",").map(c => c.trim().toLowerCase());
-    const colorsEn = (variant.colorEn || variant.colorVi).split(",").map(c => c.trim().toLowerCase());
-    const normalizedColor = color.trim().toLowerCase();
-    return colorsVi.includes(normalizedColor) || colorsEn.includes(normalizedColor);
-  });
+  return availableProductVariants(variants).find((variant) =>
+    productVariantMatchesSelection(variant, { size, color })
+  );
 }
 
 export function productMatchesVariantFilters(
@@ -147,17 +215,7 @@ export function productMatchesVariantFilters(
     if (selectedSize && variant.size !== size) {
       return false;
     }
-    if (selectedColor) {
-      const colorsVi = variant.colorVi.split(",").map((c) => c.trim().toLowerCase());
-      const colorsEn = (variant.colorEn || variant.colorVi)
-        .split(",")
-        .map((c) => c.trim().toLowerCase());
-      const normalizedColor = color.trim().toLowerCase();
-      if (!colorsVi.includes(normalizedColor) && !colorsEn.includes(normalizedColor)) {
-        return false;
-      }
-    }
-    return true;
+    return !selectedColor || Boolean(matchedProductVariantColor(variant, color));
   });
 }
 
