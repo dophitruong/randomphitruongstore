@@ -16,32 +16,44 @@ export function AdminStatusSelect({
 }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function update(status: string) {
     setPending(true);
-    const response = await fetch(endpoint, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status })
-    });
-    setPending(false);
-    if (response.ok) {
-      router.refresh();
+    try {
+      const response = await fetch(endpoint, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status })
+      });
+      if (response.ok) {
+        router.refresh();
+      } else {
+        const data = await response.json().catch(() => ({}));
+        setError(data?.error ?? "Cập nhật thất bại");
+      }
+    } catch {
+      setError("Lỗi kết nối, vui lòng thử lại");
+    } finally {
+      setPending(false);
     }
   }
 
   return (
-    <select
-      className="min-h-10 min-w-44 border border-zinc-300 bg-white px-3 text-xs font-bold text-zinc-900 outline-none transition-colors hover:border-zinc-500 focus:border-[#a72b1f] focus:ring-2 focus:ring-[#a72b1f]/15 disabled:cursor-wait disabled:bg-zinc-100 disabled:text-zinc-400"
-      disabled={pending}
-      onChange={(event) => update(event.target.value)}
-      value={value}
-    >
-      {statuses.map((status) => (
-        <option key={status} value={status}>
-          {statusLabels[status] ?? status.replaceAll("_", " ")}
-        </option>
-      ))}
-    </select>
+    <div>
+      <select
+        className="min-h-10 min-w-44 border border-zinc-300 bg-white px-3 text-xs font-bold text-zinc-900 outline-none transition-colors hover:border-zinc-500 focus:border-[#a72b1f] focus:ring-2 focus:ring-[#a72b1f]/15 disabled:cursor-wait disabled:bg-zinc-100 disabled:text-zinc-400"
+        disabled={pending}
+        onChange={(event) => { setError(null); update(event.target.value); }}
+        value={value}
+      >
+        {statuses.map((status) => (
+          <option key={status} value={status}>
+            {statusLabels[status] ?? status.replaceAll("_", " ")}
+          </option>
+        ))}
+      </select>
+      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+    </div>
   );
 }
