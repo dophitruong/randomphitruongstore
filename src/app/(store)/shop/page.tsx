@@ -3,7 +3,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { ProductFilters } from "@/components/product-filters";
 import type { Locale } from "@/i18n/request";
 import { createPerfContext, withPerfTiming } from "@/lib/perf-diagnostics";
-import { getPublicShopProducts } from "@/lib/public-catalog";
+import { getPublicShopProducts, getPublicCategories } from "@/lib/public-catalog";
 
 export const dynamic = "force-dynamic";
 
@@ -18,12 +18,20 @@ export default async function ShopPage() {
   const locale = (await getLocale()) as Locale;
   const t = await getTranslations("shop");
   const common = await getTranslations("common");
-  const products = await withPerfTiming(
-    perf,
-    "shop.load-products",
-    () => getPublicShopProducts(),
-    { cache: "unknown" }
-  );
+  const [products, categories] = await Promise.all([
+    withPerfTiming(
+      perf,
+      "shop.load-products",
+      () => getPublicShopProducts(),
+      { cache: "unknown" }
+    ),
+    withPerfTiming(
+      perf,
+      "shop.load-categories",
+      () => getPublicCategories(),
+      { cache: "unknown" }
+    )
+  ]);
 
   return (
     <div className="container-shell py-12 sm:py-20">
@@ -35,6 +43,7 @@ export default async function ShopPage() {
         <p className="mt-5 text-sm leading-6 text-zinc-600">{t("subtitle")}</p>
       </header>
       <ProductFilters
+        categories={categories}
         labels={{
           filters: t("filters"),
           all: t("all"),
