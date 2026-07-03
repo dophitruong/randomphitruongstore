@@ -9,6 +9,7 @@ import { ZALO_URL } from "@/lib/constants";
 import { ZaloIcon } from "./brand-icons";
 
 const REGION_OPTIONS = [
+  { value: "SINGAPORE", label: "Singapore 🇸🇬" },
   { value: "KOREA", label: "Korea 🇰🇷" },
   { value: "TAIWAN", label: "Taiwan 🇹🇼" },
   { value: "JAPAN", label: "Japan 🇯🇵" }
@@ -19,7 +20,7 @@ const schema = z.object({
   phone: z.string().trim().min(9, "Required"),
   socialContact: z.string().trim().min(2, "Required"),
   productName: z.string().trim().min(2, "Required"),
-  region: z.enum(["KOREA", "TAIWAN", "JAPAN"]),
+  region: z.enum(["SINGAPORE", "KOREA", "TAIWAN", "JAPAN"]),
   desiredSize: z.string().trim().min(1, "Required"),
   desiredColor: z.string().trim().min(1, "Required"),
   customsNote: z.string().trim().optional(),
@@ -58,9 +59,9 @@ export function InternationalConsultationForm({
       desiredSize: prefill?.size ?? "",
       desiredColor: prefill?.color ?? "",
       region:
-        (["KOREA", "TAIWAN", "JAPAN"].includes(prefill?.region ?? "")
+        (["SINGAPORE", "KOREA", "TAIWAN", "JAPAN"].includes(prefill?.region ?? "")
           ? prefill?.region
-          : "KOREA") as FormValues["region"]
+          : "SINGAPORE") as FormValues["region"]
     }
   });
 
@@ -183,6 +184,7 @@ export function InternationalConsultationForm({
 
 function buildZaloMessage(values: FormValues): string {
   const regionLabels: Record<string, string> = {
+    SINGAPORE: "Singapore 🇸🇬",
     KOREA: "Hàn Quốc 🇰🇷",
     TAIWAN: "Đài Loan 🇹🇼",
     JAPAN: "Nhật Bản 🇯🇵"

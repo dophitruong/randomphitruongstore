@@ -61,7 +61,7 @@ export function ContactForm({
         {errors.message ? <span className="error-text">Required</span> : null}
       </label>
       <button className="button-primary w-full sm:w-fit" type="submit">
-        <Send aria-hidden="true" size={16} />
+        <Send aria-hidden="true" size={16} className="translate-y-[-0.5px]" />
         {labels.send}
       </button>
       </div>
