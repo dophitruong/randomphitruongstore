@@ -64,8 +64,8 @@ export const getPublicProductBySlug = (slug: string) =>
         where: { slug, isActive: true },
         include: {
           images: { orderBy: { sortOrder: "asc" } },
-          variants: { orderBy: [{ size: "asc" }, { colorVi: "asc" }] },
-          sizeCharts: { orderBy: { size: "asc" } }
+          variants: { orderBy: [{ colorVi: "asc" }] },
+          sizeCharts: true
         }
       }),
     ["public-product-by-slug-v1", slug],

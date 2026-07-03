@@ -7,7 +7,7 @@ import { ProductGallery } from "@/components/product-gallery";
 import { ProductDescription } from "@/components/product-description";
 import { PurchasePanel } from "@/components/purchase-panel";
 import type { Locale } from "@/i18n/request";
-import { productVariantColors, productVariantSizes } from "@/lib/product-catalog";
+import { productVariantColors, productVariantSizes, compareSizes } from "@/lib/product-catalog";
 import { productBasePrice } from "@/lib/product-pricing";
 import { createPerfContext, withPerfTiming } from "@/lib/perf-diagnostics";
 import { getPublicProductBySlug } from "@/lib/public-catalog";
@@ -123,7 +123,7 @@ export default async function ProductPage({ params }: PageProps) {
                 </tr>
               </thead>
               <tbody>
-                {product.sizeCharts.map((sizeChart) => (
+        {[...product.sizeCharts].sort((a, b) => compareSizes(a.size, b.size)).map((sizeChart) => (
                   <tr className="border-t border-zinc-200" key={sizeChart.id}>
                     <td className="px-4 py-3 font-bold">{sizeChart.size}</td>
                     <td className="px-4 py-3">
