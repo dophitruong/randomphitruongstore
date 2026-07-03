@@ -1334,7 +1334,8 @@ function CategoryBadge({ category }: { category: string }) {
     SEASONAL: "border-emerald-200 bg-emerald-50 text-emerald-800",
     PANTS: "border-teal-200 bg-teal-50 text-teal-800",
     "T-SHIRT": "border-pink-200 bg-pink-50 text-pink-800",
-    TSHIRT: "border-pink-200 bg-pink-50 text-pink-800"
+    TSHIRT: "border-pink-200 bg-pink-50 text-pink-800",
+    SWEATER: "border-indigo-200 bg-indigo-50 text-indigo-800"
   };
 
   const key = category.toUpperCase();

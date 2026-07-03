@@ -175,6 +175,16 @@ const categories = [
     descriptionEn: "Streetwear T-shirts available by order.",
     sortOrder: 70,
     isActive: true
+  },
+  {
+    id: "5b2d9f8a-9b6e-4f4c-8c0d-0f0f0f0f0a08",
+    nameVi: "Sweater",
+    nameEn: "Sweater",
+    slug: "sweater",
+    descriptionVi: "Các dòng áo nỉ sweater streetwear order.",
+    descriptionEn: "Streetwear sweaters available by order.",
+    sortOrder: 80,
+    isActive: true
   }
 ];
 

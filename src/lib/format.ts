@@ -20,7 +20,8 @@ export function categoryLabel(
     SEASONAL: { vi: "Order theo mùa", en: "Seasonal Order" },
     PANTS: { vi: "Quần", en: "Pants" },
     "T-SHIRT": { vi: "T-Shirt", en: "T-Shirt" },
-    TSHIRT: { vi: "T-Shirt", en: "T-Shirt" }
+    TSHIRT: { vi: "T-Shirt", en: "T-Shirt" },
+    SWEATER: { vi: "Sweater", en: "Sweater" }
   };
 
   const key = category.toUpperCase();
