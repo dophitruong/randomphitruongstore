@@ -18,26 +18,31 @@ describe("admin order lifecycle", () => {
 
   it("records status history and advances payment records when a deposit is confirmed", async () => {
     let usedTransaction = false;
+    let transactionOptions: unknown;
     let statusHistoryCreate: unknown;
     let orderUpdate: unknown;
     const paymentUpdates: unknown[] = [];
     const paymentCreates: unknown[] = [];
     const now = new Date("2026-06-18T09:00:00.000Z");
     const prisma = {
-      $transaction: async <T>(callback: (transaction: {
-        order: {
-          findUnique: () => Promise<Record<string, unknown> | null>;
-          update: (args: unknown) => Promise<Record<string, unknown>>;
-        };
-        orderStatusHistory: {
-          create: (args: unknown) => Promise<Record<string, unknown>>;
-        };
-        payment: {
-          updateMany: (args: unknown) => Promise<Record<string, unknown>>;
-          create: (args: unknown) => Promise<Record<string, unknown>>;
-        };
-      }) => Promise<T>) => {
+      $transaction: async <T>(
+        callback: (transaction: {
+          order: {
+            findUnique: () => Promise<Record<string, unknown> | null>;
+            update: (args: unknown) => Promise<Record<string, unknown>>;
+          };
+          orderStatusHistory: {
+            create: (args: unknown) => Promise<Record<string, unknown>>;
+          };
+          payment: {
+            updateMany: (args: unknown) => Promise<Record<string, unknown>>;
+            create: (args: unknown) => Promise<Record<string, unknown>>;
+          };
+        }) => Promise<T>,
+        options?: unknown
+      ) => {
         usedTransaction = true;
+        transactionOptions = options;
         return callback({
           order: {
             findUnique: async () => ({
@@ -89,6 +94,7 @@ describe("admin order lifecycle", () => {
     })) as { status: string };
 
     assert.equal(usedTransaction, true);
+    assert.deepEqual(transactionOptions, { timeout: 15000 });
     assert.equal(order.status, "DEPOSIT_CONFIRMED");
     assert.deepEqual(orderUpdate, {
       where: { id: "order-1" },
@@ -140,24 +146,29 @@ describe("admin order lifecycle", () => {
 
   it("records status history and cancels pending payments when an order is cancelled", async () => {
     let usedTransaction = false;
+    let transactionOptions: unknown;
     let statusHistoryCreate: unknown;
     let orderUpdate: unknown;
     const paymentUpdates: unknown[] = [];
     const now = new Date("2026-06-18T09:00:00.000Z");
     const prisma = {
-      $transaction: async <T>(callback: (transaction: {
-        order: {
-          findUnique: () => Promise<Record<string, unknown> | null>;
-          update: (args: unknown) => Promise<Record<string, unknown>>;
-        };
-        orderStatusHistory: {
-          create: (args: unknown) => Promise<Record<string, unknown>>;
-        };
-        payment: {
-          updateMany: (args: unknown) => Promise<Record<string, unknown>>;
-        };
-      }) => Promise<T>) => {
+      $transaction: async <T>(
+        callback: (transaction: {
+          order: {
+            findUnique: () => Promise<Record<string, unknown> | null>;
+            update: (args: unknown) => Promise<Record<string, unknown>>;
+          };
+          orderStatusHistory: {
+            create: (args: unknown) => Promise<Record<string, unknown>>;
+          };
+          payment: {
+            updateMany: (args: unknown) => Promise<Record<string, unknown>>;
+          };
+        }) => Promise<T>,
+        options?: unknown
+      ) => {
         usedTransaction = true;
+        transactionOptions = options;
         return callback({
           order: {
             findUnique: async () => ({
@@ -205,6 +216,7 @@ describe("admin order lifecycle", () => {
     })) as { status: string };
 
     assert.equal(usedTransaction, true);
+    assert.deepEqual(transactionOptions, { timeout: 15000 });
     assert.equal(order.status, "CANCELLED");
     assert.deepEqual(orderUpdate, {
       where: { id: "order-1" },
