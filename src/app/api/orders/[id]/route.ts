@@ -58,6 +58,9 @@ export async function PATCH(request: Request, context: RouteContext) {
     if (error instanceof OrderLifecycleError) {
       return err(error.message, error.status);
     }
-    return handlePrismaError(error);
+    console.error("[PATCH Order Error]", error);
+    const rawMessage = error instanceof Error ? error.message : String(error);
+    const sanitizedMessage = rawMessage.replace(/(postgresql:\/\/)[^@]+@/g, "$1****@");
+    return err(sanitizedMessage, 500);
   }
 }
