@@ -89,36 +89,40 @@ export function Header() {
         </div>
       </div>
 
-      {open ? (
-        <nav className="container-shell py-5 lg:hidden">
+      <div
+        className={cn(
+          "absolute left-0 right-0 top-full bg-[#11100e] border-b border-white/10 shadow-2xl transition-all duration-300 ease-in-out lg:hidden origin-top",
+          open
+            ? "visible scale-y-100 opacity-100 translate-y-0"
+            : "invisible scale-y-95 opacity-0 -translate-y-2 pointer-events-none"
+        )}
+      >
+        <nav className="container-shell py-5">
           <div className="flex flex-col">
-            {links.map((link) => (
-              <Link
-                className="block border-b border-white/10 py-4 text-sm font-bold uppercase tracking-[0.1em]"
-                href={link.href}
-                key={link.href}
-                onClick={() => setOpen(false)}
-              >
-                {link.label}
-              </Link>
-            ))}
+            {links.map((link) => {
+              const isActive = pathname === link.href;
+              return (
+                <Link
+                  className={cn(
+                    "flex items-center justify-between border-b border-white/5 py-3 text-xs font-bold uppercase tracking-[0.12em] transition-colors last:border-b-0",
+                    isActive ? "text-[#d64b3d]" : "text-white/70 hover:text-white"
+                  )}
+                  href={link.href}
+                  key={link.href}
+                  onClick={() => setOpen(false)}
+                >
+                  <span>{link.label}</span>
+                  {isActive && <span className="size-1.5 rounded-full bg-[#d64b3d]" />}
+                </Link>
+              );
+            })}
           </div>
-          <div className="flex items-center gap-6 pt-6 border-t border-white/10 mt-6 sm:hidden">
-            <div className="flex flex-col gap-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-white/40">
-                {t("currency")}
-              </span>
-              <CurrencySelector />
-            </div>
-            <div className="flex flex-col gap-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-white/40">
-                {t("language")}
-              </span>
-              <LanguageToggle />
-            </div>
+          <div className="flex items-center justify-center gap-4 pt-4 border-t border-white/5 mt-3 sm:hidden">
+            <CurrencySelector />
+            <LanguageToggle />
           </div>
         </nav>
-      ) : null}
+      </div>
     </header>
   );
 }
