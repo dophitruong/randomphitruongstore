@@ -64,3 +64,26 @@ export async function PATCH(request: Request, context: RouteContext) {
     return err(sanitizedMessage, 500);
   }
 }
+
+export async function DELETE(_: Request, context: RouteContext) {
+  const admin = await getCurrentAdmin();
+  if (!admin) {
+    return err("Unauthorized", 401);
+  }
+  const { id } = await context.params;
+  try {
+    const order = await getPrisma().order.findUnique({
+      where: { id }
+    });
+    if (!order) {
+      return err("Order not found", 404);
+    }
+    await getPrisma().order.delete({
+      where: { id }
+    });
+    return ok({ deleted: true });
+  } catch (error) {
+    console.error("[DELETE Order Error]", error);
+    return handlePrismaError(error);
+  }
+}
