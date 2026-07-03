@@ -1,13 +1,14 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AlertTriangle, ArrowRight, CreditCard } from "lucide-react";
+import { ArrowRight, CreditCard, ChevronDown, Check } from "lucide-react";
 import Image from "next/image";
 import { useLocale } from "next-intl";
-import { useState } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import type { Locale } from "@/i18n/request";
+import type { Province, Ward } from "vietnam-address-database";
 import { ZALO_URL } from "@/lib/constants";
 import { formatMoney } from "@/lib/currency";
 import {
@@ -21,6 +22,7 @@ import { SePayRedirectNotice } from "./sepay-redirect-notice";
 import { useCart } from "./cart-provider";
 import { useCurrency } from "./currency-provider";
 import { Money } from "./money";
+import { cn } from "@/lib/utils";
 
 const checkoutSchema = z.object({
   fullName: z.string().trim().min(2, "Required"),
@@ -31,7 +33,7 @@ const checkoutSchema = z.object({
   district: z.string().trim().min(2, "Required"),
   ward: z.string().trim().min(2, "Required"),
   note: z.string().max(1000).optional(),
-  shippingRegion: z.enum(["VIETNAM", "KOREA", "TAIWAN", "JAPAN"]),
+  shippingRegion: z.enum(["VIETNAM", "SINGAPORE", "KOREA", "TAIWAN", "JAPAN"]),
   paymentMethod: z.enum([
     "DEPOSIT_50_BANK_ZALO",
     "ONLINE_100_SEPAY"
@@ -72,6 +74,7 @@ export function CheckoutForm({
     register,
     handleSubmit,
     control,
+    setValue,
     formState: { errors, isSubmitting }
   } = useForm<CheckoutValues>({
     resolver: zodResolver(checkoutSchema),
@@ -84,6 +87,65 @@ export function CheckoutForm({
   });
   const region = useWatch({ control, name: "shippingRegion" });
   const paymentMethod = useWatch({ control, name: "paymentMethod" });
+  const province = useWatch({ control, name: "province" });
+  const ward = useWatch({ control, name: "ward" });
+
+  const [vnData, setVnData] = useState<{ provinces: Province[]; wards: Ward[] } | null>(null);
+  const [addressLoading, setAddressLoading] = useState(false);
+  const loadingStartedRef = useRef(false);
+
+  // Dynamically load the Vietnam address database on-demand
+  useEffect(() => {
+    if (region === "VIETNAM" && !vnData && !loadingStartedRef.current) {
+      loadingStartedRef.current = true;
+      setTimeout(() => setAddressLoading(true), 0);
+      import("vietnam-address-database")
+        .then((module) => {
+          const data = module.default;
+          const provinces = (data.find((x) => x.name === "provinces")?.data || []) as Province[];
+          const wards = (data.find((x) => x.name === "wards")?.data || []) as Ward[];
+          setVnData({ provinces, wards });
+          setAddressLoading(false);
+        })
+        .catch((err) => {
+          console.error("Failed to load Vietnam address database:", err);
+          setAddressLoading(false);
+          loadingStartedRef.current = false;
+        });
+    }
+  }, [region, vnData]);
+
+  // Reset or initialize values when switching region
+  useEffect(() => {
+    if (region === "VIETNAM") {
+      setValue("district", "N/A");
+    } else {
+      setValue("district", "");
+      setValue("province", "");
+      setValue("ward", "");
+    }
+  }, [region, setValue]);
+
+  // Reset ward selection if province selection changes
+  const prevProvinceRef = useRef(province);
+  useEffect(() => {
+    if (region === "VIETNAM" && prevProvinceRef.current !== province) {
+      setValue("ward", "");
+    }
+    prevProvinceRef.current = province;
+  }, [province, region, setValue]);
+
+  const filteredWards = useMemo(() => {
+    if (!province || !vnData) return [];
+    const selectedProvinceObj = vnData.provinces.find(
+      (p) => p.name === province
+    );
+    if (!selectedProvinceObj) return [];
+    return vnData.wards.filter(
+      (w) => w.province_code === selectedProvinceObj.province_code
+    );
+  }, [province, vnData]);
+
   const selectedVariant = product?.variants?.find(
     (variant) => variant.id === selectedVariantId
   );
@@ -270,30 +332,98 @@ export function CheckoutForm({
               registration={register("address")}
             />
           </div>
-          <Field
-            error={errors.province?.message}
-            label={labels.province}
-            registration={register("province")}
-          />
-          <Field
-            error={errors.district?.message}
-            label={labels.district}
-            registration={register("district")}
-          />
-          <Field
-            error={errors.ward?.message}
-            label={labels.ward}
-            registration={register("ward")}
-          />
-          <label>
-            <span className="label">{labels.region}</span>
-            <select className="field" {...register("shippingRegion")}>
-              <option value="VIETNAM">Vietnam</option>
-              <option value="KOREA">Korea</option>
-              <option value="TAIWAN">Taiwan</option>
-              <option value="JAPAN">Japan</option>
-            </select>
-          </label>
+          {region === "VIETNAM" ? (
+            <>
+              {/* Hidden District, Province, and Ward fields to pass schema validation */}
+              <input type="hidden" {...register("district")} />
+              <input type="hidden" {...register("province")} />
+              <input type="hidden" {...register("ward")} />
+              <div className="sm:col-span-1">
+                <AddressDropdown
+                  label={labels.province}
+                  value={province || ""}
+                  options={
+                    vnData?.provinces.map((p) => ({
+                      label: p.name,
+                      value: p.name
+                    })) || []
+                  }
+                  onChange={(val) =>
+                    setValue("province", val, { shouldValidate: true })
+                  }
+                  placeholder="Chọn Tỉnh / Thành phố"
+                  error={errors.province?.message}
+                  isLoading={addressLoading}
+                />
+              </div>
+              <div className="sm:col-span-1">
+                <AddressDropdown
+                  label={labels.ward}
+                  value={ward || ""}
+                  options={
+                    filteredWards.map((w) => ({
+                      label: w.name,
+                      value: w.name
+                    })) || []
+                  }
+                  onChange={(val) =>
+                    setValue("ward", val, { shouldValidate: true })
+                  }
+                  placeholder="Chọn Phường / Xã"
+                  disabled={!province}
+                  error={errors.ward?.message}
+                  isLoading={addressLoading}
+                />
+              </div>
+            </>
+          ) : (
+            <>
+              <Field
+                error={errors.province?.message}
+                label={labels.province}
+                registration={register("province")}
+              />
+              <Field
+                error={errors.district?.message}
+                label={labels.district}
+                registration={register("district")}
+              />
+              <div className="sm:col-span-2">
+                <Field
+                  error={errors.ward?.message}
+                  label={labels.ward}
+                  registration={register("ward")}
+                />
+              </div>
+            </>
+          )}
+          <div className="sm:col-span-2">
+            <span className="label mb-2 block">{labels.region}</span>
+            <input type="hidden" {...register("shippingRegion")} />
+            <div className="flex flex-wrap gap-2">
+              {([
+                { value: "VIETNAM", label: "Vietnam" },
+                { value: "SINGAPORE", label: "Singapore" },
+                { value: "KOREA", label: "Korea" },
+                { value: "TAIWAN", label: "Taiwan" },
+                { value: "JAPAN", label: "Japan" }
+              ] as const).map((opt) => (
+                <button
+                  className={cn(
+                    "border px-4 py-2 text-xs font-bold uppercase transition-all duration-200",
+                    region === opt.value
+                      ? "border-[#a72b1f] bg-[#a72b1f] text-white"
+                      : "border-zinc-300 bg-white hover:border-[#a72b1f] hover:text-[#a72b1f]"
+                  )}
+                  key={opt.value}
+                  onClick={() => setValue("shippingRegion", opt.value)}
+                  type="button"
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
           <label className="sm:col-span-2">
             <span className="label">{labels.note}</span>
             <textarea className="field min-h-28 resize-y" {...register("note")} />
@@ -403,13 +533,12 @@ export function CheckoutForm({
             </span>
           </p>
         ) : null}
-        <label className="mt-5 flex cursor-pointer gap-2 bg-amber-50 p-3 text-xs leading-5 text-amber-900">
+        <label className="mt-5 flex cursor-pointer items-start gap-3 bg-amber-50 p-3 text-xs leading-5 text-amber-900">
           <input
-            className="mt-1 accent-black"
+            className="mt-0.5 size-5 shrink-0 accent-black cursor-pointer"
             type="checkbox"
             {...register("noChangePolicyAck")}
           />
-          <AlertTriangle className="mt-0.5 shrink-0" size={16} />
           <span>{labels.warning}</span>
         </label>
         {errors.noChangePolicyAck ? (
@@ -422,7 +551,7 @@ export function CheckoutForm({
           type="submit"
         >
           {isSubmitting ? labels.loading : labels.placeOrder}
-          <ArrowRight size={16} />
+          <ArrowRight size={16} className="translate-y-[-0.5px]" />
         </button>
         {isSubmitting && paymentMethod === "ONLINE_100_SEPAY" && (
           <p className="text-xs text-amber-600 font-bold text-center mt-3 animate-pulse">
@@ -480,5 +609,133 @@ function PaymentOption({
         ) : null}
       </span>
     </label>
+  );
+}
+
+function AddressDropdown({
+  label,
+  value,
+  options,
+  onChange,
+  disabled,
+  placeholder,
+  error,
+  isLoading
+}: {
+  label: string;
+  value: string;
+  options: { label: string; value: string }[];
+  onChange: (value: string) => void;
+  disabled?: boolean;
+  placeholder: string;
+  error?: string;
+  isLoading?: boolean;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Filter options based on search query
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase().trim();
+    if (!q) return options;
+    return options.filter((opt) => opt.label.toLowerCase().includes(q));
+  }, [options, search]);
+
+  const selectedLabel = options.find((opt) => opt.value === value)?.label || "";
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <span className="label">{label}</span>
+      <button
+        type="button"
+        disabled={disabled || isLoading}
+        onClick={() => {
+          setIsOpen(!isOpen);
+          setSearch("");
+        }}
+        className={cn(
+          "flex min-h-12 w-full items-center justify-between border bg-white px-3.5 py-3 text-left text-sm outline-none transition-all duration-200",
+          (disabled || isLoading)
+            ? "border-zinc-200 bg-zinc-50 text-zinc-400 cursor-not-allowed"
+            : isOpen
+            ? "border-zinc-950 ring-1 ring-zinc-950 text-zinc-950"
+            : "border-zinc-300 hover:border-zinc-400 text-zinc-800"
+        )}
+      >
+        <span className="font-semibold truncate">
+          {isLoading
+            ? "Đang tải danh sách..."
+            : selectedLabel || placeholder}
+        </span>
+        <ChevronDown
+          className={cn(
+            "size-4 text-zinc-500 transition-transform duration-300 ease-out shrink-0",
+            isOpen && "rotate-180 text-zinc-950"
+          )}
+        />
+      </button>
+
+      {isOpen && !disabled && !isLoading && (
+        <div className="absolute left-0 z-50 mt-1.5 w-full border border-black bg-white shadow-lg animate-in fade-in-0 zoom-in-95 duration-150">
+          {/* Search bar inside the dropdown if there are many options */}
+          {options.length > 5 && (
+            <div className="border-b border-zinc-200 p-2">
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Tìm kiếm... / Search..."
+                className="h-8 w-full border border-zinc-300 px-2.5 text-xs outline-none focus:border-black"
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
+          )}
+          <ul className="max-h-60 overflow-y-auto py-1 text-xs">
+            {filtered.length === 0 ? (
+              <li className="px-4 py-2.5 text-zinc-400 text-center">
+                Không tìm thấy / No results found
+              </li>
+            ) : (
+              filtered.map((opt) => (
+                <li key={opt.value}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onChange(opt.value);
+                      setIsOpen(false);
+                      setSearch("");
+                    }}
+                    className={cn(
+                      "flex w-full items-center justify-between px-4 py-2 text-left hover:bg-zinc-100 hover:text-black",
+                      opt.value === value
+                        ? "bg-zinc-50 font-black text-black"
+                        : "text-zinc-600"
+                    )}
+                  >
+                    <span>{opt.label}</span>
+                    {opt.value === value && (
+                      <Check className="size-3.5 text-[#a72b1f] shrink-0 translate-y-[-0.5px]" />
+                    )}
+                  </button>
+                </li>
+              ))
+            )}
+          </ul>
+        </div>
+      )}
+      {error && <span className="error-text mt-1">{error}</span>}
+    </div>
   );
 }
