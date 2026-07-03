@@ -26,3 +26,25 @@ export async function PATCH(request: Request, context: RouteContext) {
     return handlePrismaError(error);
   }
 }
+
+export async function DELETE(_: Request, context: RouteContext) {
+  if (!(await isAdminAuthenticated())) {
+    return err("Unauthorized", 401);
+  }
+  const { id } = await context.params;
+  try {
+    const inquiry = await getPrisma().productInquiry.findUnique({
+      where: { id }
+    });
+    if (!inquiry) {
+      return err("Order request not found", 404);
+    }
+    await getPrisma().productInquiry.delete({
+      where: { id }
+    });
+    return ok({ deleted: true });
+  } catch (error) {
+    console.error("[DELETE Order Request Error]", error);
+    return handlePrismaError(error);
+  }
+}
