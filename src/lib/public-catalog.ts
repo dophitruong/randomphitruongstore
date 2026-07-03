@@ -57,6 +57,25 @@ export const getPublicShopProducts = unstable_cache(
   }
 );
 
+export const getPublicCategories = unstable_cache(
+  async () =>
+    getPrisma().category.findMany({
+      where: { isActive: true },
+      select: {
+        id: true,
+        nameVi: true,
+        nameEn: true,
+        slug: true
+      },
+      orderBy: { sortOrder: "asc" }
+    }),
+  ["public-categories-v1"],
+  {
+    revalidate: catalogRevalidateSeconds,
+    tags: [publicCatalogCacheTag]
+  }
+);
+
 export const getPublicProductBySlug = (slug: string) =>
   unstable_cache(
     async () =>

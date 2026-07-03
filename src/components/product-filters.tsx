@@ -9,16 +9,18 @@ import {
   productVariantSizes
 } from "@/lib/product-catalog";
 import { productBasePrice } from "@/lib/product-pricing";
-import type { CatalogProductDTO } from "@/types";
+import type { CatalogProductDTO, ProductCategoryRecordDTO } from "@/types";
 import { Money } from "./money";
 import { ProductGrid } from "./product-grid";
 
 export function ProductFilters({
   products,
+  categories,
   locale,
   labels
 }: {
   products: CatalogProductDTO[];
+  categories: ProductCategoryRecordDTO[];
   locale: Locale;
   labels: {
     filters: string;
@@ -50,8 +52,6 @@ export function ProductFilters({
   }, [products]);
 
   const currentMaxPrice = maxPrice ?? computedMaxPrice;
-
-  const categories = uniqueCategories(products);
   const sizes = [...new Set(products.flatMap((product) => productVariantSizes(product.variants)))];
   const colors = [...new Set(products.flatMap((product) => productVariantColors(product.variants, locale)))];
   const activeFilterCount = [
@@ -250,17 +250,6 @@ export function ProductFilters({
       </section>
     </div>
   );
-}
-
-function uniqueCategories(products: CatalogProductDTO[]) {
-  const categories = new Map<string, NonNullable<CatalogProductDTO["categoryRecord"]>>();
-  for (const product of products) {
-    if (product.categoryRecord) {
-      categories.set(product.categoryRecord.id, product.categoryRecord);
-    }
-  }
-
-  return [...categories.values()];
 }
 
 function FilterSelect({
