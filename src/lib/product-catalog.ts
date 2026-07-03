@@ -1,5 +1,16 @@
 import type { ProductInput } from "@/lib/validations";
 
+const SIZE_ORDER = ["XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL"];
+
+export function compareSizes(a: string, b: string): number {
+  const ai = SIZE_ORDER.indexOf(a.toUpperCase());
+  const bi = SIZE_ORDER.indexOf(b.toUpperCase());
+  if (ai !== -1 && bi !== -1) return ai - bi;
+  if (ai !== -1) return -1;
+  if (bi !== -1) return 1;
+  return a.localeCompare(b);
+}
+
 type ProductCatalogVariant = {
   size: string;
   colorVi: string;
@@ -170,7 +181,7 @@ export function availableProductVariants(variants: ProductOptionVariant[] = []) 
 }
 
 export function productVariantSizes(variants: ProductOptionVariant[] = []) {
-  return [...new Set(availableProductVariants(variants).map((variant) => variant.size))];
+  return [...new Set(availableProductVariants(variants).map((variant) => variant.size))].sort(compareSizes);
 }
 
 export function productVariantColors(variants: ProductOptionVariant[] = [], locale: string = "vi") {
