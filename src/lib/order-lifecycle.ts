@@ -76,7 +76,8 @@ type OrderLifecycleTransaction = {
 
 type OrderLifecycleStore = {
   $transaction<T>(
-    callback: (transaction: OrderLifecycleTransaction) => Promise<T>
+    callback: (transaction: OrderLifecycleTransaction) => Promise<T>,
+    options?: { timeout?: number; maxWait?: number }
   ): Promise<T>;
 };
 
@@ -109,35 +110,40 @@ export async function updateAdminOrderLifecycle({
   const adminData = adminId ? { createdByAdminId: adminId } : {};
   const orderAdminData = adminId ? { updatedByAdminId: adminId } : {};
 
-  return prisma.$transaction(async (transaction) => {
-    const order = await transaction.order.findUnique({
-      where: { id: orderId },
-      include: { payments: true }
-    });
+  return prisma.$transaction(
+    async (transaction) => {
+      const order = await transaction.order.findUnique({
+        where: { id: orderId },
+        include: { payments: true }
+      });
 
-    if (!order) {
-      throw new OrderLifecycleError("Order not found", 404);
-    }
-
-    await syncPaymentsForStatus(transaction, order, status, now());
-    await transaction.orderStatusHistory.create({
-      data: {
-        orderId,
-        status,
-        note: normalizedNote,
-        ...adminData
+      if (!order) {
+        throw new OrderLifecycleError("Order not found", 404);
       }
-    });
 
-    return transaction.order.update({
-      where: { id: orderId },
-      data: {
-        status,
-        ...orderAdminData
-      },
-      include: adminOrderInclude
-    });
-  });
+      await syncPaymentsForStatus(transaction, order, status, now());
+      await transaction.orderStatusHistory.create({
+        data: {
+          orderId,
+          status,
+          note: normalizedNote,
+          ...adminData
+        }
+      });
+
+      return transaction.order.update({
+        where: { id: orderId },
+        data: {
+          status,
+          ...orderAdminData
+        },
+        include: adminOrderInclude
+      });
+    },
+    {
+      timeout: 15000
+    }
+  );
 }
 
 async function syncPaymentsForStatus(
