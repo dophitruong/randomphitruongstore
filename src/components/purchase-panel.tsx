@@ -11,7 +11,7 @@ import { ZaloIcon } from "./brand-icons";
 import { useCart } from "./cart-provider";
 import { InternationalShippingNotice } from "./international-shipping-notice";
 
-type ShippingRegion = "VIETNAM" | "KOREA" | "TAIWAN" | "JAPAN";
+type ShippingRegion = "VIETNAM" | "SINGAPORE" | "KOREA" | "TAIWAN" | "JAPAN";
 type PurchasePanelVariant = {
   id: string;
   size: string;
@@ -140,22 +140,33 @@ export function PurchasePanel({
         options={colors}
         value={color}
       />
-      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-        <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider w-24 shrink-0">
+      <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+        <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider w-24 shrink-0 pt-2">
           {labels.shipping}
         </span>
-        <select
-          className="field flex-1 max-w-[240px] text-xs py-1 px-2.5 font-medium border border-zinc-300 bg-white"
-          onChange={(event) =>
-            setRegion(event.target.value as ShippingRegion)
-          }
-          value={region}
-        >
-          <option value="VIETNAM">Vietnam</option>
-          <option value="KOREA">Korea</option>
-          <option value="TAIWAN">Taiwan</option>
-          <option value="JAPAN">Japan</option>
-        </select>
+        <div className="flex flex-wrap gap-2 flex-1">
+          {([
+            { value: "VIETNAM", label: "Vietnam" },
+            { value: "SINGAPORE", label: "Singapore" },
+            { value: "KOREA", label: "Korea" },
+            { value: "TAIWAN", label: "Taiwan" },
+            { value: "JAPAN", label: "Japan" }
+          ] as const).map((opt) => (
+            <button
+              className={cn(
+                "border px-4 py-2 text-xs font-bold uppercase transition-all duration-200",
+                region === opt.value
+                  ? "border-[#a72b1f] bg-[#a72b1f] text-white"
+                  : "border-zinc-300 bg-white hover:border-[#a72b1f] hover:text-[#a72b1f]"
+              )}
+              key={opt.value}
+              onClick={() => setRegion(opt.value)}
+              type="button"
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {region !== "VIETNAM" ? (
@@ -173,7 +184,7 @@ export function PurchasePanel({
           type="button"
           disabled={isOutOfStock}
         >
-          <ShoppingCart aria-hidden="true" size={16} />
+          <ShoppingCart aria-hidden="true" size={16} className="translate-y-[-0.5px]" />
           {isOutOfStock ? "Hết hàng / Out of stock" : added ? "Đã thêm" : "Thêm vào giỏ"}
         </button>
         <button
@@ -192,7 +203,7 @@ export function PurchasePanel({
           rel="noreferrer"
           target="_blank"
         >
-          <ZaloIcon size={16} />
+          <ZaloIcon size={16} className="translate-y-[-0.5px]" />
           {labels.zalo}
         </a>
       </div>
