@@ -80,30 +80,41 @@ export function AdminCurrencySettingsForm({
     <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
       <section className="border border-zinc-200 bg-white p-5 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
         <div className="grid gap-5">
-          <label className="flex items-center justify-between gap-4 border border-zinc-200 p-4">
-            <span>
-              <span className="block text-sm font-black">VND</span>
-              <span className="mt-1 block text-xs text-zinc-500">Vietnamese dong</span>
-            </span>
-            <input checked disabled className="size-5 accent-black" type="checkbox" />
-          </label>
+          <div className="grid gap-3.5 border border-zinc-200 bg-zinc-50/50 p-4 rounded-md">
+            <div className="border-b border-zinc-200 pb-2 mb-1">
+              <h3 className="text-xs font-black uppercase tracking-wider text-zinc-700">Hiển thị tiền tệ / Currency Display</h3>
+            </div>
+            <label className="flex items-center justify-between gap-4 border border-zinc-200 bg-white p-4 opacity-75 select-none rounded">
+              <span>
+                <span className="block text-sm font-black">VND</span>
+                <span className="mt-1 block text-xs text-zinc-500">Vietnamese dong</span>
+              </span>
+              <div className="relative shrink-0">
+                <input checked disabled className="sr-only peer" type="checkbox" />
+                <div className="w-10 h-6 bg-[#a72b1f] rounded-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:translate-x-full transition-all" />
+              </div>
+            </label>
 
-          <label className="flex items-center justify-between gap-4 border border-zinc-200 p-4">
-            <span>
-              <span className="block text-sm font-black">USD</span>
-              <span className="mt-1 block text-xs text-zinc-500">US dollar display</span>
-            </span>
-            <input
-              checked={usdEnabled}
-              className="size-5 accent-black"
-              onChange={(event) => {
-                const checked = event.target.checked;
-                setUsdEnabled(checked);
-                if (!checked) setDefaultCurrency("VND");
-              }}
-              type="checkbox"
-            />
-          </label>
+            <label className="flex items-center justify-between gap-4 border border-zinc-200 bg-white p-4 cursor-pointer select-none hover:bg-zinc-50 transition-colors rounded">
+              <span>
+                <span className="block text-sm font-black">USD</span>
+                <span className="mt-1 block text-xs text-zinc-500">US dollar display</span>
+              </span>
+              <div className="relative shrink-0">
+                <input
+                  checked={usdEnabled}
+                  className="sr-only peer"
+                  onChange={(event) => {
+                    const checked = event.target.checked;
+                    setUsdEnabled(checked);
+                    if (!checked) setDefaultCurrency("VND");
+                  }}
+                  type="checkbox"
+                />
+                <div className="w-10 h-6 bg-zinc-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#a72b1f] transition-colors duration-200" />
+              </div>
+            </label>
+          </div>
 
           <label>
             <span className="label">Default currency</span>
