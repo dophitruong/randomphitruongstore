@@ -1331,13 +1331,18 @@ function CategoryBadge({ category }: { category: string }) {
     BOMBER: "border-blue-200 bg-blue-50 text-blue-800",
     HOODIE: "border-violet-200 bg-violet-50 text-violet-800",
     JACKET: "border-amber-200 bg-amber-50 text-amber-800",
-    SEASONAL: "border-emerald-200 bg-emerald-50 text-emerald-800"
+    SEASONAL: "border-emerald-200 bg-emerald-50 text-emerald-800",
+    PANTS: "border-teal-200 bg-teal-50 text-teal-800",
+    "T-SHIRT": "border-pink-200 bg-pink-50 text-pink-800",
+    TSHIRT: "border-pink-200 bg-pink-50 text-pink-800"
   };
+
+  const key = category.toUpperCase();
 
   return (
     <span
       className={`inline-flex border px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.08em] ${
-        styles[category] ?? "border-zinc-200 bg-zinc-50 text-zinc-700"
+        styles[key] ?? "border-zinc-200 bg-zinc-50 text-zinc-700"
       }`}
     >
       {category}

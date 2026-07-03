@@ -17,10 +17,14 @@ export function categoryLabel(
     BOMBER: { vi: "Bomber Jacket", en: "Bomber Jacket" },
     HOODIE: { vi: "Hoodie", en: "Hoodie" },
     JACKET: { vi: "Áo khoác", en: "Jacket" },
-    SEASONAL: { vi: "Order theo mùa", en: "Seasonal Order" }
+    SEASONAL: { vi: "Order theo mùa", en: "Seasonal Order" },
+    PANTS: { vi: "Quần", en: "Pants" },
+    "T-SHIRT": { vi: "T-Shirt", en: "T-Shirt" },
+    TSHIRT: { vi: "T-Shirt", en: "T-Shirt" }
   };
 
-  return labels[category]?.[locale] ?? category;
+  const key = category.toUpperCase();
+  return labels[key]?.[locale] ?? category;
 }
 
 export function orderNumber() {

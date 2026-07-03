@@ -155,6 +155,26 @@ const categories = [
     descriptionEn: "Seasonal and limited collection order items.",
     sortOrder: 50,
     isActive: true
+  },
+  {
+    id: "5b2d9f8a-9b6e-4f4c-8c0d-0f0f0f0f0a06",
+    nameVi: "Quần",
+    nameEn: "Pants",
+    slug: "pants",
+    descriptionVi: "Các dòng quần streetwear order.",
+    descriptionEn: "Streetwear pants and trousers available by order.",
+    sortOrder: 60,
+    isActive: true
+  },
+  {
+    id: "5b2d9f8a-9b6e-4f4c-8c0d-0f0f0f0f0a07",
+    nameVi: "T-Shirt",
+    nameEn: "T-Shirt",
+    slug: "tshirt",
+    descriptionVi: "Các dòng áo thun streetwear order.",
+    descriptionEn: "Streetwear T-shirts available by order.",
+    sortOrder: 70,
+    isActive: true
   }
 ];
 
