@@ -2,6 +2,7 @@
 
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 export function FAQAccordion({
   items
@@ -18,21 +19,31 @@ export function FAQAccordion({
           <div className="border-b border-black" key={item.question}>
             <button
               aria-expanded={open}
-              className="flex w-full items-center justify-between gap-4 py-5 text-left font-bold"
+              className="group flex w-full items-center justify-between gap-4 py-5 text-left font-bold text-zinc-900 transition-colors hover:text-[#a72b1f]"
               onClick={() => setActive(open ? null : index)}
               type="button"
             >
               {item.question}
               <ChevronDown
-                className={open ? "rotate-180" : ""}
+                className={cn(
+                  "text-zinc-400 transition-all duration-300 ease-out shrink-0 translate-y-[-0.5px] group-hover:text-[#a72b1f]",
+                  open ? "rotate-180 text-[#a72b1f]" : ""
+                )}
                 size={18}
               />
             </button>
-            {open ? (
-              <p className="max-w-3xl pb-5 text-sm leading-6 text-zinc-600">
-                {item.answer}
-              </p>
-            ) : null}
+            <div
+              className={cn(
+                "grid transition-all duration-300 ease-in-out",
+                open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+              )}
+            >
+              <div className="overflow-hidden">
+                <p className="max-w-3xl pb-5 text-sm leading-6 text-zinc-600">
+                  {item.answer}
+                </p>
+              </div>
+            </div>
           </div>
         );
       })}
