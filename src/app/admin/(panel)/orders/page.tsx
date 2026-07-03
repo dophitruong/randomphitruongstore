@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AdminStatusSelect } from "@/components/admin-status-select";
 import { AdminTable } from "@/components/admin-table";
+import { AdminOrderDeleteButton } from "@/components/admin-order-delete-button";
 import { StatusBadge } from "@/components/status-badge";
 import { formatPrice } from "@/lib/format";
 import { getPrisma } from "@/lib/prisma";
@@ -109,12 +110,19 @@ export default async function AdminOrdersPage() {
               <StatusBadge status={order.status} />
             </td>
             <td className="px-4 py-4">
-              <AdminStatusSelect
-                endpoint={`/api/orders/${order.id}`}
-                statuses={statuses}
-                statusLabels={statusLabels}
-                value={order.status}
-              />
+              <div className="flex items-center gap-2">
+                <AdminStatusSelect
+                  endpoint={`/api/orders/${order.id}`}
+                  statuses={statuses}
+                  statusLabels={statusLabels}
+                  value={order.status}
+                />
+                <AdminOrderDeleteButton
+                  orderId={order.id}
+                  orderNumber={order.orderNumber}
+                  redirectOnDelete={false}
+                />
+              </div>
             </td>
           </tr>
         ))}
