@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AdminStatusSelect } from "@/components/admin-status-select";
+import { AdminOrderDeleteButton } from "@/components/admin-order-delete-button";
 import { StatusBadge } from "@/components/status-badge";
 import { formatPrice } from "@/lib/format";
 import { getPrisma } from "@/lib/prisma";
@@ -60,6 +61,11 @@ export default async function AdminOrderDetailPage({
             endpoint={`/api/orders/${order.id}`}
             statuses={statuses}
             value={order.status}
+          />
+          <AdminOrderDeleteButton
+            orderId={order.id}
+            orderNumber={order.orderNumber}
+            redirectOnDelete={true}
           />
         </div>
       </header>

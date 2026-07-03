@@ -12,8 +12,10 @@ import {
   X
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
-import { useForm, useWatch, useFieldArray } from "react-hook-form";
+import { useEffect, useMemo, useState, useRef } from "react";
+import { useForm, useWatch, useFieldArray, Controller } from "react-hook-form";
+import { parseMarkdown } from "@/lib/markdown";
+import { cn } from "@/lib/utils";
 import { z } from "zod";
 import {
   duplicateProductImageUrlIndex,
@@ -756,7 +758,7 @@ export function AdminProductManager({
                           <td className="p-2 text-center">
                             <input
                               type="checkbox"
-                              className="size-4 rounded border-zinc-300 text-[#a72b1f] focus:ring-[#a72b1f] cursor-pointer"
+                              className="size-5 rounded border-zinc-300 text-[#a72b1f] focus:ring-[#a72b1f] cursor-pointer"
                               {...register(`variants.${index}.isAvailable` as const)}
                             />
                           </td>
@@ -852,7 +854,7 @@ export function AdminProductManager({
                         <label className="flex items-center gap-2 text-xs font-bold cursor-pointer">
                           <input
                             type="checkbox"
-                            className="size-4 rounded border-zinc-300 text-[#a72b1f] focus:ring-[#a72b1f] accent-black"
+                            className="size-5 rounded border-zinc-300 text-[#a72b1f] focus:ring-[#a72b1f] accent-black cursor-pointer"
                             {...register(`variants.${index}.isAvailable` as const)}
                           />
                           Available / Có sẵn
@@ -1278,35 +1280,58 @@ export function AdminProductManager({
                 </AdminField>
               </div>
               <div className="sm:col-span-2">
-                <AdminField
-                  label="Description (VI) / Mô tả sản phẩm (Tiếng Việt)"
-                  error={errors.descriptionVi?.message}
-                >
-                  <textarea
-                    className="field min-h-24"
-                    {...register("descriptionVi")}
-                  />
-                </AdminField>
+                <Controller
+                  control={control}
+                  name="descriptionVi"
+                  render={({ field }) => (
+                    <AdminMarkdownEditor
+                      label="Description (VI) / Mô tả sản phẩm (Tiếng Việt)"
+                      value={field.value}
+                      onChange={field.onChange}
+                      error={errors.descriptionVi?.message}
+                    />
+                  )}
+                />
               </div>
               <div className="sm:col-span-2">
-                <AdminField
-                  label="Description (EN) / Mô tả sản phẩm (Tiếng Anh)"
-                  error={errors.descriptionEn?.message}
-                >
-                  <textarea
-                    className="field min-h-24"
-                    {...register("descriptionEn")}
-                  />
-                </AdminField>
+                <Controller
+                  control={control}
+                  name="descriptionEn"
+                  render={({ field }) => (
+                    <AdminMarkdownEditor
+                      label="Description (EN) / Mô tả sản phẩm (Tiếng Anh)"
+                      value={field.value}
+                      onChange={field.onChange}
+                      error={errors.descriptionEn?.message}
+                    />
+                  )}
+                />
               </div>
-              <label className="flex items-center gap-2 text-sm font-bold cursor-pointer">
-                <input type="checkbox" {...register("isFeatured")} />
-                Featured / Nổi bật
-              </label>
-              <label className="flex items-center gap-2 text-sm font-bold cursor-pointer">
-                <input type="checkbox" {...register("isActive")} />
-                Active / Hoạt động
-              </label>
+              <div className="grid grid-cols-2 gap-3.5 sm:col-span-2 border border-zinc-200 bg-zinc-50/50 p-4 rounded-md">
+                <div className="col-span-2 border-b border-zinc-200 pb-2 mb-1">
+                  <h3 className="text-xs font-black uppercase tracking-wider text-zinc-700">Trạng thái sản phẩm / Product Status</h3>
+                </div>
+                <label className="flex items-center justify-between border border-zinc-200 bg-white p-3 rounded cursor-pointer select-none transition-colors hover:bg-zinc-50 col-span-1">
+                  <div className="flex flex-col pr-2">
+                    <span className="text-xs font-bold text-zinc-800">Featured / Nổi bật</span>
+                    <span className="text-[9px] text-zinc-500 font-medium leading-tight">Hiện trên trang chủ</span>
+                  </div>
+                  <div className="relative shrink-0">
+                    <input type="checkbox" {...register("isFeatured")} className="sr-only peer" />
+                    <div className="w-9 h-5.5 bg-zinc-350 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-[14px] peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-[#a72b1f] transition-colors duration-200" />
+                  </div>
+                </label>
+                <label className="flex items-center justify-between border border-zinc-200 bg-white p-3 rounded cursor-pointer select-none transition-colors hover:bg-zinc-50 col-span-1">
+                  <div className="flex flex-col pr-2">
+                    <span className="text-xs font-bold text-zinc-800">Active / Kích hoạt</span>
+                    <span className="text-[9px] text-zinc-500 font-medium leading-tight">Cho phép khách mua</span>
+                  </div>
+                  <div className="relative shrink-0">
+                    <input type="checkbox" {...register("isActive")} className="sr-only peer" />
+                    <div className="w-9 h-5.5 bg-zinc-350 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-[14px] peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-[#a72b1f] transition-colors duration-200" />
+                  </div>
+                </label>
+              </div>
               {serverError ? (
                 <p className="error-text sm:col-span-2">{serverError}</p>
               ) : null}
@@ -1401,5 +1426,152 @@ function AdminField({
       {children}
       {error ? <span className="error-text">{error}</span> : null}
     </label>
+  );
+}
+
+function AdminMarkdownEditor({
+  label,
+  value,
+  onChange,
+  error
+}: {
+  label: string;
+  value: string;
+  onChange: (val: string) => void;
+  error?: string;
+}) {
+  const [tab, setTab] = useState<"write" | "preview">("write");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const insertText = (before: string, after: string = "") => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = textarea.value;
+    const selected = text.substring(start, end);
+    const replacement = before + selected + after;
+
+    const newValue = text.substring(0, start) + replacement + text.substring(end);
+    onChange(newValue);
+
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + before.length, start + before.length + selected.length);
+    }, 0);
+  };
+
+  const parsedContent = useMemo(() => {
+    return parseMarkdown(value);
+  }, [value]);
+
+  return (
+    <div className="w-full">
+      <div className="flex items-center justify-between border-b border-zinc-200 pb-2">
+        <span className="label mb-0">{label}</span>
+        <div className="flex border border-zinc-350 bg-white">
+          <button
+            type="button"
+            onClick={() => setTab("write")}
+            className={cn(
+              "px-3 py-1 text-[10px] font-bold uppercase tracking-wider transition-colors cursor-pointer",
+              tab === "write"
+                ? "bg-[#171715] text-white"
+                : "bg-white text-zinc-600 hover:bg-zinc-100"
+            )}
+          >
+            Sửa / Write
+          </button>
+          <button
+            type="button"
+            onClick={() => setTab("preview")}
+            className={cn(
+              "px-3 py-1 text-[10px] font-bold uppercase tracking-wider transition-colors cursor-pointer",
+              tab === "preview"
+                ? "bg-[#171715] text-white"
+                : "bg-white text-zinc-600 hover:bg-zinc-100"
+            )}
+          >
+            Xem trước / Preview
+          </button>
+        </div>
+      </div>
+
+      {tab === "write" ? (
+        <div className="mt-2 border border-zinc-300 bg-white">
+          {/* Formatting bar */}
+          <div className="flex items-center gap-1 bg-zinc-50 p-1.5 border-b border-zinc-200 overflow-x-auto">
+            <button
+              type="button"
+              onClick={() => insertText("**", "**")}
+              className="grid size-7 place-items-center text-xs font-bold text-zinc-700 hover:bg-zinc-200 hover:text-black rounded cursor-pointer"
+              title="Bold"
+            >
+              B
+            </button>
+            <button
+              type="button"
+              onClick={() => insertText("*", "*")}
+              className="grid size-7 place-items-center text-xs italic text-zinc-700 hover:bg-zinc-200 hover:text-black rounded font-serif cursor-pointer"
+              title="Italic"
+            >
+              I
+            </button>
+            <button
+              type="button"
+              onClick={() => insertText("## ")}
+              className="grid size-7 place-items-center text-[10px] font-black text-zinc-700 hover:bg-zinc-200 hover:text-black rounded cursor-pointer"
+              title="Heading 2"
+            >
+              H2
+            </button>
+            <button
+              type="button"
+              onClick={() => insertText("### ")}
+              className="grid size-7 place-items-center text-[10px] font-black text-zinc-700 hover:bg-zinc-200 hover:text-black rounded cursor-pointer"
+              title="Heading 3"
+            >
+              H3
+            </button>
+            <span className="w-[1px] h-4 bg-zinc-300 mx-1 shrink-0" />
+            <button
+              type="button"
+              onClick={() => insertText("[", "](url)")}
+              className="px-2 py-1 text-[10px] font-bold text-zinc-700 hover:bg-zinc-200 hover:text-black rounded cursor-pointer shrink-0"
+              title="Insert Link"
+            >
+              Link
+            </button>
+            <button
+              type="button"
+              onClick={() => insertText("- ")}
+              className="px-2 py-1 text-[10px] font-bold text-zinc-700 hover:bg-zinc-200 hover:text-black rounded cursor-pointer shrink-0"
+              title="Bullet List"
+            >
+              List
+            </button>
+          </div>
+          <textarea
+            ref={textareaRef}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            className="field min-h-36 border-0 focus:ring-0 focus:outline-none"
+            placeholder="Mô tả chi tiết sản phẩm... Hỗ trợ định dạng Markdown (Bold, Italic, List, Headings)."
+          />
+        </div>
+      ) : (
+        <div className="mt-2 min-h-[12.5rem] max-h-72 border border-zinc-300 bg-zinc-50 p-4 overflow-y-auto space-y-1">
+          {value.trim() ? (
+            parsedContent
+          ) : (
+            <p className="text-xs text-zinc-400 italic text-center py-10">
+              Chưa có nội dung để xem trước / Nothing to preview yet
+            </p>
+          )}
+        </div>
+      )}
+      {error && <span className="error-text mt-1">{error}</span>}
+    </div>
   );
 }

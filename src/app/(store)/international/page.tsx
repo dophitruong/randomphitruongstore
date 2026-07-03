@@ -24,6 +24,7 @@ export default async function InternationalPage({ searchParams }: PageProps) {
   const common = await getTranslations("common");
 
   const regionLabels: Record<string, string> = {
+    SINGAPORE: "Singapore 🇸🇬",
     KOREA: "Korea 🇰🇷",
     TAIWAN: "Taiwan 🇹🇼",
     JAPAN: "Japan 🇯🇵"

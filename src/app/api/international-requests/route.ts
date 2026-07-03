@@ -14,7 +14,7 @@ const internationalRequestSchema = z.object({
     .max(20, "Phone number is too long"),
   socialContact: z.string().trim().min(2),
   productName: z.string().trim().min(2),
-  region: z.enum(["KOREA", "TAIWAN", "JAPAN"]),
+  region: z.enum(["SINGAPORE", "KOREA", "TAIWAN", "JAPAN"]),
   desiredSize: z.string().trim().min(1),
   desiredColor: z.string().trim().min(1),
   customsNote: z.string().trim().optional(),

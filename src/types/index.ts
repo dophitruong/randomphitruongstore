@@ -2,7 +2,7 @@
 // Defined explicitly here so client code never imports from @prisma/client.
 
 export type StockStatus = "IN_STOCK" | "OUT_OF_STOCK";
-export type ShippingRegion = "VIETNAM" | "KOREA" | "TAIWAN" | "JAPAN";
+export type ShippingRegion = "VIETNAM" | "SINGAPORE" | "KOREA" | "TAIWAN" | "JAPAN";
 export type PaymentMethod =
   | "DEPOSIT_50_BANK_ZALO"
   | "ONLINE_100_SEPAY";

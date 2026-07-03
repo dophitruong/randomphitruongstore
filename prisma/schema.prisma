@@ -15,6 +15,7 @@ enum StockStatus {
 
 enum ShippingRegion {
   VIETNAM
+  SINGAPORE
   KOREA
   TAIWAN
   JAPAN

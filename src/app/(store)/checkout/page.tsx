@@ -96,7 +96,12 @@ export default async function CheckoutPage({ searchParams }: PageProps) {
     "sepayRedirecting",
     "sepayRedirectUnavailable"
   ] as const;
-  const labels = Object.fromEntries(labelKeys.map((key) => [key, t(key)]));
+  const labels = Object.fromEntries(
+    labelKeys.map((key) => [
+      key,
+      key === "sepayRedirectCountdown" ? t(key, { seconds: "{seconds}" }) : t(key)
+    ])
+  );
 
   return (
     <div className="container-shell py-10 sm:py-16">

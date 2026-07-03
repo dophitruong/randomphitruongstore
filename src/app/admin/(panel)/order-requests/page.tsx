@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { AdminStatusSelect } from "@/components/admin-status-select";
 import { AdminTable } from "@/components/admin-table";
+import { AdminInquiryDeleteButton } from "@/components/admin-inquiry-delete-button";
 import { StatusBadge } from "@/components/status-badge";
 import { getPrisma } from "@/lib/prisma";
 import {
@@ -72,11 +73,17 @@ export default async function AdminProductInquiriesPage() {
                 <StatusBadge status={request.status} />
               </td>
               <td className="px-4 py-4">
-                <AdminStatusSelect
-                  endpoint={`/api/order-requests/${request.id}`}
-                  statuses={statuses}
-                  value={request.status}
-                />
+                <div className="flex items-center gap-2">
+                  <AdminStatusSelect
+                    endpoint={`/api/order-requests/${request.id}`}
+                    statuses={statuses}
+                    value={request.status}
+                  />
+                  <AdminInquiryDeleteButton
+                    inquiryId={request.id}
+                    customerName={request.fullName}
+                  />
+                </div>
               </td>
             </tr>
           );

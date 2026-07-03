@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 
 export function ProductGallery({
@@ -12,31 +12,32 @@ export function ProductGallery({
   const [active, setActive] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const selected = images[active];
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  // Sync scroll position when active index changes
+  useEffect(() => {
+    if (containerRef.current) {
+      const width = containerRef.current.clientWidth;
+      const currentScrollIndex = Math.round(containerRef.current.scrollLeft / width);
+      if (currentScrollIndex !== active) {
+        containerRef.current.scrollTo({
+          left: active * width,
+          behavior: "smooth"
+        });
+      }
+    }
+  }, [active]);
 
-  const minSwipeDistance = 50;
-
-  const onTouchStart = (e: React.TouchEvent) => {
-    setTouchStart(e.targetTouches[0].clientX);
-    setTouchEnd(null);
-  };
-
-  const onTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
-
-    if (isLeftSwipe) {
-      setActive((prev) => (prev === images.length - 1 ? 0 : prev + 1));
-    } else if (isRightSwipe) {
-      setActive((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  const handleScroll = () => {
+    if (containerRef.current) {
+      const scrollLeft = containerRef.current.scrollLeft;
+      const width = containerRef.current.clientWidth;
+      if (width > 0) {
+        const index = Math.round(scrollLeft / width);
+        if (index >= 0 && index < images.length && index !== active) {
+          setActive(index);
+        }
+      }
     }
   };
 
@@ -57,29 +58,31 @@ export function ProductGallery({
 
   return (
     <div>
-      <div
-        className="relative group/gallery"
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
-      >
-        <button
-          type="button"
-          onClick={() => setLightboxOpen(true)}
-          className="relative block w-full aspect-square sm:aspect-[4/5] max-h-[70vh] sm:max-h-none overflow-hidden bg-zinc-50 cursor-zoom-in"
-          aria-label="Zoom product image"
+      <div className="relative group/gallery">
+        <div
+          ref={containerRef}
+          onScroll={handleScroll}
+          className="flex w-full aspect-square sm:aspect-[4/5] max-h-[70vh] sm:max-h-none overflow-x-auto snap-x snap-mandatory scroll-smooth bg-zinc-50 [&::-webkit-scrollbar]:hidden [scrollbar-width:none]"
         >
-          {selected ? (
-            <Image
-              alt={selected.alt}
-              className="object-contain"
-              fill
-              priority
-              sizes="(max-width: 1024px) 100vw, 55vw"
-              src={selected.url}
-            />
-          ) : null}
-        </button>
+          {images.map((image, index) => (
+            <button
+              key={`${image.url}-${index}`}
+              type="button"
+              onClick={() => setLightboxOpen(true)}
+              className="relative w-full h-full shrink-0 snap-center cursor-zoom-in overflow-hidden"
+              aria-label={`Zoom product image ${index + 1}`}
+            >
+              <Image
+                alt={image.alt}
+                className="object-contain"
+                fill
+                priority={index === 0}
+                sizes="(max-width: 1024px) 100vw, 55vw"
+                src={image.url}
+              />
+            </button>
+          ))}
+        </div>
 
         {images.length > 1 && (
           <>

@@ -55,6 +55,8 @@ export function isMissingCustomerSupabaseUserIdColumn(error: unknown) {
 
 function countryForShippingRegion(region: OrderInput["shippingRegion"]) {
   switch (region) {
+    case "SINGAPORE":
+      return "Singapore";
     case "KOREA":
       return "Korea";
     case "TAIWAN":

@@ -126,7 +126,7 @@ export function ProductInquiryForm({
       <label>
         <span className="label">{labels.image}</span>
         <span className="flex min-h-12 cursor-pointer items-center gap-2 border border-zinc-300 px-3 text-sm">
-          <ImageUp size={17} />
+          <ImageUp size={17} className="translate-y-[-0.5px]" />
           {image?.name ?? "JPG, PNG, WebP - max 5 MB"}
           <input
             accept="image/jpeg,image/png,image/webp"

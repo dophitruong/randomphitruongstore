@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
+import { parseMarkdown } from "@/lib/markdown";
 
 export function ProductDescription({
   description,
@@ -13,26 +14,30 @@ export function ProductDescription({
   readLessLabel?: string;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const shouldClamp = description.length > 200;
+  const shouldClamp = description.length > 220;
+
+  const parsedContent = useMemo(() => {
+    return parseMarkdown(description);
+  }, [description]);
 
   if (!shouldClamp) {
-    return <p className="mt-6 text-sm leading-7 text-zinc-600">{description}</p>;
+    return <div className="mt-6 space-y-1">{parsedContent}</div>;
   }
 
   return (
     <div className="mt-6">
-      <p
+      <div
         className={cn(
-          "text-sm leading-7 text-zinc-600 transition-all duration-300",
-          !isExpanded && "line-clamp-3 overflow-hidden"
+          "transition-all duration-300 space-y-1",
+          !isExpanded && "line-clamp-4 overflow-hidden max-h-[140px]"
         )}
       >
-        {description}
-      </p>
+        {parsedContent}
+      </div>
       <button
         type="button"
         onClick={() => setIsExpanded(!isExpanded)}
-        className="mt-2 text-xs font-bold uppercase tracking-wider text-black underline hover:text-zinc-600 transition-colors"
+        className="mt-2 text-xs font-bold uppercase tracking-wider text-black underline hover:text-[#a72b1f] transition-colors"
       >
         {isExpanded ? readLessLabel : readMoreLabel}
       </button>
