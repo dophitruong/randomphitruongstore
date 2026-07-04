@@ -5,7 +5,7 @@ import { trackEvent } from "@/lib/analytics";
 
 interface TrackedLinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
   eventName: string;
-  eventParams?: Record<string, any>;
+  eventParams?: Record<string, unknown>;
 }
 
 export function TrackedLink({
