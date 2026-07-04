@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { ZALO_URL } from "@/lib/constants";
 import { ZaloIcon } from "./brand-icons";
+import { TrackedLink } from "./tracked-link";
 
 const requestFormSchema = z.object({
   fullName: z.string().trim().min(2, "Required"),
@@ -90,15 +91,16 @@ export function ProductInquiryForm({
         <p className="mt-4 max-w-xl text-sm leading-6 text-zinc-600">
           {labels.successBody}
         </p>
-        <a
+        <TrackedLink
           className="button-primary mt-6"
+          eventName="click_zalo"
           href={ZALO_URL}
           rel="noreferrer"
           target="_blank"
         >
           <ZaloIcon size={17} />
           Zalo
-        </a>
+        </TrackedLink>
       </div>
     );
   }

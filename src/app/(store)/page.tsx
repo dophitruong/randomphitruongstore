@@ -13,6 +13,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { TikTokIcon } from "@/components/brand-icons";
+import { TrackedLink } from "@/components/tracked-link";
 import {
   FACEBOOK_URL,
   INSTAGRAM_URL,
@@ -260,15 +261,16 @@ export default async function HomePage() {
                     {t("showcasePriceNote")}
                   </p>
                   <div className="mt-5 grid grid-cols-2 gap-2">
-                    <a
+                    <TrackedLink
                       className="inline-flex min-h-11 items-center justify-center gap-2 bg-[#11100e] px-3 text-[10px] font-bold uppercase tracking-[0.08em] text-white transition-colors hover:bg-[#a72b1f]"
+                      eventName="click_zalo"
                       href={ZALO_URL}
                       rel="noreferrer"
                       target="_blank"
                     >
                       <MessageCircle size={15} />
                       Zalo
-                    </a>
+                    </TrackedLink>
                     <a
                       className="inline-flex min-h-11 items-center justify-center gap-2 border border-black bg-white px-3 text-[10px] font-bold uppercase tracking-[0.08em] text-black transition-colors hover:bg-[#1877f2] hover:text-white"
                       href={FACEBOOK_URL}
@@ -326,8 +328,9 @@ export default async function HomePage() {
           </p>
         </div>
         <div className="grid min-w-0">
-          <a
+          <TrackedLink
             className="flex min-w-0 items-center justify-between gap-4 border-t border-black p-5 font-bold hover:bg-[#11100e] hover:text-white"
+            eventName="click_instagram"
             href={INSTAGRAM_URL}
             rel="noreferrer"
             target="_blank"
@@ -337,7 +340,7 @@ export default async function HomePage() {
               <span>Instagram</span>
             </span>
             <span className="truncate text-sm">@random.phitruong4</span>
-          </a>
+          </TrackedLink>
           <a
             className="flex min-w-0 items-center justify-between gap-4 border-y border-black p-5 font-bold hover:bg-[#11100e] hover:text-white"
             href={TIKTOK_URL}

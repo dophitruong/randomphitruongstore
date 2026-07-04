@@ -9,6 +9,7 @@ import { productVariantPrice } from "@/lib/product-pricing";
 import { cn } from "@/lib/utils";
 import { ZaloIcon } from "./brand-icons";
 import { useCart } from "./cart-provider";
+import { TrackedLink } from "./tracked-link";
 import { InternationalShippingNotice } from "./international-shipping-notice";
 
 type ShippingRegion = "VIETNAM" | "SINGAPORE" | "KOREA" | "TAIWAN" | "JAPAN";
@@ -197,15 +198,16 @@ export function PurchasePanel({
         </button>
       </div>
       <div className="grid gap-3 sm:grid-cols-1">
-        <a
+        <TrackedLink
           className="inline-flex h-11 items-center justify-center gap-2 border border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-800 px-6 py-2.5 text-xs font-bold uppercase tracking-wider transition-all duration-200 shadow-sm hover:shadow"
+          eventName="click_zalo"
           href={`${ZALO_URL}?text=${encodeURIComponent(`Product consultation: ${productName}`)}`}
           rel="noreferrer"
           target="_blank"
         >
           <ZaloIcon size={16} className="translate-y-[-0.5px]" />
           {labels.zalo}
-        </a>
+        </TrackedLink>
       </div>
     </div>
   );
