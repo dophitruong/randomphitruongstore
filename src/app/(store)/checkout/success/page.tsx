@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
+import Script from "next/script";
 import { getPrisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { guestOrderAccessToken } from "@/lib/guest-order-cookie";
@@ -56,6 +57,12 @@ export default async function SuccessPage({ searchParams }: PageProps) {
       <div className="mx-auto max-w-lg">
         {isPaid ? (
           <>
+            {/* Google Ads page view conversion event snippet */}
+            <Script id="google-ads-success-conversion" strategy="afterInteractive">
+              {`
+                gtag('event', 'conversion', {'send_to': 'AW-18283180920/qk-5CJuWucocEPjmjI5E'});
+              `}
+            </Script>
             <div className="mx-auto size-16 flex items-center justify-center rounded-full bg-emerald-100">
               <svg className="size-8 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />

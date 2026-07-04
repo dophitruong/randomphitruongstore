@@ -90,7 +90,7 @@
     "changeWarning": "Size and color cannot be changed after confirmation.",
     "selectOptions": "Please select a size and color.",
     "internationalTitle": "International orders",
-    "internationalBody": "Orders to Korea, Taiwan or Japan are handled through Zalo so shipping fees and customs details can be confirmed directly.",
+    "internationalBody": "Orders to Korea, Taiwan or Japan are handled through Zalo or Instagram so shipping fees and customs details can be confirmed directly.",
     "sizeChart": "Size chart",
     "measurementSize": "Size",
     "shoulder": "Shoulder",
@@ -240,7 +240,7 @@
     "communityPlaceholder": "Community links will be available soon."
   },
   "footer": {
-    "description": "Over four years curating Sukajan and streetwear. Direct consultation, 7–10 day delivery and international support through Zalo.",
+    "description": "Over four years curating Sukajan and streetwear. Direct consultation, 7–10 day delivery and international support through Zalo or Instagram.",
     "contact": "Contact",
     "follow": "Follow",
     "policyTitle": "Transparent policies",
@@ -295,7 +295,7 @@
   "international": {
     "eyebrow": "International order",
     "title": "Order to Korea, Taiwan or Japan",
-    "subtitle": "Fill in your details and we will confirm shipping fees, customs requirements and availability via Zalo.",
+    "subtitle": "Fill in your details and we will confirm shipping fees, customs requirements and availability via Zalo or Instagram.",
     "fullName": "Full name",
     "phone": "Phone number",
     "social": "Instagram / Zalo",

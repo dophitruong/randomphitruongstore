@@ -22,3 +22,15 @@ export const trackEvent = (
     }
   }
 };
+
+export const trackGoogleAdsConversion = () => {
+  if (typeof window !== "undefined") {
+    const customWindow = window as unknown as GtagWindow;
+    if (customWindow.gtag) {
+      customWindow.gtag("event", "conversion", {
+        send_to: `${GOOGLE_TAG_ID}/qk-5CJuWucocEPjmjI5E`
+      });
+    }
+  }
+};
+
