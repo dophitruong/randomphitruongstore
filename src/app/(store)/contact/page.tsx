@@ -8,7 +8,9 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { getLocale, getTranslations } from "next-intl/server";
+import Script from "next/script";
 import { ContactForm } from "@/components/contact-form";
+import { TrackedLink } from "@/components/tracked-link";
 import { FAQAccordion } from "@/components/faq-accordion";
 import { TikTokIcon, ZaloIcon } from "@/components/brand-icons";
 import type { Locale } from "@/i18n/request";
@@ -132,6 +134,12 @@ export default async function ContactPage() {
 
   return (
     <div className="overflow-hidden">
+      {/* Google Ads page view conversion event snippet */}
+      <Script id="google-ads-contact-conversion" strategy="afterInteractive">
+        {`
+          gtag('event', 'conversion', {'send_to': 'AW-18283180920/qk-5CJuWucocEPjmjI5E'});
+        `}
+      </Script>
       <section className="paper-texture border-b border-black/15">
         <div className="container-shell py-14 sm:py-20">
           <header className="max-w-4xl">
@@ -158,8 +166,9 @@ export default async function ContactPage() {
               />
             </div>
             <div className="grid min-w-0 border-l border-t border-black/20 sm:grid-cols-2">
-              <a
+              <TrackedLink
                 className="group min-w-0 border-b border-r border-black/20 bg-[#11100e] p-6 text-white hover:bg-[#a72b1f]"
+                eventName="click_zalo"
                 href={ZALO_URL}
                 rel="noreferrer"
                 target="_blank"
@@ -169,10 +178,11 @@ export default async function ContactPage() {
                 <p className="mt-1 break-all text-sm text-white/60 group-hover:text-white/75">
                   {ZALO_PHONE}
                 </p>
-              </a>
-              <a
+              </TrackedLink>
+              <TrackedLink
                 aria-label="Scan Zalo QR to contact Đỗ Phi Trường"
                 className="relative aspect-square w-full overflow-hidden border-b border-r border-black/20 bg-white p-4"
+                eventName="click_zalo"
                 href={ZALO_URL}
                 rel="noreferrer"
                 target="_blank"
@@ -187,9 +197,10 @@ export default async function ContactPage() {
                     unoptimized
                   />
                 </span>
-              </a>
-              <a
+              </TrackedLink>
+              <TrackedLink
                 className="min-w-0 border-b border-r border-black/20 bg-white p-6 hover:bg-[#11100e] hover:text-white"
+                eventName="click_instagram"
                 href={INSTAGRAM_URL}
                 rel="noreferrer"
                 target="_blank"
@@ -199,7 +210,7 @@ export default async function ContactPage() {
                 <p className="mt-1 truncate text-sm text-zinc-500">
                   @random.phitruong4
                 </p>
-              </a>
+              </TrackedLink>
               <a
                 className="min-w-0 border-b border-r border-black/20 bg-white p-6 hover:bg-[#11100e] hover:text-white"
                 href={TIKTOK_URL}

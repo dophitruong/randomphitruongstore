@@ -11,6 +11,7 @@ import type { Locale } from "@/i18n/request";
 import type { Province, Ward } from "vietnam-address-database";
 import { ZALO_URL } from "@/lib/constants";
 import { formatMoney } from "@/lib/currency";
+import { trackEvent } from "@/lib/analytics";
 import {
   hasPaymentDestination,
   type PaymentCheckoutData
@@ -176,6 +177,7 @@ export function CheckoutForm({
       const message = encodeURIComponent(
         `International order: ${productName}, region ${values.shippingRegion}. Customer: ${values.fullName}, ${values.phone}`
       );
+      trackEvent("click_zalo");
       window.location.assign(`${ZALO_URL}?text=${message}`);
       return;
     }

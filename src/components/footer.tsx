@@ -12,6 +12,7 @@ import {
   ZALO_URL
 } from "@/lib/constants";
 import { TikTokIcon, ZaloIcon } from "./brand-icons";
+import { TrackedLink } from "./tracked-link";
 
 export async function Footer() {
   const t = await getTranslations("footer");
@@ -47,15 +48,16 @@ export async function Footer() {
             {t("description")}
           </p>
           <div className="mt-7 flex gap-3">
-            <a
+            <TrackedLink
               aria-label="Instagram"
               className="grid size-11 place-items-center border border-white/20 hover:bg-white hover:text-black"
+              eventName="click_instagram"
               href={INSTAGRAM_URL}
               rel="noreferrer"
               target="_blank"
             >
               <Instagram aria-hidden="true" size={18} />
-            </a>
+            </TrackedLink>
             <a
               aria-label="TikTok"
               className="grid size-11 place-items-center border border-white/20 hover:bg-white hover:text-black"
@@ -107,9 +109,10 @@ export async function Footer() {
         <div className="min-w-0">
           <p className="eyebrow text-[#d64b3d]">{t("contact")}</p>
           <div className="mt-5 grid gap-5 sm:grid-cols-[168px_1fr] xl:grid-cols-[180px_1fr]">
-            <a
+            <TrackedLink
               aria-label={t("zaloAction")}
               className="relative aspect-square w-full max-w-[168px] overflow-hidden border-4 border-white bg-white"
+              eventName="click_zalo"
               href={ZALO_URL}
               rel="noreferrer"
               target="_blank"
@@ -122,21 +125,22 @@ export async function Footer() {
                 src="/zaloqr/zaloqr-code.png"
                 unoptimized
               />
-            </a>
+            </TrackedLink>
             <div className="min-w-0 self-center">
               <p className="font-black leading-5">{t("zaloTitle")}</p>
               <p className="mt-2 text-xs leading-5 text-white/55">
                 {t("zaloBody")}
               </p>
-              <a
+              <TrackedLink
                 className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-white hover:text-[#d64b3d]"
+                eventName="click_zalo"
                 href={ZALO_URL}
                 rel="noreferrer"
                 target="_blank"
               >
                 <ZaloIcon size={18} />
                 {ZALO_PHONE}
-              </a>
+              </TrackedLink>
               <a
                 className="mt-3 flex items-center gap-2 text-sm font-bold text-white/70 hover:text-white"
                 href={`mailto:${CONTACT_EMAIL}`}

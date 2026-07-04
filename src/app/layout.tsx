@@ -3,6 +3,7 @@ import { Be_Vietnam_Pro, Noto_Serif_JP } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { Analytics } from "@vercel/analytics/react";
+import Script from "next/script";
 
 import { BRAND_NAME, SITE_URL } from "@/lib/constants";
 import "./globals.css";
@@ -80,6 +81,19 @@ export default async function RootLayout({
           {children}
         </NextIntlClientProvider>
         <Analytics />
+        {/* Google Tag (gtag.js) */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=AW-18283180920"
+          strategy="afterInteractive"
+        />
+        <Script id="google-tag" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'AW-18283180920');
+          `}
+        </Script>
       </body>
     </html>
   );

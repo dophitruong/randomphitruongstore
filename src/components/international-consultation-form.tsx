@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { ZALO_URL } from "@/lib/constants";
 import { ZaloIcon } from "./brand-icons";
+import { TrackedLink } from "./tracked-link";
 
 const REGION_OPTIONS = [
   { value: "SINGAPORE", label: "Singapore 🇸🇬" },
@@ -92,15 +93,16 @@ export function InternationalConsultationForm({
         <p className="mt-4 max-w-xl text-sm leading-6 text-zinc-600">
           {labels.successBody}
         </p>
-        <a
+        <TrackedLink
           className="button-primary mt-6"
+          eventName="click_zalo"
           href={result.zaloUrl}
           rel="noreferrer"
           target="_blank"
         >
           <ZaloIcon size={17} />
           {labels.zaloButton}
-        </a>
+        </TrackedLink>
       </div>
     );
   }
