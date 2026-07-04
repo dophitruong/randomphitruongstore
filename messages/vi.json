@@ -90,7 +90,7 @@
     "changeWarning": "Sau khi chốt size/màu, không thể thay đổi.",
     "selectOptions": "Vui lòng chọn size và màu.",
     "internationalTitle": "Đơn hàng quốc tế",
-    "internationalBody": "Đơn đi Hàn Quốc, Đài Loan hoặc Nhật Bản sẽ được tư vấn trực tiếp qua Zalo để xác nhận phí vận chuyển và thông tin hải quan.",
+    "internationalBody": "Đơn đi Hàn Quốc, Đài Loan hoặc Nhật Bản sẽ được tư vấn trực tiếp qua Zalo hoặc Instagram để xác nhận phí vận chuyển và thông tin hải quan.",
     "sizeChart": "Bảng size",
     "measurementSize": "Size",
     "shoulder": "Vai",
@@ -240,7 +240,7 @@
     "communityPlaceholder": "Link cộng đồng sẽ được cập nhật sớm."
   },
   "footer": {
-    "description": "Hơn 4 năm chọn lọc sukajan và streetwear. Tư vấn trực tiếp, giao hàng 7–10 ngày và hỗ trợ đơn quốc tế qua Zalo.",
+    "description": "Hơn 4 năm chọn lọc sukajan và streetwear. Tư vấn trực tiếp, giao hàng 7–10 ngày và hỗ trợ đơn quốc tế qua Zalo hoặc Instagram.",
     "contact": "Liên hệ",
     "follow": "Theo dõi",
     "policyTitle": "Chính sách minh bạch",
@@ -295,7 +295,7 @@
   "international": {
     "eyebrow": "Đơn hàng quốc tế",
     "title": "Order đi Hàn Quốc, Đài Loan hoặc Nhật Bản",
-    "subtitle": "Điền thông tin và shop sẽ xác nhận phí vận chuyển, yêu cầu hải quan và tình trạng hàng qua Zalo.",
+    "subtitle": "Điền thông tin và shop sẽ xác nhận phí vận chuyển, yêu cầu hải quan và tình trạng hàng qua Zalo hoặc Instagram.",
     "fullName": "Họ và tên",
     "phone": "Số điện thoại",
     "social": "Instagram / Zalo",
