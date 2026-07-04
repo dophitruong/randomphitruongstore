@@ -11,7 +11,7 @@ import type { Locale } from "@/i18n/request";
 import type { Province, Ward } from "vietnam-address-database";
 import { ZALO_URL } from "@/lib/constants";
 import { formatMoney } from "@/lib/currency";
-import { trackEvent } from "@/lib/analytics";
+import { trackEvent, trackGoogleAdsConversion } from "@/lib/analytics";
 import {
   hasPaymentDestination,
   type PaymentCheckoutData
@@ -94,6 +94,13 @@ export function CheckoutForm({
   const [vnData, setVnData] = useState<{ provinces: Province[]; wards: Ward[] } | null>(null);
   const [addressLoading, setAddressLoading] = useState(false);
   const loadingStartedRef = useRef(false);
+
+  // Track Google Ads conversion when order is successfully created
+  useEffect(() => {
+    if (createdOrder) {
+      trackGoogleAdsConversion();
+    }
+  }, [createdOrder]);
 
   // Dynamically load the Vietnam address database on-demand
   useEffect(() => {
