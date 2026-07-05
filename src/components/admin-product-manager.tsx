@@ -26,7 +26,7 @@ import {
   setPrimaryProductImageUrl,
   splitProductImageUrls
 } from "@/lib/product-images";
-import type { ProductWithImages } from "@/types";
+import type { ProductWithImages, SizeTemplateDTO } from "@/types";
 import { AdminTable } from "./admin-table";
 
 type CategoryOption = {
@@ -36,7 +36,10 @@ type CategoryOption = {
   slug: string;
 };
 
-const optionalMeasurementSchema = z.number().positive().optional();
+const optionalMeasurementSchema = z.preprocess(
+  (value) => (value === "" || value === null ? undefined : value),
+  z.coerce.number().positive().optional()
+);
 
 const formSchema = z.object({
   nameVi: z.string().trim().min(2),
@@ -97,12 +100,14 @@ const formSchema = z.object({
     priceAdjustment: z.number().int(),
     isAvailable: z.boolean()
   })).min(1, "At least one variant is required"),
+  sizeTemplateId: z.string().uuid().nullable().or(z.literal("")).optional(),
   sizeCharts: z.array(z.object({
     size: z.string().trim().min(1, "Size is required"),
     shoulder: optionalMeasurementSchema,
     chest: optionalMeasurementSchema,
     length: optionalMeasurementSchema,
     sleeve: optionalMeasurementSchema,
+    measurements: z.record(optionalMeasurementSchema).nullable().optional(),
     unit: z.string().trim().min(1)
   })),
   materialVi: z.string().trim().min(2),
@@ -130,6 +135,7 @@ const defaults: FormValues = {
     { size: "L", colorVi: "Black", colorEn: "Black", priceAdjustment: 0, isAvailable: true },
     { size: "XL", colorVi: "Black", colorEn: "Black", priceAdjustment: 0, isAvailable: true }
   ],
+  sizeTemplateId: "",
   sizeCharts: [],
   materialVi: "",
   materialEn: "",
@@ -142,10 +148,12 @@ const pageSize = 10;
 
 export function AdminProductManager({
   categories: categoryOptions,
-  products
+  products,
+  sizeTemplates = []
 }: {
   categories: CategoryOption[];
   products: ProductWithImages[];
+  sizeTemplates?: SizeTemplateDTO[];
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -156,6 +164,13 @@ export function AdminProductManager({
   const [visibilityFilter, setVisibilityFilter] = useState("ACTIVE");
   const [stockFilter, setStockFilter] = useState("ALL");
   const [page, setPage] = useState(1);
+  
+  // Size Template Management State
+  const [templates, setTemplates] = useState<SizeTemplateDTO[]>(sizeTemplates);
+  const [templatesModalOpen, setTemplatesModalOpen] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState<Partial<SizeTemplateDTO> | null>(null);
+  const [templateFormError, setTemplateFormError] = useState("");
+
   const {
     register,
     handleSubmit,
@@ -179,6 +194,9 @@ export function AdminProductManager({
   const imageText = useWatch({ control, name: "images" });
   const imageUrls = splitProductImageUrls(imageText);
   const imageUploadLimitReached = imageUrls.length >= MAX_PRODUCT_IMAGES;
+  
+  const selectedTemplateId = useWatch({ control, name: "sizeTemplateId" });
+  const activeTemplate = templates.find((t) => t.id === selectedTemplateId);
   const [isUploading, setIsUploading] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -277,12 +295,14 @@ export function AdminProductManager({
         priceAdjustment: v.priceAdjustment,
         isAvailable: v.isAvailable
       })),
+      sizeTemplateId: product.sizeTemplateId || "",
       sizeCharts: (product.sizeCharts ?? []).map((s) => ({
         size: s.size,
         shoulder: s.shoulder !== null && s.shoulder !== undefined ? Number(s.shoulder) : undefined,
         chest: s.chest !== null && s.chest !== undefined ? Number(s.chest) : undefined,
         length: s.length !== null && s.length !== undefined ? Number(s.length) : undefined,
         sleeve: s.sleeve !== null && s.sleeve !== undefined ? Number(s.sleeve) : undefined,
+        measurements: s.measurements ? (s.measurements as Record<string, number>) : {},
         unit: s.unit || "cm"
       })),
       materialVi: product.materialVi,
@@ -381,6 +401,53 @@ export function AdminProductManager({
     });
     if (response.ok) {
       router.refresh();
+    }
+  }
+
+  async function saveTemplate(templateData: { id?: string; nameVi: string; nameEn: string; fields: any[] }) {
+    setTemplateFormError("");
+    const isEdit = !!templateData.id;
+    const endpoint = isEdit ? `/api/admin/size-templates/${templateData.id}` : "/api/admin/size-templates";
+    
+    try {
+      const res = await fetch(endpoint, {
+        method: isEdit ? "PATCH" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(templateData)
+      });
+      
+      const result = await res.json();
+      if (!res.ok) {
+        throw new Error(result.error ?? "Failed to save template");
+      }
+      
+      if (isEdit) {
+        setTemplates(prev => prev.map(t => t.id === templateData.id ? result.data : t));
+      } else {
+        setTemplates(prev => [result.data, ...prev]);
+      }
+      setEditingTemplate(null);
+    } catch (err: any) {
+      setTemplateFormError(err.message || "An error occurred");
+    }
+  }
+
+  async function deleteTemplate(id: string) {
+    if (!window.confirm("Are you sure you want to delete this template? Products using it will revert to default (shirt) fields.")) {
+      return;
+    }
+    try {
+      const res = await fetch(`/api/admin/size-templates/${id}`, { method: "DELETE" });
+      const result = await res.json();
+      if (!res.ok) {
+        throw new Error(result.error ?? "Failed to delete template");
+      }
+      setTemplates(prev => prev.filter(t => t.id !== id));
+      if (selectedTemplateId === id) {
+        setValue("sizeTemplateId", "");
+      }
+    } catch (err: any) {
+      alert(err.message || "An error occurred");
     }
   }
 
@@ -877,15 +944,49 @@ export function AdminProductManager({
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
                   <div>
                     <h3 className="text-sm font-bold text-zinc-950">Product Size Chart / Bảng Size sản phẩm</h3>
-                    <p className="text-xs text-zinc-500 mt-0.5">Define detailed measurements for each size size chart reference. / Định nghĩa số đo chi tiết cho từng kích thước của sản phẩm.</p>
+                    <p className="text-xs text-zinc-500 mt-0.5">Define detailed measurements for each size. / Định nghĩa số đo chi tiết cho từng kích thước của sản phẩm.</p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => appendSizeChart({ size: "", shoulder: undefined, chest: undefined, length: undefined, sleeve: undefined, unit: "cm" })}
-                    className="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold uppercase tracking-wider bg-zinc-900 text-white hover:bg-[#a72b1f] transition-colors"
-                  >
-                    <Plus size={14} /> Add Size Row / Thêm hàng kích thước
-                  </button>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <select
+                      className="min-h-9 border border-zinc-300 bg-white px-2 py-1 text-xs font-bold text-zinc-900 outline-none focus:border-[#a72b1f] focus:ring-2 focus:ring-[#a72b1f]/15"
+                      {...register("sizeTemplateId")}
+                    >
+                      <option value="">Default (Shirt / Áo)</option>
+                      {templates.map((t) => (
+                        <option key={t.id} value={t.id}>
+                          {t.nameEn} / {t.nameVi}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      onClick={() => setTemplatesModalOpen(true)}
+                      className="min-h-9 px-3 py-1 text-xs font-bold border border-zinc-300 bg-white hover:bg-zinc-50 transition-colors"
+                    >
+                      Manage Templates / Quản lý mẫu
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const templateInitValues: any = { size: "", unit: "cm" };
+                        if (activeTemplate) {
+                          templateInitValues.measurements = {};
+                          activeTemplate.fields.forEach(f => {
+                            templateInitValues.measurements[f.key] = undefined;
+                          });
+                        } else {
+                          templateInitValues.shoulder = undefined;
+                          templateInitValues.chest = undefined;
+                          templateInitValues.length = undefined;
+                          templateInitValues.sleeve = undefined;
+                        }
+                        appendSizeChart(templateInitValues);
+                      }}
+                      className="inline-flex min-h-9 items-center justify-center gap-1.5 px-3 py-1 text-xs font-bold uppercase tracking-wider bg-zinc-900 text-white hover:bg-[#a72b1f] transition-colors"
+                    >
+                      <Plus size={14} /> Add Size Row / Thêm hàng kích thước
+                    </button>
+                  </div>
                 </div>
 
                 {errors.sizeCharts?.message && (
@@ -899,10 +1000,20 @@ export function AdminProductManager({
                     <thead className="bg-zinc-100 uppercase tracking-wider text-zinc-700 font-bold border-b border-zinc-200">
                       <tr>
                         <th className="px-3 py-2.5 w-[90px]">Size / Size *</th>
-                        <th className="px-3 py-2.5">Shoulder / Vai</th>
-                        <th className="px-3 py-2.5">Chest / Ngực</th>
-                        <th className="px-3 py-2.5">Length / Dài</th>
-                        <th className="px-3 py-2.5">Sleeve / Tay</th>
+                        {activeTemplate ? (
+                          activeTemplate.fields.map((field) => (
+                            <th className="px-3 py-2.5" key={field.key}>
+                              {field.nameEn} / {field.nameVi}
+                            </th>
+                          ))
+                        ) : (
+                          <>
+                            <th className="px-3 py-2.5">Shoulder / Vai</th>
+                            <th className="px-3 py-2.5">Chest / Ngực</th>
+                            <th className="px-3 py-2.5">Length / Dài</th>
+                            <th className="px-3 py-2.5">Sleeve / Tay</th>
+                          </>
+                        )}
                         <th className="px-3 py-2.5 w-[95px]">Unit / Đơn vị</th>
                         <th className="px-3 py-2.5 w-[70px] text-center">Remove / Xóa</th>
                       </tr>
@@ -920,62 +1031,83 @@ export function AdminProductManager({
                               <p className="text-[10px] text-red-600 mt-0.5">{errors.sizeCharts[index].size.message}</p>
                             )}
                           </td>
-                          <td className="p-2">
-                            <input
-                              type="number"
-                              step="any"
-                              className="field py-1 px-2 text-xs w-full"
-                              placeholder="cm / in"
-                              {...register(`sizeCharts.${index}.shoulder` as const, {
-                                setValueAs: (value) => (value === "" || value === null || value === undefined ? undefined : Number(value))
-                              })}
-                            />
-                            {errors.sizeCharts?.[index]?.shoulder?.message && (
-                              <p className="text-[9px] text-red-600 mt-0.5">{errors.sizeCharts[index].shoulder.message}</p>
-                            )}
-                          </td>
-                          <td className="p-2">
-                            <input
-                              type="number"
-                              step="any"
-                              className="field py-1 px-2 text-xs w-full"
-                              placeholder="cm / in"
-                              {...register(`sizeCharts.${index}.chest` as const, {
-                                setValueAs: (value) => (value === "" || value === null || value === undefined ? undefined : Number(value))
-                              })}
-                            />
-                            {errors.sizeCharts?.[index]?.chest?.message && (
-                              <p className="text-[9px] text-red-600 mt-0.5">{errors.sizeCharts[index].chest.message}</p>
-                            )}
-                          </td>
-                          <td className="p-2">
-                            <input
-                              type="number"
-                              step="any"
-                              className="field py-1 px-2 text-xs w-full"
-                              placeholder="cm / in"
-                              {...register(`sizeCharts.${index}.length` as const, {
-                                setValueAs: (value) => (value === "" || value === null || value === undefined ? undefined : Number(value))
-                              })}
-                            />
-                            {errors.sizeCharts?.[index]?.length?.message && (
-                              <p className="text-[9px] text-red-600 mt-0.5">{errors.sizeCharts[index].length.message}</p>
-                            )}
-                          </td>
-                          <td className="p-2">
-                            <input
-                              type="number"
-                              step="any"
-                              className="field py-1 px-2 text-xs w-full"
-                              placeholder="cm / in"
-                              {...register(`sizeCharts.${index}.sleeve` as const, {
-                                setValueAs: (value) => (value === "" || value === null || value === undefined ? undefined : Number(value))
-                              })}
-                            />
-                            {errors.sizeCharts?.[index]?.sleeve?.message && (
-                              <p className="text-[9px] text-red-600 mt-0.5">{errors.sizeCharts[index].sleeve.message}</p>
-                            )}
-                          </td>
+                          {activeTemplate ? (
+                            activeTemplate.fields.map((f) => (
+                              <td className="p-2" key={f.key}>
+                                <input
+                                  type="number"
+                                  step="any"
+                                  className="field py-1 px-2 text-xs w-full"
+                                  placeholder="cm / in"
+                                  {...register(`sizeCharts.${index}.measurements.${f.key}` as const, {
+                                    setValueAs: (value) => (value === "" || value === null || value === undefined ? undefined : Number(value))
+                                  })}
+                                />
+                                {errors.sizeCharts?.[index]?.measurements?.[f.key]?.message && (
+                                  <p className="text-[9px] text-red-600 mt-0.5">{errors.sizeCharts[index].measurements[f.key].message}</p>
+                                )}
+                              </td>
+                            ))
+                          ) : (
+                            <>
+                              <td className="p-2">
+                                <input
+                                  type="number"
+                                  step="any"
+                                  className="field py-1 px-2 text-xs w-full"
+                                  placeholder="cm / in"
+                                  {...register(`sizeCharts.${index}.shoulder` as const, {
+                                    setValueAs: (value) => (value === "" || value === null || value === undefined ? undefined : Number(value))
+                                  })}
+                                />
+                                {errors.sizeCharts?.[index]?.shoulder?.message && (
+                                  <p className="text-[9px] text-red-600 mt-0.5">{errors.sizeCharts[index].shoulder.message}</p>
+                                )}
+                              </td>
+                              <td className="p-2">
+                                <input
+                                  type="number"
+                                  step="any"
+                                  className="field py-1 px-2 text-xs w-full"
+                                  placeholder="cm / in"
+                                  {...register(`sizeCharts.${index}.chest` as const, {
+                                    setValueAs: (value) => (value === "" || value === null || value === undefined ? undefined : Number(value))
+                                  })}
+                                />
+                                {errors.sizeCharts?.[index]?.chest?.message && (
+                                  <p className="text-[9px] text-red-600 mt-0.5">{errors.sizeCharts[index].chest.message}</p>
+                                )}
+                              </td>
+                              <td className="p-2">
+                                <input
+                                  type="number"
+                                  step="any"
+                                  className="field py-1 px-2 text-xs w-full"
+                                  placeholder="cm / in"
+                                  {...register(`sizeCharts.${index}.length` as const, {
+                                    setValueAs: (value) => (value === "" || value === null || value === undefined ? undefined : Number(value))
+                                  })}
+                                />
+                                {errors.sizeCharts?.[index]?.length?.message && (
+                                  <p className="text-[9px] text-red-600 mt-0.5">{errors.sizeCharts[index].length.message}</p>
+                                )}
+                              </td>
+                              <td className="p-2">
+                                <input
+                                  type="number"
+                                  step="any"
+                                  className="field py-1 px-2 text-xs w-full"
+                                  placeholder="cm / in"
+                                  {...register(`sizeCharts.${index}.sleeve` as const, {
+                                    setValueAs: (value) => (value === "" || value === null || value === undefined ? undefined : Number(value))
+                                  })}
+                                />
+                                {errors.sizeCharts?.[index]?.sleeve?.message && (
+                                  <p className="text-[9px] text-red-600 mt-0.5">{errors.sizeCharts[index].sleeve.message}</p>
+                                )}
+                              </td>
+                            </>
+                          )}
                           <td className="p-2">
                             <select
                               className="field py-1 px-2 text-xs w-full font-bold"
@@ -1047,71 +1179,95 @@ export function AdminProductManager({
                         </label>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-3">
-                        <label className="block">
-                          <span className="text-[10px] uppercase font-bold text-zinc-500">Shoulder / Vai</span>
-                          <input
-                            type="number"
-                            step="any"
-                            className="field mt-1 py-1.5 px-2 text-xs w-full"
-                            placeholder="-"
-                            {...register(`sizeCharts.${index}.shoulder` as const, {
-                              setValueAs: (value) => (value === "" || value === null || value === undefined ? undefined : Number(value))
-                            })}
-                          />
-                          {errors.sizeCharts?.[index]?.shoulder?.message && (
-                            <p className="text-[10px] text-red-600 mt-0.5">{errors.sizeCharts[index].shoulder.message}</p>
-                          )}
-                        </label>
-                        <label className="block">
-                          <span className="text-[10px] uppercase font-bold text-zinc-500">Chest / Ngực</span>
-                          <input
-                            type="number"
-                            step="any"
-                            className="field mt-1 py-1.5 px-2 text-xs w-full"
-                            placeholder="-"
-                            {...register(`sizeCharts.${index}.chest` as const, {
-                              setValueAs: (value) => (value === "" || value === null || value === undefined ? undefined : Number(value))
-                            })}
-                          />
-                          {errors.sizeCharts?.[index]?.chest?.message && (
-                            <p className="text-[10px] text-red-600 mt-0.5">{errors.sizeCharts[index].chest.message}</p>
-                          )}
-                        </label>
-                      </div>
+                      {activeTemplate ? (
+                        <div className="grid grid-cols-2 gap-3">
+                          {activeTemplate.fields.map((f) => (
+                            <label className="block" key={f.key}>
+                              <span className="text-[10px] uppercase font-bold text-zinc-500">{f.nameEn} / {f.nameVi}</span>
+                              <input
+                                type="number"
+                                step="any"
+                                className="field mt-1 py-1.5 px-2 text-xs w-full"
+                                placeholder="-"
+                                {...register(`sizeCharts.${index}.measurements.${f.key}` as const, {
+                                  setValueAs: (value) => (value === "" || value === null || value === undefined ? undefined : Number(value))
+                                })}
+                              />
+                              {errors.sizeCharts?.[index]?.measurements?.[f.key]?.message && (
+                                <p className="text-[10px] text-red-600 mt-0.5">{errors.sizeCharts[index].measurements[f.key].message}</p>
+                              )}
+                            </label>
+                          ))}
+                        </div>
+                      ) : (
+                        <>
+                          <div className="grid grid-cols-2 gap-3">
+                            <label className="block">
+                              <span className="text-[10px] uppercase font-bold text-zinc-500">Shoulder / Vai</span>
+                              <input
+                                type="number"
+                                step="any"
+                                className="field mt-1 py-1.5 px-2 text-xs w-full"
+                                placeholder="-"
+                                {...register(`sizeCharts.${index}.shoulder` as const, {
+                                  setValueAs: (value) => (value === "" || value === null || value === undefined ? undefined : Number(value))
+                                })}
+                              />
+                              {errors.sizeCharts?.[index]?.shoulder?.message && (
+                                <p className="text-[10px] text-red-600 mt-0.5">{errors.sizeCharts[index].shoulder.message}</p>
+                              )}
+                            </label>
+                            <label className="block">
+                              <span className="text-[10px] uppercase font-bold text-zinc-500">Chest / Ngực</span>
+                              <input
+                                type="number"
+                                step="any"
+                                className="field mt-1 py-1.5 px-2 text-xs w-full"
+                                placeholder="-"
+                                {...register(`sizeCharts.${index}.chest` as const, {
+                                  setValueAs: (value) => (value === "" || value === null || value === undefined ? undefined : Number(value))
+                                })}
+                              />
+                              {errors.sizeCharts?.[index]?.chest?.message && (
+                                <p className="text-[10px] text-red-600 mt-0.5">{errors.sizeCharts[index].chest.message}</p>
+                              )}
+                            </label>
+                          </div>
 
-                      <div className="grid grid-cols-2 gap-3">
-                        <label className="block">
-                          <span className="text-[10px] uppercase font-bold text-zinc-500">Length / Dài</span>
-                          <input
-                            type="number"
-                            step="any"
-                            className="field mt-1 py-1.5 px-2 text-xs w-full"
-                            placeholder="-"
-                            {...register(`sizeCharts.${index}.length` as const, {
-                              setValueAs: (value) => (value === "" || value === null || value === undefined ? undefined : Number(value))
-                            })}
-                          />
-                          {errors.sizeCharts?.[index]?.length?.message && (
-                            <p className="text-[10px] text-red-600 mt-0.5">{errors.sizeCharts[index].length.message}</p>
-                          )}
-                        </label>
-                        <label className="block">
-                          <span className="text-[10px] uppercase font-bold text-zinc-500">Sleeve / Tay</span>
-                          <input
-                            type="number"
-                            step="any"
-                            className="field mt-1 py-1.5 px-2 text-xs w-full"
-                            placeholder="-"
-                            {...register(`sizeCharts.${index}.sleeve` as const, {
-                              setValueAs: (value) => (value === "" || value === null || value === undefined ? undefined : Number(value))
-                            })}
-                          />
-                          {errors.sizeCharts?.[index]?.sleeve?.message && (
-                            <p className="text-[10px] text-red-600 mt-0.5">{errors.sizeCharts[index].sleeve.message}</p>
-                          )}
-                        </label>
-                      </div>
+                          <div className="grid grid-cols-2 gap-3">
+                            <label className="block">
+                              <span className="text-[10px] uppercase font-bold text-zinc-500">Length / Dài</span>
+                              <input
+                                type="number"
+                                step="any"
+                                className="field mt-1 py-1.5 px-2 text-xs w-full"
+                                placeholder="-"
+                                {...register(`sizeCharts.${index}.length` as const, {
+                                  setValueAs: (value) => (value === "" || value === null || value === undefined ? undefined : Number(value))
+                                })}
+                              />
+                              {errors.sizeCharts?.[index]?.length?.message && (
+                                <p className="text-[10px] text-red-600 mt-0.5">{errors.sizeCharts[index].length.message}</p>
+                              )}
+                            </label>
+                            <label className="block">
+                              <span className="text-[10px] uppercase font-bold text-zinc-500">Sleeve / Tay</span>
+                              <input
+                                type="number"
+                                step="any"
+                                className="field mt-1 py-1.5 px-2 text-xs w-full"
+                                placeholder="-"
+                                {...register(`sizeCharts.${index}.sleeve` as const, {
+                                  setValueAs: (value) => (value === "" || value === null || value === undefined ? undefined : Number(value))
+                                })}
+                              />
+                              {errors.sizeCharts?.[index]?.sleeve?.message && (
+                                <p className="text-[10px] text-red-600 mt-0.5">{errors.sizeCharts[index].sleeve.message}</p>
+                              )}
+                            </label>
+                          </div>
+                        </>
+                      )}
                       
                       <div className="flex justify-end border-t border-zinc-100 pt-2">
                         <span className="text-[10px] text-zinc-400 font-bold">Size Chart #{index + 1}</span>
@@ -1343,6 +1499,224 @@ export function AdminProductManager({
                 {isSubmitting ? "Saving... / Đang lưu..." : "Save product / Lưu sản phẩm"}
               </button>
             </form>
+          </div>
+        </div>
+      ) : null}
+
+      {/* Size Templates Management Modal */}
+      {templatesModalOpen ? (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 p-4">
+          <div className="mx-auto my-8 w-full max-w-2xl border border-zinc-200 bg-white p-6 shadow-xl">
+            <div className="flex items-center justify-between border-b border-zinc-200 pb-4 mb-4">
+              <h2 className="text-xl font-black">Manage Size Templates / Quản lý Mẫu Bảng Size</h2>
+              <button
+                type="button"
+                onClick={() => {
+                  setTemplatesModalOpen(false);
+                  setEditingTemplate(null);
+                }}
+                className="text-zinc-400 hover:text-black cursor-pointer"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {templateFormError && (
+              <p className="mb-4 text-xs font-bold text-red-600">{templateFormError}</p>
+            )}
+
+            {editingTemplate ? (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const target = e.target as HTMLFormElement;
+                  const nameVi = (target.elements.namedItem("nameVi") as HTMLInputElement).value;
+                  const nameEn = (target.elements.namedItem("nameEn") as HTMLInputElement).value;
+                  
+                  // Collect fields
+                  const keys = target.querySelectorAll("[name^='field-key-']");
+                  const fields: any[] = [];
+                  keys.forEach((el: any) => {
+                    const idx = el.name.replace("field-key-", "");
+                    const nameViInput = target.querySelector(`[name='field-nameVi-${idx}']`) as HTMLInputElement;
+                    const nameEnInput = target.querySelector(`[name='field-nameEn-${idx}']`) as HTMLInputElement;
+                    if (el.value.trim()) {
+                      fields.push({
+                        key: el.value.trim().toLowerCase(),
+                        nameVi: nameViInput.value.trim(),
+                        nameEn: nameEnInput.value.trim()
+                      });
+                    }
+                  });
+
+                  if (!nameVi || !nameEn || fields.length === 0) {
+                    setTemplateFormError("Please fill out names and add at least one valid field / Vui lòng điền tên và thêm ít nhất một trường");
+                    return;
+                  }
+
+                  saveTemplate({
+                    id: editingTemplate.id,
+                    nameVi,
+                    nameEn,
+                    fields
+                  });
+                }}
+                className="space-y-4"
+              >
+                <div className="grid grid-cols-2 gap-4">
+                  <label className="block">
+                    <span className="text-xs font-bold text-zinc-700">Template Name (VI) / Tên mẫu (VI) *</span>
+                    <input
+                      name="nameVi"
+                      required
+                      defaultValue={editingTemplate.nameVi || ""}
+                      className="field mt-1 text-xs"
+                      placeholder="e.g. Quần"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="text-xs font-bold text-zinc-700">Template Name (EN) / Tên mẫu (EN) *</span>
+                    <input
+                      name="nameEn"
+                      required
+                      defaultValue={editingTemplate.nameEn || ""}
+                      className="field mt-1 text-xs"
+                      placeholder="e.g. Pants"
+                    />
+                  </label>
+                </div>
+
+                <div className="border border-zinc-200 p-4 bg-zinc-50 rounded">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-bold text-zinc-800">Fields / Các thông số đo *</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const nextFields = [...(editingTemplate.fields || []), { key: "", nameVi: "", nameEn: "" }];
+                        setEditingTemplate({ ...editingTemplate, fields: nextFields });
+                      }}
+                      className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider bg-zinc-900 text-white hover:bg-[#a72b1f] transition-colors"
+                    >
+                      + Add Field / Thêm trường
+                    </button>
+                  </div>
+
+                  <div className="space-y-3 max-h-60 overflow-y-auto">
+                    {(editingTemplate.fields || []).map((field, idx) => (
+                      <div key={idx} className="flex gap-2 items-center bg-white p-2 border border-zinc-200">
+                        <input
+                          name={`field-key-${idx}`}
+                          required
+                          defaultValue={field.key}
+                          className="field text-xs flex-1"
+                          placeholder="key (e.g. waist)"
+                        />
+                        <input
+                          name={`field-nameVi-${idx}`}
+                          required
+                          defaultValue={field.nameVi}
+                          className="field text-xs flex-1"
+                          placeholder="Tên Tiếng Việt (Vòng eo)"
+                        />
+                        <input
+                          name={`field-nameEn-${idx}`}
+                          required
+                          defaultValue={field.nameEn}
+                          className="field text-xs flex-1"
+                          placeholder="Tên Tiếng Anh (Waist)"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const nextFields = (editingTemplate.fields || []).filter((_, i) => i !== idx);
+                            setEditingTemplate({ ...editingTemplate, fields: nextFields });
+                          }}
+                          className="text-zinc-400 hover:text-red-650 p-1 cursor-pointer"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-4 border-t border-zinc-200">
+                  <button
+                    type="button"
+                    onClick={() => setEditingTemplate(null)}
+                    className="px-4 py-2 text-xs font-bold uppercase tracking-wider border border-zinc-300 hover:bg-zinc-50 cursor-pointer"
+                  >
+                    Cancel / Hủy
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 text-xs font-bold uppercase tracking-wider bg-[#171715] text-white hover:bg-[#a72b1f] cursor-pointer"
+                  >
+                    Save Template / Lưu mẫu
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-zinc-500">List of created templates. / Danh sách mẫu đã tạo.</span>
+                  <button
+                    type="button"
+                    onClick={() => setEditingTemplate({ nameVi: "", nameEn: "", fields: [{ key: "", nameVi: "", nameEn: "" }] })}
+                    className="px-3 py-1.5 text-xs font-bold uppercase tracking-wider bg-zinc-900 text-white hover:bg-[#a72b1f] transition-colors cursor-pointer"
+                  >
+                    + Create Template / Tạo mẫu mới
+                  </button>
+                </div>
+
+                <div className="border border-zinc-200 overflow-x-auto">
+                  <table className="w-full text-left text-xs bg-white">
+                    <thead className="bg-zinc-100 font-bold border-b border-zinc-200">
+                      <tr>
+                        <th className="px-3 py-2">Name (EN) / Tên (EN)</th>
+                        <th className="px-3 py-2">Name (VI) / Tên (VI)</th>
+                        <th className="px-3 py-2">Fields / Các thông số</th>
+                        <th className="px-3 py-2 text-center w-[120px]">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-zinc-200">
+                      {templates.map((t) => (
+                        <tr key={t.id} className="hover:bg-zinc-50/50">
+                          <td className="px-3 py-2 font-bold">{t.nameEn}</td>
+                          <td className="px-3 py-2">{t.nameVi}</td>
+                          <td className="px-3 py-2 text-zinc-500 max-w-[200px] truncate">
+                            {t.fields.map(f => f.nameEn).join(", ")}
+                          </td>
+                          <td className="px-3 py-2 text-center flex justify-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setEditingTemplate(t)}
+                              className="text-blue-600 hover:underline flex items-center gap-1 cursor-pointer"
+                            >
+                              <Pencil size={13} /> Edit
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => deleteTemplate(t.id)}
+                              className="text-red-600 hover:underline flex items-center gap-1 cursor-pointer"
+                            >
+                              <Trash2 size={13} /> Delete
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                      {templates.length === 0 && (
+                        <tr>
+                          <td colSpan={4} className="px-3 py-6 text-center text-zinc-500">
+                            No size templates created yet. / Chưa có mẫu size nào được tạo.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       ) : null}
