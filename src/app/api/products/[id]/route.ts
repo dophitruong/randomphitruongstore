@@ -88,7 +88,8 @@ export async function PATCH(request: Request, context: RouteContext) {
           categoryRecord: true,
           images: { orderBy: { sortOrder: "asc" } },
           variants: { orderBy: [{ size: "asc" }, { colorVi: "asc" }] },
-          sizeCharts: { orderBy: { size: "asc" } }
+          sizeCharts: { orderBy: { size: "asc" } },
+          sizeTemplate: true
         }
       });
     }, { timeout: 30000 });

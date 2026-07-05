@@ -13,7 +13,8 @@ export async function GET() {
         categoryRecord: true,
         images: { orderBy: { sortOrder: "asc" }, take: 1 },
         variants: { orderBy: [{ size: "asc" }, { colorVi: "asc" }] },
-        sizeCharts: { orderBy: { size: "asc" } }
+        sizeCharts: { orderBy: { size: "asc" } },
+        sizeTemplate: true
       },
       orderBy: { createdAt: "desc" }
     });
@@ -46,7 +47,8 @@ export async function POST(request: Request) {
         categoryRecord: true,
         images: { orderBy: { sortOrder: "asc" } },
         variants: { orderBy: [{ size: "asc" }, { colorVi: "asc" }] },
-        sizeCharts: { orderBy: { size: "asc" } }
+        sizeCharts: { orderBy: { size: "asc" } },
+        sizeTemplate: true
       }
     });
     revalidatePublicCatalog(product.slug);

@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import type { ProductInput } from "@/lib/validations";
 
 const SIZE_ORDER = ["XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL"];
@@ -25,6 +26,7 @@ type ProductCatalogSizeChart = {
   chest?: number;
   length?: number;
   sleeve?: number;
+  measurements?: Record<string, number | null> | null;
   unit?: string;
 };
 
@@ -166,6 +168,7 @@ function normalizeSizeCharts(input: ProductInput) {
         chest: sizeChart.chest,
         length: sizeChart.length,
         sleeve: sizeChart.sleeve,
+        measurements: sizeChart.measurements,
         unit: sizeChart.unit?.trim() || "cm"
       }))
       .filter((sizeChart) => sizeChart.size) as Required<ProductCatalogSizeChart>[]
@@ -310,7 +313,8 @@ export function buildProductCatalogWrite(input: ProductInput) {
       materialEn: input.materialEn,
       stockStatus: input.stockStatus,
       isFeatured: input.isFeatured,
-      isActive: input.isActive
+      isActive: input.isActive,
+      sizeTemplateId: input.sizeTemplateId || null
     },
     images: input.images.map((url, index) => ({
       url,
@@ -331,6 +335,7 @@ export function buildProductCatalogWrite(input: ProductInput) {
       chest: sizeChart.chest,
       length: sizeChart.length,
       sleeve: sizeChart.sleeve,
+      measurements: (sizeChart.measurements ?? Prisma.DbNull) as Prisma.InputJsonValue,
       unit: sizeChart.unit
     }))
   };

@@ -109,37 +109,68 @@ export default async function ProductPage({ params }: PageProps) {
               </caption>
               <thead className="bg-zinc-100">
                 <tr>
-                  {[
-                    t("measurementSize"),
-                    t("shoulder"),
-                    t("chest"),
-                    t("length"),
-                    t("sleeve")
-                  ].map((label) => (
-                    <th className="px-4 py-3 font-bold" key={label}>
-                      {label}
-                    </th>
-                  ))}
+                  {product.sizeTemplate ? (
+                    [
+                      t("measurementSize"),
+                      ...(product.sizeTemplate.fields as unknown as { key: string; nameVi: string; nameEn: string }[]).map((f) =>
+                        locale === "vi" ? f.nameVi : f.nameEn
+                      )
+                    ].map((label) => (
+                      <th className="px-4 py-3 font-bold" key={label}>
+                        {label}
+                      </th>
+                    ))
+                  ) : (
+                    [
+                      t("measurementSize"),
+                      t("shoulder"),
+                      t("chest"),
+                      t("length"),
+                      t("sleeve")
+                    ].map((label) => (
+                      <th className="px-4 py-3 font-bold" key={label}>
+                        {label}
+                      </th>
+                    ))
+                  )}
                 </tr>
               </thead>
               <tbody>
-        {[...product.sizeCharts].sort((a, b) => compareSizes(a.size, b.size)).map((sizeChart) => (
-                  <tr className="border-t border-zinc-200" key={sizeChart.id}>
-                    <td className="px-4 py-3 font-bold">{sizeChart.size}</td>
-                    <td className="px-4 py-3">
-                      {formatMeasurement(sizeChart.shoulder, sizeChart.unit)}
-                    </td>
-                    <td className="px-4 py-3">
-                      {formatMeasurement(sizeChart.chest, sizeChart.unit)}
-                    </td>
-                    <td className="px-4 py-3">
-                      {formatMeasurement(sizeChart.length, sizeChart.unit)}
-                    </td>
-                    <td className="px-4 py-3">
-                      {formatMeasurement(sizeChart.sleeve, sizeChart.unit)}
-                    </td>
-                  </tr>
-                ))}
+                {[...product.sizeCharts]
+                  .sort((a, b) => compareSizes(a.size, b.size))
+                  .map((sizeChart) => (
+                    <tr className="border-t border-zinc-200" key={sizeChart.id}>
+                      <td className="px-4 py-3 font-bold">{sizeChart.size}</td>
+                      {product.sizeTemplate ? (
+                        (product.sizeTemplate.fields as unknown as { key: string; nameVi: string; nameEn: string }[]).map((f) => {
+                          const measurements = sizeChart.measurements as Record<string, number | null> | null;
+                          const val = measurements?.[f.key];
+                          return (
+                            <td className="px-4 py-3" key={f.key}>
+                              {val !== undefined && val !== null
+                                ? formatMeasurement(val, sizeChart.unit)
+                                : "-"}
+                            </td>
+                          );
+                        })
+                      ) : (
+                        <>
+                          <td className="px-4 py-3">
+                            {formatMeasurement(sizeChart.shoulder, sizeChart.unit)}
+                          </td>
+                          <td className="px-4 py-3">
+                            {formatMeasurement(sizeChart.chest, sizeChart.unit)}
+                          </td>
+                          <td className="px-4 py-3">
+                            {formatMeasurement(sizeChart.length, sizeChart.unit)}
+                          </td>
+                          <td className="px-4 py-3">
+                            {formatMeasurement(sizeChart.sleeve, sizeChart.unit)}
+                          </td>
+                        </>
+                      )}
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </section>

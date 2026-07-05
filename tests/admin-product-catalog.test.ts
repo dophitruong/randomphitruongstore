@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { Prisma } from "@prisma/client";
 import { describe, it } from "node:test";
 import {
   buildProductCatalogWrite,
@@ -88,7 +89,8 @@ describe("admin product catalog write model", () => {
       materialEn: "Premium satin",
       stockStatus: "IN_STOCK",
       isFeatured: true,
-      isActive: true
+      isActive: true,
+      sizeTemplateId: null
     });
     assert.deepEqual(write.images, [
       {
@@ -127,6 +129,7 @@ describe("admin product catalog write model", () => {
         chest: 54,
         length: 65,
         sleeve: 60,
+        measurements: Prisma.DbNull,
         unit: "cm"
       },
       {
@@ -135,6 +138,7 @@ describe("admin product catalog write model", () => {
         chest: 56,
         length: 67,
         sleeve: 61,
+        measurements: Prisma.DbNull,
         unit: "cm"
       }
     ]);
