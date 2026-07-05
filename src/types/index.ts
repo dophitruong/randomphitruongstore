@@ -38,6 +38,21 @@ export type ProductVariantDTO = {
   isAvailable: boolean;
 };
 
+export type SizeTemplateFieldDTO = {
+  key: string;
+  nameVi: string;
+  nameEn: string;
+};
+
+export type SizeTemplateDTO = {
+  id: string;
+  nameVi: string;
+  nameEn: string;
+  fields: SizeTemplateFieldDTO[];
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+};
+
 export type SizeChartDTO = {
   id: string;
   size: string;
@@ -45,6 +60,7 @@ export type SizeChartDTO = {
   chest?: number | string | null;
   length?: number | string | null;
   sleeve?: number | string | null;
+  measurements?: Record<string, number | null> | null;
   unit: string;
 };
 
@@ -79,6 +95,8 @@ export type ProductDTO = {
   images: ProductImageDTO[];
   variants: ProductVariantDTO[];
   sizeCharts?: SizeChartDTO[];
+  sizeTemplateId?: string | null;
+  sizeTemplate?: SizeTemplateDTO | null;
 };
 
 export type CatalogProductDTO = Pick<

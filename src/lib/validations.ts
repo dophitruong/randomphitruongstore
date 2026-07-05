@@ -31,6 +31,7 @@ const productSizeChartInputSchema = z.object({
   chest: optionalMeasurementSchema,
   length: optionalMeasurementSchema,
   sleeve: optionalMeasurementSchema,
+  measurements: z.record(optionalMeasurementSchema).nullable().optional(),
   unit: z.string().trim().min(1).default("cm")
 });
 
@@ -82,6 +83,7 @@ export const productInputSchema = z.object({
     }),
   variants: z.array(productVariantInputSchema).min(1),
   sizeCharts: z.array(productSizeChartInputSchema).optional(),
+  sizeTemplateId: z.string().trim().uuid().nullable().optional(),
   materialVi: z.string().trim().min(2),
   materialEn: z.string().trim().min(2),
   stockStatus: z.enum(["IN_STOCK", "OUT_OF_STOCK"]).default("IN_STOCK"),
