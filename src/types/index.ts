@@ -2,6 +2,7 @@
 // Defined explicitly here so client code never imports from @prisma/client.
 
 export type StockStatus = "IN_STOCK" | "OUT_OF_STOCK";
+export type ProductStatus = "DRAFT" | "PUBLISHED";
 export type ShippingRegion = "VIETNAM" | "SINGAPORE" | "KOREA" | "TAIWAN" | "JAPAN";
 export type PaymentMethod =
   | "DEPOSIT_50_BANK_ZALO"
@@ -85,6 +86,7 @@ export type ProductDTO = {
   orderLeadTimeMaxDays?: number;
   materialVi: string;
   materialEn: string;
+  status: ProductStatus;
   stockStatus: StockStatus;
   isFeatured: boolean;
   isActive: boolean;
