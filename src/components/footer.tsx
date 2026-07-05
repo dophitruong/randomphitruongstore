@@ -22,6 +22,13 @@ export async function Footer() {
     t("returns"),
     t("refund")
   ];
+  const legalLinks = [
+    { href: "/privacy-policy", label: t("privacyPolicy") },
+    { href: "/terms-of-service", label: t("termsConditions") },
+    { href: "/shipping-policy", label: t("shippingPolicy") },
+    { href: "/return-refund-policy", label: t("returnRefundPolicy") },
+    { href: "/contact", label: t("contactInformation") }
+  ];
 
   return (
     <footer className="border-t border-white/15 bg-[#11100e] text-white">
@@ -97,13 +104,18 @@ export async function Footer() {
               </li>
             ))}
           </ul>
-          <Link
-            className="mt-5 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.1em] text-white hover:text-[#d64b3d]"
-            href="/contact#policies"
-          >
-            {t("policyLink")}
-            <ArrowUpRight aria-hidden="true" size={15} />
-          </Link>
+          <nav aria-label={t("legalNavigation")} className="mt-6 grid gap-2">
+            {legalLinks.map((link) => (
+              <Link
+                className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.1em] text-white/75 hover:text-[#d64b3d]"
+                href={link.href}
+                key={link.href}
+              >
+                {link.label}
+                <ArrowUpRight aria-hidden="true" size={15} />
+              </Link>
+            ))}
+          </nav>
         </div>
 
         <div className="min-w-0">

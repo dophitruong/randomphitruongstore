@@ -14,12 +14,15 @@ describe("production security headers", () => {
       "X-Content-Type-Options",
       "X-Frame-Options",
       "Referrer-Policy",
-      "Permissions-Policy"
+      "Permissions-Policy",
+      "X-Robots-Tag"
     ]) {
       assert.match(config, new RegExp(`key:\\s*["']${header}["']`));
     }
 
     assert.match(config, /frame-ancestors 'none'/);
     assert.match(config, /X-Content-Type-Options["'],\s*value:\s*["']nosniff/);
+    assert.match(config, /source:\s*["']\/admin\/:path\*["']/);
+    assert.match(config, /source:\s*["']\/api\/:path\*["']/);
   });
 });

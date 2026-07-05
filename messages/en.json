@@ -249,6 +249,12 @@
     "returns": "Exchange defects or incorrect items within 48 hours",
     "refund": "Full refund if unavailable or supplier-defective",
     "policyLink": "Read all policies & FAQs",
+    "legalNavigation": "Policy pages",
+    "privacyPolicy": "Privacy Policy",
+    "termsConditions": "Terms & Conditions",
+    "shippingPolicy": "Shipping Policy",
+    "returnRefundPolicy": "Returns & Refunds",
+    "contactInformation": "Contact Information",
     "zaloTitle": "Scan to message Phi Truong",
     "zaloBody": "Get direct advice on products, sizing, colors and order status through Zalo.",
     "zaloAction": "Open Zalo"

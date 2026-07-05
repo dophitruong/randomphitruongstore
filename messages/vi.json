@@ -249,6 +249,12 @@
     "returns": "Đổi hàng lỗi hoặc giao sai trong 48 giờ",
     "refund": "Hoàn 100% nếu shop hết hàng hoặc lỗi từ nhà cung cấp",
     "policyLink": "Xem đầy đủ chính sách & FAQ",
+    "legalNavigation": "Trang chính sách",
+    "privacyPolicy": "Chính sách bảo mật",
+    "termsConditions": "Điều khoản & điều kiện",
+    "shippingPolicy": "Chính sách vận chuyển",
+    "returnRefundPolicy": "Đổi trả & hoàn tiền",
+    "contactInformation": "Thông tin liên hệ",
     "zaloTitle": "Quét QR để nhắn Phi Trường",
     "zaloBody": "Tư vấn sản phẩm, size, màu và tình trạng đơn hàng trực tiếp qua Zalo.",
     "zaloAction": "Mở Zalo"
