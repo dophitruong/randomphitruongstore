@@ -34,17 +34,25 @@ export default async function AdminProductsPage() {
         categories={categories}
         sizeTemplates={sizeTemplates.map((t) => ({
           ...t,
-          fields: t.fields as any
+          fields: t.fields as unknown as { key: string; nameVi: string; nameEn: string }[]
         }))}
         products={products.map((product) => ({
           ...product,
+          sizeTemplate: product.sizeTemplate
+            ? {
+                id: product.sizeTemplate.id,
+                nameVi: product.sizeTemplate.nameVi,
+                nameEn: product.sizeTemplate.nameEn,
+                fields: product.sizeTemplate.fields as unknown as { key: string; nameVi: string; nameEn: string }[]
+              }
+            : null,
           sizeCharts: product.sizeCharts.map((sizeChart) => ({
             ...sizeChart,
             shoulder: serializeMeasurement(sizeChart.shoulder),
             chest: serializeMeasurement(sizeChart.chest),
             length: serializeMeasurement(sizeChart.length),
             sleeve: serializeMeasurement(sizeChart.sleeve),
-            measurements: sizeChart.measurements as any
+            measurements: sizeChart.measurements as unknown as Record<string, number | null> | null
           }))
         }))}
       />
