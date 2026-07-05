@@ -22,6 +22,9 @@ const notoSerifJp = Noto_Serif_JP({
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
+  verification: {
+    google: "4F3XIS7dg4bScUIEN9Gjk3jjFFVPitHMb6K26b1lK2A"
+  },
   manifest: "/truongphistore/site.webmanifest",
   icons: {
     icon: [
