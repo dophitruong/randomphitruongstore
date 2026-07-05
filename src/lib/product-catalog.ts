@@ -1,5 +1,9 @@
 import { Prisma } from "@prisma/client";
-import type { ProductInput } from "@/lib/validations";
+import {
+  DRAFT_PRODUCT_NAME,
+  draftSlugForProductId
+} from "@/lib/product-drafts";
+import type { ProductDraftInput, ProductInput } from "@/lib/validations";
 
 const SIZE_ORDER = ["XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL"];
 
@@ -175,6 +179,48 @@ function normalizeSizeCharts(input: ProductInput) {
   );
 }
 
+function normalizeDraftVariants(input: ProductDraftInput): Required<ProductCatalogVariant>[] {
+  return uniqueVariants(
+    (input.variants ?? [])
+      .map((variant) => {
+        const size = variant.size?.trim() ?? "";
+        const colorVi = variant.colorVi?.trim() ?? "";
+        if (!size || !colorVi) {
+          return null;
+        }
+
+        return {
+          size,
+          colorVi,
+          colorEn: variant.colorEn?.trim() || colorVi,
+          priceAdjustment: variant.priceAdjustment ?? 0,
+          isAvailable: variant.isAvailable ?? true
+        };
+      })
+      .filter((variant): variant is Required<ProductCatalogVariant> => Boolean(variant))
+  );
+}
+
+function normalizeDraftSizeCharts(input: ProductDraftInput) {
+  return uniqueSizeCharts(
+    (input.sizeCharts ?? [])
+      .map((sizeChart) => ({
+        size: sizeChart.size?.trim() ?? "",
+        shoulder: sizeChart.shoulder,
+        chest: sizeChart.chest,
+        length: sizeChart.length,
+        sleeve: sizeChart.sleeve,
+        measurements: sizeChart.measurements,
+        unit: sizeChart.unit?.trim() || "cm"
+      }))
+      .filter((sizeChart) => sizeChart.size) as Required<ProductCatalogSizeChart>[]
+  );
+}
+
+function draftText(value: string | null | undefined, fallback = "") {
+  return value?.trim() || fallback;
+}
+
 function variantKey(variant: Pick<ProductCatalogVariant, "size" | "colorVi">) {
   return `${variant.size.trim().toLowerCase()}::${variant.colorVi.trim().toLowerCase()}`;
 }
@@ -311,6 +357,7 @@ export function buildProductCatalogWrite(input: ProductInput) {
       orderLeadTimeMaxDays: input.orderLeadTimeMaxDays ?? 10,
       materialVi: input.materialVi,
       materialEn: input.materialEn,
+      status: "PUBLISHED" as const,
       stockStatus: input.stockStatus,
       isFeatured: input.isFeatured,
       isActive: input.isActive,
@@ -320,6 +367,67 @@ export function buildProductCatalogWrite(input: ProductInput) {
       url,
       altVi: input.nameVi,
       altEn: input.nameEn,
+      sortOrder: index
+    })),
+    variants: variants.map((variant) => ({
+      size: variant.size,
+      colorVi: variant.colorVi,
+      colorEn: variant.colorEn,
+      priceAdjustment: variant.priceAdjustment,
+      isAvailable: variant.isAvailable
+    })),
+    sizeCharts: sizeCharts.map((sizeChart) => ({
+      size: sizeChart.size,
+      shoulder: sizeChart.shoulder,
+      chest: sizeChart.chest,
+      length: sizeChart.length,
+      sleeve: sizeChart.sleeve,
+      measurements: (sizeChart.measurements ?? Prisma.DbNull) as Prisma.InputJsonValue,
+      unit: sizeChart.unit
+    }))
+  };
+}
+
+export function buildProductDraftWrite(
+  input: ProductDraftInput,
+  {
+    productId,
+    categoryId,
+    existingSlug
+  }: {
+    productId: string;
+    categoryId: string;
+    existingSlug?: string | null;
+  }
+) {
+  const variants = normalizeDraftVariants(input);
+  const sizeCharts = normalizeDraftSizeCharts(input);
+  const nameVi = draftText(input.nameVi, DRAFT_PRODUCT_NAME);
+  const nameEn = draftText(input.nameEn, DRAFT_PRODUCT_NAME);
+
+  return {
+    productData: {
+      nameVi,
+      nameEn,
+      slug: draftText(input.slug, existingSlug || draftSlugForProductId(productId)),
+      descriptionVi: draftText(input.descriptionVi),
+      descriptionEn: draftText(input.descriptionEn),
+      categoryId,
+      basePrice: input.basePrice ?? 0,
+      orderLeadTimeMinDays: input.orderLeadTimeMinDays ?? 7,
+      orderLeadTimeMaxDays: input.orderLeadTimeMaxDays ?? 10,
+      materialVi: draftText(input.materialVi),
+      materialEn: draftText(input.materialEn),
+      status: "DRAFT" as const,
+      stockStatus: input.stockStatus,
+      isFeatured: input.isFeatured,
+      isActive: input.isActive,
+      sizeTemplateId: input.sizeTemplateId || null
+    },
+    images: (input.images ?? []).map((url, index) => ({
+      url,
+      altVi: nameVi,
+      altEn: nameEn,
       sortOrder: index
     })),
     variants: variants.map((variant) => ({

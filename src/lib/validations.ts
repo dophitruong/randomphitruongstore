@@ -35,6 +35,24 @@ const productSizeChartInputSchema = z.object({
   unit: z.string().trim().min(1).default("cm")
 });
 
+const productDraftVariantInputSchema = z.object({
+  size: z.string().trim().optional().or(z.literal("")),
+  colorVi: z.string().trim().optional().or(z.literal("")),
+  colorEn: z.string().trim().optional().or(z.literal("")),
+  priceAdjustment: z.coerce.number().int().default(0),
+  isAvailable: z.boolean().default(true)
+});
+
+const productDraftSizeChartInputSchema = z.object({
+  size: z.string().trim().optional().or(z.literal("")),
+  shoulder: optionalMeasurementSchema,
+  chest: optionalMeasurementSchema,
+  length: optionalMeasurementSchema,
+  sleeve: optionalMeasurementSchema,
+  measurements: z.record(z.string(), optionalMeasurementSchema).nullable().optional(),
+  unit: z.string().trim().optional().or(z.literal(""))
+});
+
 export const productInputSchema = z.object({
   nameVi: z.string().trim().min(2),
   nameEn: z.string().trim().min(2),
@@ -86,6 +104,55 @@ export const productInputSchema = z.object({
   sizeTemplateId: z.string().trim().uuid().nullable().optional(),
   materialVi: z.string().trim().min(2),
   materialEn: z.string().trim().min(2),
+  stockStatus: z.enum(["IN_STOCK", "OUT_OF_STOCK"]).default("IN_STOCK"),
+  isFeatured: z.boolean().default(false),
+  isActive: z.boolean().default(true)
+});
+
+export const productDraftInputSchema = z.object({
+  nameVi: z.string().trim().optional().or(z.literal("")),
+  nameEn: z.string().trim().optional().or(z.literal("")),
+  slug: z.string().trim().toLowerCase().optional().or(z.literal("")),
+  descriptionVi: z.string().trim().optional().or(z.literal("")),
+  descriptionEn: z.string().trim().optional().or(z.literal("")),
+  categoryId: z.string().trim().uuid().optional().or(z.literal("")),
+  basePrice: z.coerce.number().int().nonnegative().optional(),
+  orderLeadTimeMinDays: z.coerce.number().int().positive().optional(),
+  orderLeadTimeMaxDays: z.coerce.number().int().positive().optional(),
+  images: z
+    .array(
+      z
+        .string()
+        .trim()
+        .min(1, "Image URL is required")
+        .refine(
+          isSupportedProductImageUrl,
+          "Image must be an absolute URL or a local path"
+        )
+    )
+    .max(
+      MAX_PRODUCT_IMAGES,
+      `Products can have at most ${MAX_PRODUCT_IMAGES} images`
+    )
+    .superRefine((images, context) => {
+      const duplicateIndex = duplicateProductImageUrlIndex(images);
+      if (duplicateIndex === -1) {
+        return;
+      }
+
+      context.addIssue({
+        code: "custom",
+        message: "Duplicate product images are not allowed",
+        path: [duplicateIndex]
+      });
+    })
+    .optional()
+    .default([]),
+  variants: z.array(productDraftVariantInputSchema).optional().default([]),
+  sizeCharts: z.array(productDraftSizeChartInputSchema).optional().default([]),
+  sizeTemplateId: z.string().trim().uuid().nullable().optional().or(z.literal("")),
+  materialVi: z.string().trim().optional().or(z.literal("")),
+  materialEn: z.string().trim().optional().or(z.literal("")),
   stockStatus: z.enum(["IN_STOCK", "OUT_OF_STOCK"]).default("IN_STOCK"),
   isFeatured: z.boolean().default(false),
   isActive: z.boolean().default(true)
@@ -164,6 +231,7 @@ export const productInquiryStatusSchema = z.object({
 });
 
 export type ProductInput = z.infer<typeof productInputSchema>;
+export type ProductDraftInput = z.infer<typeof productDraftInputSchema>;
 export type OrderInput = z.infer<typeof orderInputSchema>;
 export type ProfileUpdateInput = z.infer<typeof profileUpdateSchema>;
 export type ProductInquiryInput = z.infer<typeof productInquiryInputSchema>;
