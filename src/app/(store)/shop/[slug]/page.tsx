@@ -112,7 +112,7 @@ export default async function ProductPage({ params }: PageProps) {
                   {product.sizeTemplate ? (
                     [
                       t("measurementSize"),
-                      ...(product.sizeTemplate.fields as any[]).map((f) =>
+                      ...(product.sizeTemplate.fields as unknown as { key: string; nameVi: string; nameEn: string }[]).map((f) =>
                         locale === "vi" ? f.nameVi : f.nameEn
                       )
                     ].map((label) => (
@@ -142,7 +142,7 @@ export default async function ProductPage({ params }: PageProps) {
                     <tr className="border-t border-zinc-200" key={sizeChart.id}>
                       <td className="px-4 py-3 font-bold">{sizeChart.size}</td>
                       {product.sizeTemplate ? (
-                        (product.sizeTemplate.fields as any[]).map((f) => {
+                        (product.sizeTemplate.fields as unknown as { key: string; nameVi: string; nameEn: string }[]).map((f) => {
                           const measurements = sizeChart.measurements as Record<string, number | null> | null;
                           const val = measurements?.[f.key];
                           return (
