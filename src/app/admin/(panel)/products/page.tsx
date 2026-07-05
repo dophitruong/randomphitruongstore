@@ -4,19 +4,23 @@ import { getPrisma } from "@/lib/prisma";
 export const dynamic = "force-dynamic";
 
 export default async function AdminProductsPage() {
-  const [products, categories] = await Promise.all([
+  const [products, categories, sizeTemplates] = await Promise.all([
     getPrisma().product.findMany({
       include: {
         categoryRecord: true,
         images: { orderBy: { sortOrder: "asc" } },
         variants: { orderBy: [{ size: "asc" }, { colorVi: "asc" }] },
-        sizeCharts: { orderBy: { size: "asc" } }
+        sizeCharts: { orderBy: { size: "asc" } },
+        sizeTemplate: true
       },
       orderBy: { updatedAt: "desc" }
     }),
     getPrisma().category.findMany({
       where: { isActive: true },
       orderBy: [{ sortOrder: "asc" }, { nameEn: "asc" }]
+    }),
+    getPrisma().sizeTemplate.findMany({
+      orderBy: { createdAt: "desc" }
     })
   ]);
 
@@ -28,6 +32,10 @@ export default async function AdminProductsPage() {
       </header>
       <AdminProductManager
         categories={categories}
+        sizeTemplates={sizeTemplates.map((t) => ({
+          ...t,
+          fields: t.fields as any
+        }))}
         products={products.map((product) => ({
           ...product,
           sizeCharts: product.sizeCharts.map((sizeChart) => ({
@@ -35,7 +43,8 @@ export default async function AdminProductsPage() {
             shoulder: serializeMeasurement(sizeChart.shoulder),
             chest: serializeMeasurement(sizeChart.chest),
             length: serializeMeasurement(sizeChart.length),
-            sleeve: serializeMeasurement(sizeChart.sleeve)
+            sleeve: serializeMeasurement(sizeChart.sleeve),
+            measurements: sizeChart.measurements as any
           }))
         }))}
       />
