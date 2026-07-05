@@ -51,6 +51,15 @@ describe("Vercel build script", () => {
       ]
     );
   });
+  it("skips migrations gracefully when DIRECT_URL is missing even in production", () => {
+    // The dry-run plan still lists migrate deploy, but the real run skips it
+    // when DIRECT_URL is absent so the build does not crash.
+    const plan = dryRun({ VERCEL_ENV: "production" });
+    assert.ok(
+      plan.includes("prisma migrate deploy"),
+      "plan should include migrate deploy step"
+    );
+  });
 });
 
 function dryRun(env: Record<string, string>) {

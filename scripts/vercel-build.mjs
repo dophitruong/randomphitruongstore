@@ -12,17 +12,30 @@ function main() {
     return;
   }
 
+  console.log(`[vercel-build] Starting build for: ${deploymentLabel(process.env)}`);
+
   run("prisma", ["generate"]);
 
   if (plan.runMigrations) {
-    run(...migrateStep);
+    if (!process.env.DIRECT_URL) {
+      console.warn(
+        "[vercel-build] WARNING: DIRECT_URL is not set. " +
+          "Skipping prisma migrate deploy to prevent build failure. " +
+          "Add DIRECT_URL to Vercel environment variables and redeploy to apply pending migrations."
+      );
+    } else {
+      console.log("[vercel-build] Running prisma migrate deploy...");
+      run(...migrateStep);
+      console.log("[vercel-build] Migrations applied successfully.");
+    }
   } else {
     console.log(
-      `Skipping prisma migrate deploy for ${deploymentLabel(process.env)} build. ` +
+      `[vercel-build] Skipping prisma migrate deploy for ${deploymentLabel(process.env)} build. ` +
         "Set VERCEL_RUN_MIGRATIONS=1 only when this deployment has a dedicated database."
     );
   }
 
+  console.log("[vercel-build] Running next build...");
   run("next", ["build"]);
 }
 
