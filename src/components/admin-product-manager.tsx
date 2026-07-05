@@ -36,10 +36,7 @@ type CategoryOption = {
   slug: string;
 };
 
-const optionalMeasurementSchema = z.preprocess(
-  (value) => (value === "" || value === null ? undefined : value),
-  z.coerce.number().positive().optional()
-);
+const optionalMeasurementSchema = z.number().positive().optional();
 
 const formSchema = z.object({
   nameVi: z.string().trim().min(2),
@@ -107,7 +104,7 @@ const formSchema = z.object({
     chest: optionalMeasurementSchema,
     length: optionalMeasurementSchema,
     sleeve: optionalMeasurementSchema,
-    measurements: z.record(optionalMeasurementSchema).nullable().optional(),
+    measurements: z.record(z.string(), optionalMeasurementSchema).nullable().optional(),
     unit: z.string().trim().min(1)
   })),
   materialVi: z.string().trim().min(2),
@@ -982,7 +979,7 @@ export function AdminProductManager({
                           templateInitValues.length = undefined;
                           templateInitValues.sleeve = undefined;
                         }
-                        appendSizeChart(templateInitValues);
+                        appendSizeChart(templateInitValues as unknown as FormValues["sizeCharts"][number]);
                       }}
                       className="inline-flex min-h-9 items-center justify-center gap-1.5 px-3 py-1 text-xs font-bold uppercase tracking-wider bg-zinc-900 text-white hover:bg-[#a72b1f] transition-colors"
                     >
@@ -1046,7 +1043,7 @@ export function AdminProductManager({
                                   })}
                                 />
                                 {errors.sizeCharts?.[index]?.measurements?.[f.key]?.message && (
-                                  <p className="text-[9px] text-red-600 mt-0.5">{errors.sizeCharts[index].measurements[f.key].message}</p>
+                                  <p className="text-[9px] text-red-600 mt-0.5">{errors.sizeCharts[index].measurements?.[f.key]?.message}</p>
                                 )}
                               </td>
                             ))
@@ -1196,7 +1193,7 @@ export function AdminProductManager({
                                 })}
                               />
                               {errors.sizeCharts?.[index]?.measurements?.[f.key]?.message && (
-                                <p className="text-[10px] text-red-600 mt-0.5">{errors.sizeCharts[index].measurements[f.key].message}</p>
+                                <p className="text-[10px] text-red-600 mt-0.5">{errors.sizeCharts?.[index]?.measurements?.[f.key]?.message}</p>
                               )}
                             </label>
                           ))}
