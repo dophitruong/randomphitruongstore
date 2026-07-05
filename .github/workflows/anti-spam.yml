@@ -1,0 +1,83 @@
+name: Anti-Spam Guard
+
+on:
+  issue_comment:
+    types: [created]
+  issues:
+    types: [opened]
+
+jobs:
+  filter-spam:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Scan and Remove Spam Comments
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const comment = context.payload.comment;
+            const issue = context.payload.issue;
+            
+            // Extract body and author metadata
+            const body = (comment ? comment.body : issue.body) || '';
+            const author = comment ? comment.user.login : issue.user.login;
+            const association = comment ? comment.author_association : issue.author_association;
+            
+            // Whitelisted associations (collaborators, owners, members)
+            const isWhitelisted = ['COLLABORATOR', 'MEMBER', 'OWNER'].includes(association);
+            
+            if (isWhitelisted) {
+              console.log(`Author ${author} is whitelisted (${association}). Skipping check.`);
+              return;
+            }
+            
+            // Regular expression to detect typical spam patterns:
+            // 1. Links containing .zip, .tar, .tar.gz, .exe inside release downloads
+            // 2. Suspicious GitHub release download links from random external repos
+            const spamPatterns = [
+              /github\.com\/[^/]+\/[^/]+\/releases\/download/i,
+              /https?:\/\/[^\s]+\.(zip|tar\.gz|tar|exe|dmg|rar)\b/i
+            ];
+            
+            const isSpam = spamPatterns.some(pattern => pattern.test(body));
+            
+            if (isSpam) {
+              console.log(`Detected potential spam from user: ${author}`);
+              
+              if (comment) {
+                // Delete the comment
+                await github.rest.issues.deleteComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: comment.id
+                });
+                console.log(`Deleted spam comment ID: ${comment.id}`);
+              }
+              
+              // Add a warning label to the issue
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                labels: ['spam']
+              });
+              
+              // Post a warning alert on the issue
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: `⚠️ **Cảnh báo bảo mật / Security Warning:**\n\nPhát hiện bình luận chứa liên kết tệp đính kèm không an toàn từ người dùng ngoài dự án. Bình luận này đã được tự động gỡ bỏ để ngăn chặn mã độc.\n\n*A suspicious link or attachment was detected from an untrusted account. The comment has been automatically removed to prevent malware distribution.*`
+              });
+
+              // Lock the conversation to prevent further comments
+              await github.rest.issues.lock({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                lock_reason: 'spam'
+              });
+              console.log(`Locked conversation for issue: ${issue.number}`);
+            }
