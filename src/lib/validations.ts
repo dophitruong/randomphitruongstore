@@ -31,7 +31,7 @@ const productSizeChartInputSchema = z.object({
   chest: optionalMeasurementSchema,
   length: optionalMeasurementSchema,
   sleeve: optionalMeasurementSchema,
-  measurements: z.record(optionalMeasurementSchema).nullable().optional(),
+  measurements: z.record(z.string(), optionalMeasurementSchema).nullable().optional(),
   unit: z.string().trim().min(1).default("cm")
 });
 
