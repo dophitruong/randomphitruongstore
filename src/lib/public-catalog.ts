@@ -84,7 +84,8 @@ export const getPublicProductBySlug = (slug: string) =>
         include: {
           images: { orderBy: { sortOrder: "asc" } },
           variants: { orderBy: [{ colorVi: "asc" }] },
-          sizeCharts: true
+          sizeCharts: true,
+          sizeTemplate: true
         }
       }),
     ["public-product-by-slug-v1", slug],
