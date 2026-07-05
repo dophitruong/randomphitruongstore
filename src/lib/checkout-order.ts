@@ -31,6 +31,7 @@ type CheckoutOrderStore = {
     findMany(args: {
       where: {
         id: { in: string[] };
+        status: "PUBLISHED";
         isActive: true;
         stockStatus: "IN_STOCK";
       };
@@ -175,7 +176,12 @@ export async function createCheckoutOrder({
   ];
 
   const products = await prisma.product.findMany({
-    where: { id: { in: productIds }, isActive: true, stockStatus: "IN_STOCK" }
+    where: {
+      id: { in: productIds },
+      status: "PUBLISHED",
+      isActive: true,
+      stockStatus: "IN_STOCK"
+    }
   });
 
   if (products.length !== productIds.length) {

@@ -8,7 +8,7 @@ const catalogRevalidateSeconds = 60;
 export const getPublicShopProducts = unstable_cache(
   async () =>
     getPrisma().product.findMany({
-      where: { isActive: true, stockStatus: "IN_STOCK" },
+      where: { status: "PUBLISHED", isActive: true, stockStatus: "IN_STOCK" },
       select: {
         id: true,
         nameVi: true,
@@ -80,7 +80,7 @@ export const getPublicProductBySlug = (slug: string) =>
   unstable_cache(
     async () =>
       getPrisma().product.findFirst({
-        where: { slug, isActive: true },
+        where: { slug, status: "PUBLISHED", isActive: true },
         include: {
           images: { orderBy: { sortOrder: "asc" } },
           variants: { orderBy: [{ colorVi: "asc" }] },
