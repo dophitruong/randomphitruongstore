@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import type { ProductInput } from "@/lib/validations";
 
 const SIZE_ORDER = ["XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL"];
@@ -334,7 +335,7 @@ export function buildProductCatalogWrite(input: ProductInput) {
       chest: sizeChart.chest,
       length: sizeChart.length,
       sleeve: sizeChart.sleeve,
-      measurements: sizeChart.measurements || null,
+      measurements: (sizeChart.measurements ?? Prisma.DbNull) as Prisma.InputJsonValue,
       unit: sizeChart.unit
     }))
   };
