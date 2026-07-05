@@ -18,6 +18,11 @@ import { parseMarkdown } from "@/lib/markdown";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
 import {
+  hasMeaningfulProductDraftData,
+  isDraftPlaceholderName,
+  isDraftPlaceholderSlug
+} from "@/lib/product-drafts";
+import {
   duplicateProductImageUrlIndex,
   isSupportedProductImageUrl,
   MAX_PRODUCT_IMAGES,
@@ -26,7 +31,7 @@ import {
   setPrimaryProductImageUrl,
   splitProductImageUrls
 } from "@/lib/product-images";
-import type { ProductWithImages, SizeTemplateDTO } from "@/types";
+import type { ProductStatus, ProductWithImages, SizeTemplateDTO } from "@/types";
 import { AdminTable } from "./admin-table";
 
 type CategoryOption = {
@@ -115,6 +120,13 @@ const formSchema = z.object({
 });
 
 type FormValues = z.infer<typeof formSchema>;
+type DraftSaveStatus = "idle" | "saving" | "saved" | "failed";
+type ProductStatusFilter = "ALL" | ProductStatus;
+type ProductStatusTab = "ALL" | "DRAFTS";
+type DraftPayload = Omit<FormValues, "images"> & {
+  images: string[];
+  sizeTemplateId: string | null;
+};
 
 const defaults: FormValues = {
   nameVi: "",
@@ -143,6 +155,26 @@ const defaults: FormValues = {
 
 const pageSize = 10;
 
+function productDisplayName(product: ProductWithImages) {
+  if (product.status === "DRAFT" && isDraftPlaceholderName(product.nameEn)) {
+    return "Untitled draft";
+  }
+
+  return product.nameEn;
+}
+
+function productDisplaySlug(product: ProductWithImages) {
+  if (product.status === "DRAFT" && isDraftPlaceholderSlug(product.slug, product.id)) {
+    return "";
+  }
+
+  return product.slug;
+}
+
+function resetDraftField(value: string, product: ProductWithImages) {
+  return product.status === "DRAFT" && isDraftPlaceholderName(value) ? "" : value;
+}
+
 export function AdminProductManager({
   categories: categoryOptions,
   products,
@@ -155,8 +187,11 @@ export function AdminProductManager({
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingProductStatus, setEditingProductStatus] = useState<ProductStatus | null>(null);
   const [serverError, setServerError] = useState("");
   const [query, setQuery] = useState("");
+  const [statusTab, setStatusTab] = useState<ProductStatusTab>("ALL");
+  const [statusFilter, setStatusFilter] = useState<ProductStatusFilter>("ALL");
   const [categoryFilter, setCategoryFilter] = useState("ALL");
   const [visibilityFilter, setVisibilityFilter] = useState("ACTIVE");
   const [stockFilter, setStockFilter] = useState("ALL");
@@ -175,7 +210,6 @@ export function AdminProductManager({
     getValues,
     reset,
     setValue,
-    watch,
     formState: { errors, isSubmitting, isDirty }
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -189,6 +223,7 @@ export function AdminProductManager({
     control,
     name: "sizeCharts"
   });
+  const watchedFormValues = useWatch({ control });
   const imageText = useWatch({ control, name: "images" });
   const imageUrls = splitProductImageUrls(imageText);
   const imageUploadLimitReached = imageUrls.length >= MAX_PRODUCT_IMAGES;
@@ -199,34 +234,15 @@ export function AdminProductManager({
   const [isMounted, setIsMounted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
-  const [draftStatus, setDraftStatus] = useState<"idle" | "saving" | "saved">("idle");
+  const [draftStatus, setDraftStatus] = useState<DraftSaveStatus>("idle");
   const [draftSavedAt, setDraftSavedAt] = useState<Date | null>(null);
-  const [draftRestorePrompt, setDraftRestorePrompt] = useState(false);
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const draftKey = editingId ? `rpt:product-draft:${editingId}` : "rpt:product-draft:new";
-
-  // Auto-save draft on form changes (3s debounce)
-  useEffect(() => {
-    if (!open) return;
-    const subscription = watch((values) => {
-      if (!isDirty) return;
-      setDraftStatus("saving");
-      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
-      autoSaveTimerRef.current = setTimeout(() => {
-        try {
-          localStorage.setItem(draftKey, JSON.stringify({ values, savedAt: new Date().toISOString() }));
-          setDraftSavedAt(new Date());
-          setDraftStatus("saved");
-        } catch {
-          setDraftStatus("idle");
-        }
-      }, 3000);
-    });
-    return () => {
-      subscription.unsubscribe();
-      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
-    };
-  }, [watch, open, draftKey, isDirty]);
+  const draftProductIdRef = useRef<string | null>(null);
+  const draftRequestInFlightRef = useRef(false);
+  const pendingDraftPayloadRef = useRef<{ payload: DraftPayload; key: string } | null>(null);
+  const lastSavedDraftPayloadRef = useRef<string | null>(null);
+  const draftSessionRef = useRef(0);
+  const canSaveDraft = !editingId || editingProductStatus === "DRAFT";
 
   // Warn before page unload when form has unsaved changes
   useEffect(() => {
@@ -236,6 +252,30 @@ export function AdminProductManager({
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [isDirty]);
+
+  useEffect(() => {
+    if (!open || !canSaveDraft || isSubmitting || !isDirty) return;
+    const payload = toDraftPayload(watchedFormValues as Partial<FormValues>);
+    if (!hasMeaningfulProductDraftData(payload)) {
+      return;
+    }
+
+    const key = draftPayloadKey(payload);
+    if (key === lastSavedDraftPayloadRef.current) {
+      return;
+    }
+
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    autoSaveTimerRef.current = setTimeout(() => {
+      void persistDraftPayload(payload, { autosave: true });
+    }, 1000);
+
+    return () => {
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    };
+    // persistDraftPayload and toDraftPayload intentionally read current refs/state.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watchedFormValues, open, canSaveDraft, isDirty, isSubmitting]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -256,14 +296,26 @@ export function AdminProductManager({
       window.removeEventListener("focus", handleFocus);
     };
   }, []);
+  const draftCount = useMemo(
+    () => products.filter((product) => product.status === "DRAFT").length,
+    [products]
+  );
   const filteredProducts = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
     return products.filter((product) => {
+      const displayName = productDisplayName(product);
+      const displaySlug = productDisplaySlug(product);
       const matchesQuery =
         !normalizedQuery ||
         product.nameVi.toLowerCase().includes(normalizedQuery) ||
         product.nameEn.toLowerCase().includes(normalizedQuery) ||
-        product.slug.toLowerCase().includes(normalizedQuery);
+        displayName.toLowerCase().includes(normalizedQuery) ||
+        product.slug.toLowerCase().includes(normalizedQuery) ||
+        displaySlug.toLowerCase().includes(normalizedQuery);
+      const matchesStatusTab =
+        statusTab === "ALL" || product.status === "DRAFT";
+      const matchesStatusFilter =
+        statusFilter === "ALL" || product.status === statusFilter;
       const matchesCategory =
         categoryFilter === "ALL" || product.categoryId === categoryFilter;
       const matchesVisibility =
@@ -273,9 +325,16 @@ export function AdminProductManager({
         (visibilityFilter === "FEATURED" && product.isFeatured);
       const matchesStock =
         stockFilter === "ALL" || product.stockStatus === stockFilter;
-      return matchesQuery && matchesCategory && matchesVisibility && matchesStock;
+      return (
+        matchesQuery &&
+        matchesStatusTab &&
+        matchesStatusFilter &&
+        matchesCategory &&
+        matchesVisibility &&
+        matchesStock
+      );
     });
-  }, [categoryFilter, products, query, stockFilter, visibilityFilter]);
+  }, [categoryFilter, products, query, statusFilter, statusTab, stockFilter, visibilityFilter]);
   const pageCount = Math.max(1, Math.ceil(filteredProducts.length / pageSize));
   const currentPage = Math.min(page, pageCount);
   const paginatedProducts = filteredProducts.slice(
@@ -285,6 +344,16 @@ export function AdminProductManager({
 
   function updateQuery(value: string) {
     setQuery(value);
+    setPage(1);
+  }
+
+  function updateStatusTab(value: ProductStatusTab) {
+    setStatusTab(value);
+    setPage(1);
+  }
+
+  function updateStatusFilter(value: ProductStatusFilter) {
+    setStatusFilter(value);
     setPage(1);
   }
 
@@ -303,58 +372,181 @@ export function AdminProductManager({
     setPage(1);
   }
 
-  function saveDraft() {
+  function toDraftPayload(values: Partial<FormValues>): DraftPayload {
+    return {
+      nameVi: values.nameVi ?? "",
+      nameEn: values.nameEn ?? "",
+      slug: values.slug ?? "",
+      descriptionVi: values.descriptionVi ?? "",
+      descriptionEn: values.descriptionEn ?? "",
+      categoryId: values.categoryId ?? categoryOptions[0]?.id ?? "",
+      basePrice: values.basePrice ?? defaults.basePrice,
+      orderLeadTimeMinDays:
+        values.orderLeadTimeMinDays ?? defaults.orderLeadTimeMinDays,
+      orderLeadTimeMaxDays:
+        values.orderLeadTimeMaxDays ?? defaults.orderLeadTimeMaxDays,
+      images: splitProductImageUrls(values.images ?? ""),
+      variants: values.variants ?? [],
+      sizeTemplateId: values.sizeTemplateId || null,
+      sizeCharts: values.sizeCharts ?? [],
+      materialVi: values.materialVi ?? "",
+      materialEn: values.materialEn ?? "",
+      stockStatus: values.stockStatus ?? defaults.stockStatus,
+      isFeatured: values.isFeatured ?? defaults.isFeatured,
+      isActive: values.isActive ?? defaults.isActive
+    };
+  }
+
+  function draftPayloadKey(payload: DraftPayload) {
+    return JSON.stringify(payload);
+  }
+
+  function resetDraftSaveState() {
+    draftSessionRef.current += 1;
+    draftProductIdRef.current = null;
+    draftRequestInFlightRef.current = false;
+    pendingDraftPayloadRef.current = null;
+    lastSavedDraftPayloadRef.current = null;
+    setDraftStatus("idle");
+    setDraftSavedAt(null);
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+  }
+
+  async function persistDraftPayload(
+    payload: DraftPayload,
+    { autosave = false }: { autosave?: boolean } = {}
+  ) {
+    if (!canSaveDraft) {
+      return null;
+    }
+
+    if (!hasMeaningfulProductDraftData(payload)) {
+      if (!autosave) {
+        setServerError("Enter product details before saving a draft");
+      }
+      setDraftStatus("idle");
+      return null;
+    }
+
+    const key = draftPayloadKey(payload);
+    if (key === lastSavedDraftPayloadRef.current) {
+      return null;
+    }
+
+    if (draftRequestInFlightRef.current) {
+      pendingDraftPayloadRef.current = { payload, key };
+      return null;
+    }
+
+    draftRequestInFlightRef.current = true;
+    const requestSession = draftSessionRef.current;
+    setDraftStatus("saving");
+    if (!autosave) {
+      setServerError("");
+    }
+
+    const draftId =
+      draftProductIdRef.current ??
+      (editingProductStatus === "DRAFT" ? editingId : null);
+    const response = await fetch(
+      draftId ? `/api/products/${draftId}/draft` : "/api/products/drafts",
+      {
+        method: draftId ? "PATCH" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      }
+    );
+    const result = (await response.json()) as {
+      data?: ProductWithImages;
+      error?: string;
+    };
+
+    let processPendingDraft = true;
     try {
-      const values = getValues();
-      localStorage.setItem(draftKey, JSON.stringify({ values, savedAt: new Date().toISOString() }));
+      if (requestSession !== draftSessionRef.current) {
+        processPendingDraft = false;
+        return null;
+      }
+
+      if (!response.ok || !result.data) {
+        setDraftStatus("failed");
+        if (!autosave) {
+          setServerError(result.error ?? "Unable to save draft");
+        }
+        return null;
+      }
+
+      draftProductIdRef.current = result.data.id;
+      setEditingId(result.data.id);
+      setEditingProductStatus(result.data.status);
       setDraftSavedAt(new Date());
       setDraftStatus("saved");
-    } catch {
-      // localStorage may be unavailable
+      lastSavedDraftPayloadRef.current = key;
+      router.refresh();
+
+      if (draftPayloadKey(toDraftPayload(getValues())) === key) {
+        reset(getValues());
+      }
+
+      return result.data;
+    } finally {
+      if (requestSession === draftSessionRef.current) {
+        draftRequestInFlightRef.current = false;
+      }
+      const pending = pendingDraftPayloadRef.current;
+      if (
+        processPendingDraft &&
+        requestSession === draftSessionRef.current &&
+        pending &&
+        pending.key !== lastSavedDraftPayloadRef.current
+      ) {
+        pendingDraftPayloadRef.current = null;
+        void persistDraftPayload(pending.payload, { autosave: true });
+      } else if (requestSession === draftSessionRef.current) {
+        pendingDraftPayloadRef.current = null;
+      }
     }
   }
 
-  function clearDraft() {
-    localStorage.removeItem(draftKey);
-    setDraftStatus("idle");
-    setDraftSavedAt(null);
-    setDraftRestorePrompt(false);
-    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+  async function saveDraft() {
+    await persistDraftPayload(toDraftPayload(getValues()));
   }
 
   function createProduct() {
     setEditingId(null);
+    setEditingProductStatus(null);
+    draftProductIdRef.current = null;
     setServerError("");
-    setDraftRestorePrompt(false);
+    resetDraftSaveState();
     reset({ ...defaults, categoryId: categoryOptions[0]?.id ?? "" });
-    if (typeof window !== "undefined" && localStorage.getItem("rpt:product-draft:new")) {
-      setDraftRestorePrompt(true);
-    }
     setOpen(true);
   }
 
   function editProduct(product: ProductWithImages) {
-    setEditingId(product.id);
-    setServerError("");
-    setDraftRestorePrompt(false);
-    reset({
-      nameVi: product.nameVi,
-      nameEn: product.nameEn,
-      slug: product.slug,
+    resetDraftSaveState();
+    const formValues: FormValues = {
+      nameVi: resetDraftField(product.nameVi, product),
+      nameEn: resetDraftField(product.nameEn, product),
+      slug: productDisplaySlug(product),
       descriptionVi: product.descriptionVi,
       descriptionEn: product.descriptionEn,
       categoryId: product.categoryId,
-      basePrice: product.basePrice,
+      basePrice:
+        product.status === "DRAFT" && product.basePrice <= 0
+          ? defaults.basePrice
+          : product.basePrice,
       orderLeadTimeMinDays: product.orderLeadTimeMinDays ?? 7,
       orderLeadTimeMaxDays: product.orderLeadTimeMaxDays ?? 10,
       images: product.images.map((image) => image.url).join("\n"),
-      variants: product.variants.map((v) => ({
-        size: v.size,
-        colorVi: v.colorVi,
-        colorEn: v.colorEn || v.colorVi,
-        priceAdjustment: v.priceAdjustment,
-        isAvailable: v.isAvailable
-      })),
+      variants: product.variants.length
+        ? product.variants.map((v) => ({
+            size: v.size,
+            colorVi: v.colorVi,
+            colorEn: v.colorEn || v.colorVi,
+            priceAdjustment: v.priceAdjustment,
+            isAvailable: v.isAvailable
+          }))
+        : defaults.variants,
       sizeTemplateId: product.sizeTemplateId || "",
       sizeCharts: (product.sizeCharts ?? []).map((s) => ({
         size: s.size,
@@ -370,9 +562,19 @@ export function AdminProductManager({
       stockStatus: product.stockStatus,
       isFeatured: product.isFeatured,
       isActive: product.isActive
-    });
-    if (typeof window !== "undefined" && localStorage.getItem(`rpt:product-draft:${product.id}`)) {
-      setDraftRestorePrompt(true);
+    };
+
+    setEditingId(product.id);
+    setEditingProductStatus(product.status);
+    draftProductIdRef.current = product.status === "DRAFT" ? product.id : null;
+    setServerError("");
+    reset(formValues);
+    if (product.status === "DRAFT") {
+      setDraftStatus("saved");
+      setDraftSavedAt(new Date(product.updatedAt));
+      lastSavedDraftPayloadRef.current = draftPayloadKey(toDraftPayload(formValues));
+    } else {
+      resetDraftSaveState();
     }
     setOpen(true);
   }
@@ -386,6 +588,16 @@ export function AdminProductManager({
 
   async function save(values: FormValues) {
     setServerError("");
+    const isPublishingDraft = !editingId || editingProductStatus === "DRAFT";
+    if (
+      isPublishingDraft &&
+      !window.confirm(
+        "Publish this product? It can become visible and purchasable when Active is enabled."
+      )
+    ) {
+      return;
+    }
+
     const endpoint = editingId ? `/api/products/${editingId}` : "/api/products";
     const response = await fetch(endpoint, {
       method: editingId ? "PATCH" : "POST",
@@ -402,7 +614,7 @@ export function AdminProductManager({
       setServerError(result.error ?? "Unable to save product");
       return;
     }
-    clearDraft();
+    resetDraftSaveState();
     setOpen(false);
     router.refresh();
   }
@@ -458,7 +670,11 @@ export function AdminProductManager({
   }
 
   async function remove(product: ProductWithImages) {
-    if (!window.confirm(`Delete or archive "${product.nameEn}"?`)) {
+    const message =
+      product.status === "DRAFT"
+        ? `Delete draft "${productDisplayName(product)}"? This draft will be removed and cannot be continued.`
+        : `Delete or archive "${productDisplayName(product)}"?`;
+    if (!window.confirm(message)) {
       return;
     }
     const response = await fetch(`/api/products/${product.id}`, {
@@ -520,7 +736,37 @@ export function AdminProductManager({
 
   return (
     <>
-      <div className="mb-5 grid gap-3 xl:grid-cols-[minmax(260px,1fr)_190px_170px_170px_auto]">
+      <div className="mb-4 flex flex-wrap gap-2" role="tablist" aria-label="Product status tabs">
+        <button
+          aria-selected={statusTab === "ALL"}
+          className={cn(
+            "inline-flex min-h-10 items-center border px-4 text-xs font-bold uppercase tracking-[0.1em] transition-colors",
+            statusTab === "ALL"
+              ? "border-zinc-900 bg-zinc-900 text-white"
+              : "border-zinc-300 bg-white text-zinc-700 hover:border-zinc-900"
+          )}
+          onClick={() => updateStatusTab("ALL")}
+          role="tab"
+          type="button"
+        >
+          All products
+        </button>
+        <button
+          aria-selected={statusTab === "DRAFTS"}
+          className={cn(
+            "inline-flex min-h-10 items-center border px-4 text-xs font-bold uppercase tracking-[0.1em] transition-colors",
+            statusTab === "DRAFTS"
+              ? "border-amber-700 bg-amber-700 text-white"
+              : "border-amber-300 bg-white text-amber-800 hover:border-amber-700"
+          )}
+          onClick={() => updateStatusTab("DRAFTS")}
+          role="tab"
+          type="button"
+        >
+          Drafts ({draftCount})
+        </button>
+      </div>
+      <div className="mb-5 grid gap-3 xl:grid-cols-[minmax(240px,1fr)_170px_190px_170px_170px_auto]">
         <label className="relative min-w-0">
           <span className="sr-only">Search products</span>
           <Search
@@ -535,6 +781,16 @@ export function AdminProductManager({
             value={query}
           />
         </label>
+        <select
+          aria-label="Filter by product status"
+          className="min-h-11 border border-zinc-300 bg-white px-3 text-sm font-bold text-zinc-900 outline-none focus:border-[#a72b1f]"
+          onChange={(event) => updateStatusFilter(event.target.value as ProductStatusFilter)}
+          value={statusFilter}
+        >
+          <option value="ALL">All product status</option>
+          <option value="PUBLISHED">Published</option>
+          <option value="DRAFT">Draft</option>
+        </select>
         <select
           aria-label="Filter by category"
           className="min-h-11 border border-zinc-300 bg-white px-3 text-sm font-bold text-zinc-900 outline-none focus:border-[#a72b1f]"
@@ -555,7 +811,7 @@ export function AdminProductManager({
           value={visibilityFilter}
         >
           <option value="ACTIVE">Active / Hoạt động</option>
-          <option value="ALL">All status / Tất cả trạng thái</option>
+          <option value="ALL">All visibility / Tất cả hiển thị</option>
           <option value="INACTIVE">Inactive / Không hoạt động (Lưu trữ)</option>
           <option value="FEATURED">Featured / Nổi bật</option>
         </select>
@@ -592,8 +848,13 @@ export function AdminProductManager({
         {paginatedProducts.map((product) => (
           <tr key={product.id}>
             <td className="px-4 py-4">
-              <p className="font-bold">{product.nameEn}</p>
-              <p className="mt-1 text-xs text-zinc-500">{product.slug}</p>
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="font-bold">{productDisplayName(product)}</p>
+                <ProductStatusBadge status={product.status} />
+              </div>
+              {productDisplaySlug(product) ? (
+                <p className="mt-1 text-xs text-zinc-500">{productDisplaySlug(product)}</p>
+              ) : null}
               {product.images.length > 0 ? (
                 <div className="mt-3 flex max-w-[320px] gap-2 overflow-x-auto pb-1">
                   {product.images.map((image, index) => (
@@ -603,7 +864,7 @@ export function AdminProductManager({
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
-                        alt={`${product.nameEn} image ${index + 1}`}
+                        alt={`${productDisplayName(product)} image ${index + 1}`}
                         className="h-full w-full object-cover"
                         src={image.url}
                       />
@@ -625,8 +886,16 @@ export function AdminProductManager({
               />
             </td>
             <td className="px-4 py-4">
-              {new Intl.NumberFormat("vi-VN").format(product.basePrice)}{" "}
-              VND
+              {product.status === "DRAFT" && product.basePrice <= 0 ? (
+                <span className="text-xs font-bold uppercase tracking-[0.08em] text-zinc-400">
+                  Not set
+                </span>
+              ) : (
+                <>
+                  {new Intl.NumberFormat("vi-VN").format(product.basePrice)}{" "}
+                  VND
+                </>
+              )}
               {product.variants.length ? (
                 <p className="mt-1 text-xs text-zinc-500">
                   {product.variants.length} variants
@@ -648,15 +917,19 @@ export function AdminProductManager({
             <td className="px-4 py-4">
               <div className="flex gap-2">
                 <button
-                  aria-label="Edit product"
-                  className="grid size-10 place-items-center border border-zinc-300 bg-white text-zinc-800 transition-colors hover:border-zinc-900 hover:bg-zinc-900 hover:text-white"
+                  aria-label={product.status === "DRAFT" ? "Resume draft" : "Edit product"}
+                  className={cn(
+                    "inline-flex min-h-10 items-center justify-center gap-2 border border-zinc-300 bg-white text-zinc-800 transition-colors hover:border-zinc-900 hover:bg-zinc-900 hover:text-white",
+                    product.status === "DRAFT" ? "px-3 text-xs font-bold uppercase tracking-[0.08em]" : "w-10"
+                  )}
                   onClick={() => editProduct(product)}
                   type="button"
                 >
                   <Pencil size={15} />
+                  {product.status === "DRAFT" ? <span>Resume</span> : null}
                 </button>
                 <button
-                  aria-label="Delete product"
+                  aria-label={product.status === "DRAFT" ? "Delete draft" : "Delete product"}
                   className="grid size-10 place-items-center border border-red-200 bg-white text-red-700 transition-colors hover:border-red-700 hover:bg-red-700 hover:text-white"
                   onClick={() => remove(product)}
                   type="button"
@@ -710,7 +983,11 @@ export function AdminProductManager({
           <div className="mx-auto my-6 max-w-4xl border border-zinc-200 bg-white p-5 text-zinc-950 shadow-2xl sm:p-8">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-black">
-                {editingId ? "Edit product" : "New product"}
+                {editingProductStatus === "DRAFT"
+                  ? "Edit draft"
+                  : editingId
+                    ? "Edit product"
+                    : "New product"}
               </h2>
               <button
                 aria-label="Close"
@@ -721,7 +998,7 @@ export function AdminProductManager({
                       return;
                     }
                   }
-                  clearDraft();
+                  resetDraftSaveState();
                   setOpen(false);
                 }}
                 type="button"
@@ -745,45 +1022,6 @@ export function AdminProductManager({
                 }
               })}
             >
-              {draftRestorePrompt && (
-                <div className="col-span-2 border border-amber-200 bg-amber-50 p-4 flex flex-col sm:flex-row items-center justify-between gap-3 rounded-md">
-                  <div className="flex flex-col">
-                    <span className="text-xs font-bold text-amber-800">
-                      Phát hiện bản nháp chưa lưu từ phiên làm việc trước / Unsaved draft detected
-                    </span>
-                    <span className="text-[10px] text-amber-600 font-medium">
-                      Bạn có muốn khôi phục lại các thông số sản phẩm đang nhập dở dang?
-                    </span>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        try {
-                          const raw = localStorage.getItem(draftKey);
-                          if (raw) {
-                            const parsed = JSON.parse(raw);
-                            reset(parsed.values);
-                          }
-                        } catch {}
-                        setDraftRestorePrompt(false);
-                      }}
-                      className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider bg-amber-800 text-white hover:bg-amber-900 transition-colors rounded cursor-pointer"
-                    >
-                      Khôi phục / Restore
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        clearDraft();
-                      }}
-                      className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider border border-amber-300 text-amber-800 hover:bg-amber-100 transition-colors rounded cursor-pointer"
-                    >
-                      Xóa bản nháp / Discard
-                    </button>
-                  </div>
-                </div>
-              )}
               <AdminField label="Name (VI) / Tên (Tiếng Việt)" error={errors.nameVi?.message}>
                 <input className="field" {...register("nameVi")} />
               </AdminField>
@@ -1611,16 +1849,24 @@ export function AdminProductManager({
                   disabled={isSubmitting}
                   type="submit"
                 >
-                  {isSubmitting ? "Saving... / Đang lưu..." : "Save product / Lưu sản phẩm"}
+                  {isSubmitting
+                    ? "Saving... / Đang lưu..."
+                    : !editingId || editingProductStatus === "DRAFT"
+                      ? "Publish product / Xuất bản"
+                      : "Save product / Lưu sản phẩm"}
                 </button>
-                <button
-                  type="button"
-                  className="inline-flex min-h-12 items-center justify-center border border-zinc-400 bg-white px-4 text-xs font-bold uppercase tracking-[0.1em] text-zinc-700 transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
-                  disabled={isSubmitting}
-                  onClick={saveDraft}
-                >
-                  Lưu bản nháp / Save draft
-                </button>
+                {canSaveDraft ? (
+                  <button
+                    type="button"
+                    className="inline-flex min-h-12 items-center justify-center border border-zinc-400 bg-white px-4 text-xs font-bold uppercase tracking-[0.1em] text-zinc-700 transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+                    disabled={isSubmitting || draftStatus === "saving"}
+                    onClick={() => {
+                      void saveDraft();
+                    }}
+                  >
+                    Lưu bản nháp / Save draft
+                  </button>
+                ) : null}
                 {draftStatus === "saving" && (
                   <span className="text-xs text-zinc-400">Đang lưu bản nháp...</span>
                 )}
@@ -1628,6 +1874,9 @@ export function AdminProductManager({
                   <span className="text-xs text-zinc-500">
                     Đã lưu lúc {draftSavedAt.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}
                   </span>
+                )}
+                {draftStatus === "failed" && (
+                  <span className="text-xs font-bold text-red-600">Không lưu được bản nháp / Draft save failed</span>
                 )}
               </div>
             </form>
@@ -1899,6 +2148,21 @@ function BooleanBadge({
       }`}
     >
       {enabled ? label : label === "Inactive" ? label : "No"}
+    </span>
+  );
+}
+
+function ProductStatusBadge({ status }: { status: ProductStatus }) {
+  const draft = status === "DRAFT";
+  return (
+    <span
+      className={`inline-flex border px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.08em] ${
+        draft
+          ? "border-amber-300 bg-amber-50 text-amber-800"
+          : "border-emerald-200 bg-emerald-50 text-emerald-800"
+      }`}
+    >
+      {draft ? "Draft" : "Published"}
     </span>
   );
 }
