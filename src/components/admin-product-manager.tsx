@@ -175,7 +175,8 @@ export function AdminProductManager({
     getValues,
     reset,
     setValue,
-    formState: { errors, isSubmitting }
+    watch,
+    formState: { errors, isSubmitting, isDirty }
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: defaults
@@ -197,6 +198,43 @@ export function AdminProductManager({
   const [isUploading, setIsUploading] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+
+  const [draftStatus, setDraftStatus] = useState<"idle" | "saving" | "saved">("idle");
+  const [draftSavedAt, setDraftSavedAt] = useState<Date | null>(null);
+  const [draftRestorePrompt, setDraftRestorePrompt] = useState(false);
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const draftKey = editingId ? `rpt:product-draft:${editingId}` : "rpt:product-draft:new";
+
+  // Auto-save draft on form changes (3s debounce)
+  useEffect(() => {
+    if (!open) return;
+    const subscription = watch((values) => {
+      setDraftStatus("saving");
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+      autoSaveTimerRef.current = setTimeout(() => {
+        try {
+          localStorage.setItem(draftKey, JSON.stringify({ values, savedAt: new Date().toISOString() }));
+          setDraftSavedAt(new Date());
+          setDraftStatus("saved");
+        } catch {
+          setDraftStatus("idle");
+        }
+      }, 3000);
+    });
+    return () => {
+      subscription.unsubscribe();
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    };
+  }, [watch, open, draftKey]);
+
+  // Warn before page unload when form has unsaved changes
+  useEffect(() => {
+    function handleBeforeUnload(e: BeforeUnloadEvent) {
+      if (isDirty) e.preventDefault();
+    }
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [isDirty]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -264,16 +302,40 @@ export function AdminProductManager({
     setPage(1);
   }
 
+  function saveDraft() {
+    try {
+      const values = getValues();
+      localStorage.setItem(draftKey, JSON.stringify({ values, savedAt: new Date().toISOString() }));
+      setDraftSavedAt(new Date());
+      setDraftStatus("saved");
+    } catch {
+      // localStorage may be unavailable
+    }
+  }
+
+  function clearDraft() {
+    localStorage.removeItem(draftKey);
+    setDraftStatus("idle");
+    setDraftSavedAt(null);
+    setDraftRestorePrompt(false);
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+  }
+
   function createProduct() {
     setEditingId(null);
     setServerError("");
+    setDraftRestorePrompt(false);
     reset({ ...defaults, categoryId: categoryOptions[0]?.id ?? "" });
+    if (typeof window !== "undefined" && localStorage.getItem("rpt:product-draft:new")) {
+      setDraftRestorePrompt(true);
+    }
     setOpen(true);
   }
 
   function editProduct(product: ProductWithImages) {
     setEditingId(product.id);
     setServerError("");
+    setDraftRestorePrompt(false);
     reset({
       nameVi: product.nameVi,
       nameEn: product.nameEn,
@@ -308,6 +370,9 @@ export function AdminProductManager({
       isFeatured: product.isFeatured,
       isActive: product.isActive
     });
+    if (typeof window !== "undefined" && localStorage.getItem(`rpt:product-draft:${product.id}`)) {
+      setDraftRestorePrompt(true);
+    }
     setOpen(true);
   }
 
@@ -336,6 +401,7 @@ export function AdminProductManager({
       setServerError(result.error ?? "Unable to save product");
       return;
     }
+    clearDraft();
     setOpen(false);
     router.refresh();
   }
@@ -648,7 +714,15 @@ export function AdminProductManager({
               <button
                 aria-label="Close"
                 className="grid size-10 place-items-center bg-zinc-100 text-zinc-800 transition-colors hover:bg-zinc-900 hover:text-white"
-                onClick={() => setOpen(false)}
+                onClick={() => {
+                  if (isDirty) {
+                    if (!window.confirm("Bạn có thay đổi chưa lưu. Đóng và hủy các thay đổi này? / You have unsaved changes. Close and discard these changes?")) {
+                      return;
+                    }
+                  }
+                  clearDraft();
+                  setOpen(false);
+                }}
                 type="button"
               >
                 <X />
@@ -670,6 +744,45 @@ export function AdminProductManager({
                 }
               })}
             >
+              {draftRestorePrompt && (
+                <div className="col-span-2 border border-amber-200 bg-amber-50 p-4 flex flex-col sm:flex-row items-center justify-between gap-3 rounded-md">
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-amber-800">
+                      Phát hiện bản nháp chưa lưu từ phiên làm việc trước / Unsaved draft detected
+                    </span>
+                    <span className="text-[10px] text-amber-600 font-medium">
+                      Bạn có muốn khôi phục lại các thông số sản phẩm đang nhập dở dang?
+                    </span>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        try {
+                          const raw = localStorage.getItem(draftKey);
+                          if (raw) {
+                            const parsed = JSON.parse(raw);
+                            reset(parsed.values);
+                          }
+                        } catch {}
+                        setDraftRestorePrompt(false);
+                      }}
+                      className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider bg-amber-800 text-white hover:bg-amber-900 transition-colors rounded cursor-pointer"
+                    >
+                      Khôi phục / Restore
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        clearDraft();
+                      }}
+                      className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider border border-amber-300 text-amber-800 hover:bg-amber-100 transition-colors rounded cursor-pointer"
+                    >
+                      Xóa bản nháp / Discard
+                    </button>
+                  </div>
+                </div>
+              )}
               <AdminField label="Name (VI) / Tên (Tiếng Việt)" error={errors.nameVi?.message}>
                 <input className="field" {...register("nameVi")} />
               </AdminField>
@@ -1491,13 +1604,31 @@ export function AdminProductManager({
               {serverError ? (
                 <p className="error-text sm:col-span-2">{serverError}</p>
               ) : null}
-              <button
-                className="inline-flex min-h-12 items-center justify-center bg-[#171715] px-6 text-xs font-bold uppercase tracking-[0.1em] text-white transition-colors hover:bg-[#a72b1f] disabled:cursor-wait disabled:bg-zinc-300 disabled:text-zinc-600 sm:col-span-2 sm:justify-self-start"
-                disabled={isSubmitting}
-                type="submit"
-              >
-                {isSubmitting ? "Saving... / Đang lưu..." : "Save product / Lưu sản phẩm"}
-              </button>
+              <div className="sm:col-span-2 flex flex-wrap items-center gap-3">
+                <button
+                  className="inline-flex min-h-12 items-center justify-center bg-[#171715] px-6 text-xs font-bold uppercase tracking-[0.1em] text-white transition-colors hover:bg-[#a72b1f] disabled:cursor-wait disabled:bg-zinc-300 disabled:text-zinc-600 cursor-pointer"
+                  disabled={isSubmitting}
+                  type="submit"
+                >
+                  {isSubmitting ? "Saving... / Đang lưu..." : "Save product / Lưu sản phẩm"}
+                </button>
+                <button
+                  type="button"
+                  className="inline-flex min-h-12 items-center justify-center border border-zinc-400 bg-white px-4 text-xs font-bold uppercase tracking-[0.1em] text-zinc-700 transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+                  disabled={isSubmitting}
+                  onClick={saveDraft}
+                >
+                  Lưu bản nháp / Save draft
+                </button>
+                {draftStatus === "saving" && (
+                  <span className="text-xs text-zinc-400">Đang lưu bản nháp...</span>
+                )}
+                {draftStatus === "saved" && draftSavedAt && (
+                  <span className="text-xs text-zinc-500">
+                    Đã lưu lúc {draftSavedAt.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}
+                  </span>
+                )}
+              </div>
             </form>
           </div>
         </div>
