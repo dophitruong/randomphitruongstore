@@ -5,13 +5,24 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const isProduction = process.env.NODE_ENV === "production";
 
+const scriptSrc = [
+  "'self'",
+  "'unsafe-inline'",
+  ...(isProduction ? [] : ["'unsafe-eval'"]),
+  "https://www.googletagmanager.com",
+  "https://www.google-analytics.com",
+  "https://www.googleadservices.com",
+  "https://googleads.g.doubleclick.net",
+  "https://challenges.cloudflare.com"
+];
+
 const contentSecurityPolicy = [
   "default-src 'self'",
   "base-uri 'self'",
   "object-src 'none'",
   "frame-ancestors 'none'",
   "form-action 'self' https://pay.sepay.vn",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://challenges.cloudflare.com",
+  `script-src ${scriptSrc.join(" ")}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https://images.unsplash.com https://qr.sepay.vn https://*.supabase.co https://res.cloudinary.com https://www.google-analytics.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://*.g.doubleclick.net https://*.google.com https://*.googleadservices.com",
   "font-src 'self' data:",
@@ -28,6 +39,13 @@ const productionHeaders = isProduction
       }
     ]
   : [];
+
+const crawlerExclusionHeaders = [
+  {
+    key: "X-Robots-Tag",
+    value: "noindex, nofollow, noarchive"
+  }
+];
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: ["26.247.105.175"],
@@ -58,6 +76,20 @@ const nextConfig: NextConfig = {
             value: "camera=(), microphone=(), geolocation=(), payment=()"
           }
         ]
+      },
+      {
+        source: "/admin/:path*",
+        headers: [
+          ...crawlerExclusionHeaders,
+          {
+            key: "Cache-Control",
+            value: "no-store, max-age=0"
+          }
+        ]
+      },
+      {
+        source: "/api/:path*",
+        headers: crawlerExclusionHeaders
       }
     ];
   },

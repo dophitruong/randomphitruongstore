@@ -4,8 +4,19 @@ import { AdminLoginForm } from "@/components/admin-login-form";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
 
 export const metadata: Metadata = {
-  title: "Admin sign in",
-  robots: { index: false, follow: false }
+  title: "random.phitruong admin",
+  robots: {
+    index: false,
+    follow: false,
+    noarchive: true,
+    nosnippet: true,
+    googleBot: {
+      index: false,
+      follow: false,
+      noarchive: true,
+      nosnippet: true
+    }
+  }
 };
 
 export default async function AdminLoginPage() {
@@ -17,9 +28,9 @@ export default async function AdminLoginPage() {
     <main className="grid min-h-screen place-items-center bg-[#11100e] p-5 text-white">
       <section className="w-full max-w-md border border-white/15 bg-[#191816] p-7 shadow-2xl sm:p-10">
         <p className="eyebrow text-white/40">Protected workspace</p>
-        <h1 className="mt-4 text-4xl font-black">Admin sign in</h1>
+        <h1 className="mt-4 text-4xl font-black">random.phitruong admin</h1>
         <p className="mt-3 text-sm leading-6 text-white/50">
-          Sign in with your assigned admin account.
+          Internal access for authorized store staff only.
         </p>
         <AdminLoginForm />
       </section>

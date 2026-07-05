@@ -6,7 +6,18 @@ import { createPerfContext, withPerfTiming } from "@/lib/perf-diagnostics";
 
 export const metadata: Metadata = {
   title: "Admin",
-  robots: { index: false, follow: false }
+  robots: {
+    index: false,
+    follow: false,
+    noarchive: true,
+    nosnippet: true,
+    googleBot: {
+      index: false,
+      follow: false,
+      noarchive: true,
+      nosnippet: true
+    }
+  }
 };
 
 export default async function AdminPanelLayout({
