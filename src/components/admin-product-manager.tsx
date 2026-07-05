@@ -327,6 +327,7 @@ export function AdminProductManager({
       body: JSON.stringify({
         ...values,
         categoryId: values.categoryId,
+        sizeTemplateId: values.sizeTemplateId || null,
         images: splitProductImageUrls(values.images)
       })
     });
