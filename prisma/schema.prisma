@@ -13,6 +13,11 @@ enum StockStatus {
   OUT_OF_STOCK
 }
 
+enum ProductStatus {
+  DRAFT
+  PUBLISHED
+}
+
 enum ShippingRegion {
   VIETNAM
   SINGAPORE
@@ -283,6 +288,7 @@ model Product {
   orderLeadTimeMaxDays Int              @default(10)
   materialVi           String
   materialEn           String
+  status               ProductStatus    @default(PUBLISHED)
   stockStatus          StockStatus      @default(IN_STOCK)
   isFeatured           Boolean          @default(false)
   isActive             Boolean          @default(true)
@@ -299,6 +305,8 @@ model Product {
   @@index([categoryId, isActive])
   @@index([categoryId])
   @@index([createdByAdminId])
+  @@index([status])
+  @@index([status, isActive])
   @@index([stockStatus])
 }
 

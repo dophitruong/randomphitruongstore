@@ -87,6 +87,7 @@ describe("admin product catalog write model", () => {
       orderLeadTimeMaxDays: 10,
       materialVi: "Satin cao cap",
       materialEn: "Premium satin",
+      status: "PUBLISHED",
       stockStatus: "IN_STOCK",
       isFeatured: true,
       isActive: true,
