@@ -404,7 +404,7 @@ export function AdminProductManager({
     }
   }
 
-  async function saveTemplate(templateData: { id?: string; nameVi: string; nameEn: string; fields: any[] }) {
+  async function saveTemplate(templateData: { id?: string; nameVi: string; nameEn: string; fields: { key: string; nameVi: string; nameEn: string }[] }) {
     setTemplateFormError("");
     const isEdit = !!templateData.id;
     const endpoint = isEdit ? `/api/admin/size-templates/${templateData.id}` : "/api/admin/size-templates";
@@ -427,8 +427,9 @@ export function AdminProductManager({
         setTemplates(prev => [result.data, ...prev]);
       }
       setEditingTemplate(null);
-    } catch (err: any) {
-      setTemplateFormError(err.message || "An error occurred");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "An error occurred";
+      setTemplateFormError(message);
     }
   }
 
@@ -446,8 +447,9 @@ export function AdminProductManager({
       if (selectedTemplateId === id) {
         setValue("sizeTemplateId", "");
       }
-    } catch (err: any) {
-      alert(err.message || "An error occurred");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "An error occurred";
+      alert(message);
     }
   }
 
@@ -968,11 +970,11 @@ export function AdminProductManager({
                     <button
                       type="button"
                       onClick={() => {
-                        const templateInitValues: any = { size: "", unit: "cm" };
+                        const templateInitValues: Record<string, unknown> = { size: "", unit: "cm" };
                         if (activeTemplate) {
                           templateInitValues.measurements = {};
                           activeTemplate.fields.forEach(f => {
-                            templateInitValues.measurements[f.key] = undefined;
+                            (templateInitValues.measurements as Record<string, unknown>)[f.key] = undefined;
                           });
                         } else {
                           templateInitValues.shoulder = undefined;
@@ -1535,14 +1537,15 @@ export function AdminProductManager({
                   
                   // Collect fields
                   const keys = target.querySelectorAll("[name^='field-key-']");
-                  const fields: any[] = [];
-                  keys.forEach((el: any) => {
-                    const idx = el.name.replace("field-key-", "");
+                  const fields: { key: string; nameVi: string; nameEn: string }[] = [];
+                  keys.forEach((el) => {
+                    const inputEl = el as HTMLInputElement;
+                    const idx = inputEl.name.replace("field-key-", "");
                     const nameViInput = target.querySelector(`[name='field-nameVi-${idx}']`) as HTMLInputElement;
                     const nameEnInput = target.querySelector(`[name='field-nameEn-${idx}']`) as HTMLInputElement;
-                    if (el.value.trim()) {
+                    if (inputEl.value.trim()) {
                       fields.push({
-                        key: el.value.trim().toLowerCase(),
+                        key: inputEl.value.trim().toLowerCase(),
                         nameVi: nameViInput.value.trim(),
                         nameEn: nameEnInput.value.trim()
                       });
