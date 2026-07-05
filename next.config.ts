@@ -11,12 +11,12 @@ const contentSecurityPolicy = [
   "object-src 'none'",
   "frame-ancestors 'none'",
   "form-action 'self' https://pay.sepay.vn",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://www.googleadservices.com https://googleads.g.doubleclick.net",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://challenges.cloudflare.com",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https://images.unsplash.com https://qr.sepay.vn https://*.supabase.co https://res.cloudinary.com https://www.google-analytics.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://*.g.doubleclick.net https://*.google.com https://*.googleadservices.com",
   "font-src 'self' data:",
-  "connect-src 'self' https://*.supabase.co https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://*.g.doubleclick.net https://*.google.com https://*.googleadservices.com",
-  "frame-src 'self' https://www.googletagmanager.com https://*.doubleclick.net",
+  "connect-src 'self' https://*.supabase.co https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://*.g.doubleclick.net https://*.google.com https://*.googleadservices.com https://challenges.cloudflare.com",
+  "frame-src 'self' https://www.googletagmanager.com https://*.doubleclick.net https://challenges.cloudflare.com",
   ...(isProduction ? ["upgrade-insecure-requests"] : [])
 ].join("; ");
 

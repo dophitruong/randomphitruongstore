@@ -25,7 +25,10 @@ export async function POST(request: Request) {
   const supabase = await getSupabaseServerClient();
   const { data, error } = await supabase.auth.signInWithPassword({
     email: parsed.data.email,
-    password: parsed.data.password
+    password: parsed.data.password,
+    options: {
+      captchaToken: parsed.data.captchaToken
+    }
   });
 
   if (error) {
