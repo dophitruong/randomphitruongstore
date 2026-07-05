@@ -209,6 +209,7 @@ export function AdminProductManager({
   useEffect(() => {
     if (!open) return;
     const subscription = watch((values) => {
+      if (!isDirty) return;
       setDraftStatus("saving");
       if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
       autoSaveTimerRef.current = setTimeout(() => {
@@ -225,7 +226,7 @@ export function AdminProductManager({
       subscription.unsubscribe();
       if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
     };
-  }, [watch, open, draftKey]);
+  }, [watch, open, draftKey, isDirty]);
 
   // Warn before page unload when form has unsaved changes
   useEffect(() => {
