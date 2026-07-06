@@ -17,6 +17,7 @@ import {
   UploadValidationError,
   validateImageUpload
 } from "@/lib/upload";
+import { resolveUploadAuthorization } from "@/lib/upload-authorization";
 
 export async function POST(request: Request) {
   const admin = await getCurrentAdmin();
@@ -37,11 +38,18 @@ export async function POST(request: Request) {
 
   const purpose = String(data.get("purpose") ?? "PRODUCT_INQUIRY_IMAGE");
   const isAdminUpload = Boolean(admin);
-  if (purpose !== "PRODUCT_INQUIRY_IMAGE" && purpose !== "ADMIN_PRODUCT_IMAGE") {
-    return NextResponse.json({ error: "Invalid upload purpose" }, { status: 400 });
+  const authorization = resolveUploadAuthorization({
+    purpose,
+    isAdminUpload
+  });
+  if (!authorization.ok) {
+    return NextResponse.json(
+      { error: authorization.error },
+      { status: authorization.status }
+    );
   }
 
-  if (!isAdminUpload) {
+  if (authorization.requiresIntent) {
     const intentToken = String(data.get("intentToken") ?? "");
     const validIntent = await consumeUploadIntent({
       prisma: getPrisma(),
