@@ -9,7 +9,9 @@ import {
   INSTAGRAM_URL,
   TIKTOK_URL,
   ZALO_PHONE,
-  ZALO_URL
+  ZALO_URL,
+  HOTLINE,
+  WORKING_HOURS
 } from "@/lib/constants";
 import { TikTokIcon, ZaloIcon } from "./brand-icons";
 import { TrackedLink } from "./tracked-link";
@@ -27,7 +29,8 @@ export async function Footer() {
     { href: "/terms-of-service", label: t("termsConditions") },
     { href: "/shipping-policy", label: t("shippingPolicy") },
     { href: "/return-refund-policy", label: t("returnRefundPolicy") },
-    { href: "/contact", label: t("contactInformation") }
+    { href: "/contact", label: t("contactInformation") },
+    { href: "/contact#faq", label: "FAQ" }
   ];
 
   return (
@@ -138,28 +141,36 @@ export async function Footer() {
                 unoptimized
               />
             </TrackedLink>
-            <div className="min-w-0 self-center">
+            <div className="min-w-0 self-center space-y-2">
               <p className="font-black leading-5">{t("zaloTitle")}</p>
-              <p className="mt-2 text-xs leading-5 text-white/55">
+              <p className="text-xs leading-5 text-white/55">
                 {t("zaloBody")}
               </p>
-              <TrackedLink
-                className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-white hover:text-[#d64b3d]"
-                eventName="click_zalo"
-                href={ZALO_URL}
-                rel="noreferrer"
-                target="_blank"
-              >
-                <ZaloIcon size={18} />
-                {ZALO_PHONE}
-              </TrackedLink>
-              <a
-                className="mt-3 flex items-center gap-2 text-sm font-bold text-white/70 hover:text-white"
-                href={`mailto:${CONTACT_EMAIL}`}
-              >
-                <Mail size={18} />
-                <span className="whitespace-nowrap">{CONTACT_EMAIL}</span>
-              </a>
+              <div className="flex flex-col gap-2">
+                <TrackedLink
+                  className="inline-flex items-center gap-2 text-sm font-bold text-white hover:text-[#d64b3d]"
+                  eventName="click_zalo"
+                  href={ZALO_URL}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  <ZaloIcon size={18} />
+                  <span>Zalo: {ZALO_PHONE}</span>
+                </TrackedLink>
+                <a
+                  className="inline-flex items-center gap-2 text-sm font-bold text-white/70 hover:text-white"
+                  href={`mailto:${CONTACT_EMAIL}`}
+                >
+                  <Mail size={18} />
+                  <span className="whitespace-nowrap">Email: {CONTACT_EMAIL}</span>
+                </a>
+                <div className="text-sm font-bold text-white/70">
+                  Hotline: {HOTLINE}
+                </div>
+                <div className="text-xs text-white/55">
+                  Giờ làm việc / Hours: {WORKING_HOURS}
+                </div>
+              </div>
             </div>
           </div>
         </div>
