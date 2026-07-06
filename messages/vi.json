@@ -98,7 +98,13 @@
     "length": "Dài áo",
     "sleeve": "Tay áo",
     "readMore": "Đọc thêm",
-    "readLess": "Thu gọn"
+    "readLess": "Thu gọn",
+    "leadTimeTitle": "Thời gian giao hàng (Lead Time)",
+    "leadTimeBody": "Dự kiến 7–10 ngày làm việc kể từ ngày đặt cọc thành công.",
+    "depositTitle": "Quy trình đặt cọc (Deposit)",
+    "depositBody": "Đặt cọc trước 50% để tiến hành order, 50% còn lại thanh toán COD khi nhận hàng. Quý khách có thể hủy đơn và nhận lại 100% tiền cọc trong vòng 24 giờ kể từ khi cọc.",
+    "returnTitle": "Chính sách đổi trả (Returns)",
+    "returnBody": "Báo trong vòng 48 giờ kể từ khi nhận hàng nếu có lỗi từ nhà cung cấp hoặc giao sai mẫu/màu/size so với đơn đã chốt."
   },
   "auth": {
     "eyebrow": "Tài khoản khách hàng",
