@@ -98,7 +98,13 @@
     "length": "Length",
     "sleeve": "Sleeve",
     "readMore": "Read more",
-    "readLess": "Read less"
+    "readLess": "Read less",
+    "leadTimeTitle": "Estimated Delivery (Lead Time)",
+    "leadTimeBody": "Estimated 7–10 business days after successful deposit confirmation.",
+    "depositTitle": "Deposit Process",
+    "depositBody": "A 50% deposit is required to confirm the order, with the remaining 50% paid via COD upon delivery. You can cancel and receive a 100% refund within 24 hours of placing your deposit.",
+    "returnTitle": "Return Policy",
+    "returnBody": "Report within 48 hours of receipt for manufacturer defects or incorrect items (wrong model, color, or size)."
   },
   "auth": {
     "eyebrow": "Customer account",
