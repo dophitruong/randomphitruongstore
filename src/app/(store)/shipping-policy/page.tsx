@@ -53,18 +53,13 @@ export default function ShippingPolicyPage() {
 
         <section>
           <h2 className="border-b border-zinc-200 pb-2 text-lg font-bold text-zinc-900">
-            3. Phí vận chuyển / Shipping Fees
+            3. Quy trình thanh toán & Phí vận chuyển / Payment & Shipping Fees
           </h2>
           <p className="mt-2">
-            Phí vận chuyển nội địa được báo theo khu vực nhận hàng và đơn vị
-            vận chuyển phù hợp. Phí vận chuyển quốc tế được báo riêng sau khi
-            shop xác nhận quốc gia nhận hàng, kích thước kiện hàng và yêu cầu
-            hải quan.
+            Đơn hàng được tiến hành xử lý sau khi quý khách đặt cọc 50%. Phí vận chuyển nội địa được báo theo khu vực nhận hàng và đơn vị vận chuyển phù hợp. Số tiền 50% còn lại cộng với phí vận chuyển sẽ thanh toán COD trực tiếp khi nhận hàng. Phí vận chuyển quốc tế được báo riêng sau khi shop xác nhận quốc gia nhận hàng, kích thước kiện hàng và yêu cầu hải quan.
           </p>
           <p className="mt-2 italic text-zinc-500">
-            Domestic shipping fees depend on destination and carrier.
-            International shipping fees are quoted separately after destination,
-            parcel size and customs requirements are confirmed.
+            Orders are processed after the 50% deposit is confirmed. Domestic shipping fees depend on destination and carrier. The remaining 50% balance plus shipping fees are paid via COD upon delivery. International shipping fees are quoted separately after destination, parcel size and customs requirements are confirmed.
           </p>
         </section>
 
