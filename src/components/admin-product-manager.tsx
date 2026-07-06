@@ -31,6 +31,7 @@ import {
   setPrimaryProductImageUrl,
   splitProductImageUrls
 } from "@/lib/product-images";
+import { ADMIN_UPLOAD_AUTH_ERROR } from "@/lib/upload-authorization";
 import type { ProductStatus, ProductWithImages, SizeTemplateDTO } from "@/types";
 import { AdminTable } from "./admin-table";
 
@@ -654,7 +655,11 @@ export function AdminProductManager({
         });
         const result = (await response.json()) as { url?: string; error?: string };
         if (!response.ok || !result.url) {
-          throw new Error(result.error ?? "Unable to upload image");
+          throw new Error(
+            response.status === 401
+              ? result.error ?? ADMIN_UPLOAD_AUTH_ERROR
+              : result.error ?? "Unable to upload image"
+          );
         }
         uploadedUrls.push(result.url);
       }

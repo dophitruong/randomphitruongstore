@@ -10,6 +10,10 @@ import {
   uploadFailureLogMetadata,
   validateImageUpload
 } from "../src/lib/upload";
+import {
+  ADMIN_UPLOAD_AUTH_ERROR,
+  resolveUploadAuthorization
+} from "../src/lib/upload-authorization";
 
 describe("secure upload flow", () => {
   it("detects image type from magic bytes instead of trusting file.type", async () => {
@@ -143,6 +147,40 @@ describe("secure upload flow", () => {
         now: new Date("2026-06-24T00:01:00.000Z")
       }),
       false
+    );
+  });
+
+  it("rejects unauthenticated admin product uploads before public intent validation", () => {
+    assert.deepEqual(
+      resolveUploadAuthorization({
+        purpose: "ADMIN_PRODUCT_IMAGE",
+        isAdminUpload: false
+      }),
+      {
+        ok: false,
+        status: 401,
+        error: ADMIN_UPLOAD_AUTH_ERROR
+      }
+    );
+    assert.deepEqual(
+      resolveUploadAuthorization({
+        purpose: "PRODUCT_INQUIRY_IMAGE",
+        isAdminUpload: false
+      }),
+      {
+        ok: true,
+        requiresIntent: true
+      }
+    );
+    assert.deepEqual(
+      resolveUploadAuthorization({
+        purpose: "ADMIN_PRODUCT_IMAGE",
+        isAdminUpload: true
+      }),
+      {
+        ok: true,
+        requiresIntent: false
+      }
     );
   });
 
