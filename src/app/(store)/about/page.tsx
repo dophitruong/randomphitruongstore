@@ -122,6 +122,42 @@ export default async function AboutPage() {
         </div>
       </section>
 
+      <section className="bg-zinc-50 border-t border-b border-black/10 py-20">
+        <div className="container-shell max-w-5xl">
+          <p className="eyebrow text-[#a72b1f] text-center">Hoạt động minh bạch · Transparency</p>
+          <h2 className="mt-4 text-3xl font-black text-zinc-900 tracking-tight text-center sm:text-4xl uppercase">
+            Giá trị & Quy trình thương hiệu
+          </h2>
+          
+          <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="bg-white p-6 border border-zinc-205 shadow-sm rounded-sm">
+              <h3 className="text-lg font-bold text-zinc-900 border-b border-zinc-200 pb-2">{t("brandIntroTitle")}</h3>
+              <p className="mt-3 text-sm text-zinc-600 leading-6">{t("brandIntroBody")}</p>
+            </div>
+            
+            <div className="bg-white p-6 border border-zinc-205 shadow-sm rounded-sm">
+              <h3 className="text-lg font-bold text-zinc-900 border-b border-zinc-200 pb-2">{t("originStoryTitle")}</h3>
+              <p className="mt-3 text-sm text-zinc-600 leading-6">{t("originStoryBody")}</p>
+            </div>
+            
+            <div className="bg-white p-6 border border-zinc-205 shadow-sm rounded-sm">
+              <h3 className="text-lg font-bold text-zinc-900 border-b border-zinc-200 pb-2">{t("selectionProcessTitle")}</h3>
+              <p className="mt-3 text-sm text-zinc-600 leading-6">{t("selectionProcessBody")}</p>
+            </div>
+            
+            <div className="bg-white p-6 border border-zinc-205 shadow-sm rounded-sm sm:col-span-2 lg:col-span-1">
+              <h3 className="text-lg font-bold text-zinc-900 border-b border-zinc-200 pb-2">{t("qualityCommitmentTitle")}</h3>
+              <p className="mt-3 text-sm text-zinc-600 leading-6">{t("qualityCommitmentBody")}</p>
+            </div>
+            
+            <div className="bg-white p-6 border border-zinc-205 shadow-sm rounded-sm sm:col-span-2 lg:col-span-2">
+              <h3 className="text-lg font-bold text-zinc-900 border-b border-zinc-200 pb-2">{t("supportProcessTitle")}</h3>
+              <p className="mt-3 text-sm text-zinc-600 leading-6">{t("supportProcessBody")}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="container-shell py-20 md:py-28">
         <div className="grid gap-10 border-y border-black py-10 md:grid-cols-[1.2fr_0.8fr] md:items-end">
           <div>

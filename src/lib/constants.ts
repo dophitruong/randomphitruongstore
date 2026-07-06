@@ -6,6 +6,8 @@ export const TIKTOK_URL = "https://www.tiktok.com/@random.phitruong";
 export const FACEBOOK_URL =
   "https://www.facebook.com/share/1BHqMuddbH/?mibextid=wwXIfr";
 export const CONTACT_EMAIL = "randomphitruong@gmail.com";
+export const HOTLINE = "0388390482";
+export const WORKING_HOURS = "09:00 - 22:00 (Hàng ngày / Everyday)";
 
 export const BANK_DETAILS = {
   bank: "BIDV - PGD Thanh Xuân Bắc",

@@ -18,7 +18,11 @@ import {
   INSTAGRAM_URL,
   TIKTOK_URL,
   ZALO_PHONE,
-  ZALO_URL
+  ZALO_URL,
+  HOTLINE,
+  WORKING_HOURS,
+  BRAND_NAME,
+  CONTACT_EMAIL
 } from "@/lib/constants";
 
 export const metadata: Metadata = {
@@ -30,8 +34,8 @@ export const metadata: Metadata = {
 const faq = {
   vi: [
     [
-      "Hàng có phải hàng chính hãng không?",
-      "Có. Hàng được chọn từ các đơn vị cung cấp uy tín và được shop kiểm tra trước khi nhận. Shop không kinh doanh hàng rep hoặc hàng fake."
+      "Sản phẩm của shop có nguồn gốc từ đâu?",
+      "Sản phẩm tại random.phitruong là các mẫu tuyển chọn chất lượng từ các đối tác, nhà cung cấp uy tín. Mỗi sản phẩm đều được kiểm tra kỹ lưỡng về đường thêu, chất vải và phom dáng trước khi giao đến tay khách hàng, đảm bảo tiêu chuẩn chất lượng cao nhất của thương hiệu."
     ],
     [
       "Tôi có thể xem hàng thực tế trước khi mua không?",
@@ -58,8 +62,8 @@ const faq = {
       "Trung bình 7–10 ngày làm việc kể từ khi xác nhận cọc. Thời gian có thể chênh lệch nhẹ do vận chuyển quốc tế và shop sẽ cập nhật."
     ],
     [
-      "Tôi có thể hủy đơn sau khi đã cọc không?",
-      "Tiền cọc không được hoàn lại nếu khách hủy sau khi shop đã đặt hàng. Nếu shop hết hàng hoặc hàng lỗi từ nhà cung cấp, shop hoàn cọc 100%."
+      "Quy trình đặt cọc và hủy đơn như thế nào?",
+      "Với các mẫu sản phẩm đặt hàng (order), quý khách cần đặt cọc trước 50% giá trị sản phẩm, 50% còn lại thanh toán COD khi nhận hàng. Quý khách có thể hủy đơn và nhận lại 100% tiền cọc trong vòng 24 giờ kể từ khi đặt cọc. Sau 24 giờ, khi shop đã tiến hành đặt hàng với nhà cung cấp quốc tế, tiền cọc sẽ không được hoàn lại. Trong trường hợp sản phẩm hết hàng hoặc phát hiện lỗi từ phía nhà cung cấp khi kiểm hàng, shop sẽ hoàn trả 100% tiền cọc ngay lập tức."
     ],
     [
       "Shop có giao quốc tế không?",
@@ -68,8 +72,8 @@ const faq = {
   ],
   en: [
     [
-      "Are the products authentic?",
-      "Yes. Products come from trusted suppliers and are inspected by the shop. We do not sell replicas or counterfeit goods."
+      "Where do the products come from?",
+      "Our products are premium curated items sourced from trusted suppliers. Each piece is thoroughly inspected for embroidery details, fabric quality, and fit before delivery to ensure it meets our high standards of quality."
     ],
     [
       "Can I see the actual product before buying?",
@@ -96,8 +100,8 @@ const faq = {
       "The average is 7–10 business days after deposit confirmation. International transit can vary slightly and updates will be provided."
     ],
     [
-      "Can I cancel after paying the deposit?",
-      "The deposit is non-refundable after the supplier order is placed. It is refunded in full if the shop cannot source the item or the supplier item is defective."
+      "What is the deposit and cancellation policy?",
+      "For made-to-order items, a 50% deposit is required. The remaining 50% is paid via COD upon delivery. You can cancel your order and receive a 100% refund of your deposit within 24 hours of placement. After 24 hours, once the order is placed with international suppliers, the deposit is non-refundable. If the item is out of stock or found defective by the supplier, the shop will refund 100% of your deposit immediately."
     ],
     [
       "Do you ship internationally?",
@@ -153,6 +157,23 @@ export default async function ContactPage() {
             <p className="mt-6 max-w-2xl text-sm leading-7 text-zinc-600 sm:text-base">
               {t("subtitle")}
             </p>
+            <div className="mt-8 bg-zinc-50 border border-zinc-200 p-6 shadow-sm max-w-4xl">
+              <h2 className="text-lg font-bold text-zinc-900 mb-4">Thông tin thương hiệu / Business Info</h2>
+              <div className="grid gap-4 sm:grid-cols-3 text-sm text-zinc-700">
+                <div>
+                  <p className="font-bold text-zinc-500 uppercase text-xs">Thương hiệu / Brand</p>
+                  <p className="mt-1 font-black text-base">{BRAND_NAME}</p>
+                </div>
+                <div>
+                  <p className="font-bold text-zinc-500 uppercase text-xs">Hotline</p>
+                  <p className="mt-1 font-black text-base">{HOTLINE}</p>
+                </div>
+                <div>
+                  <p className="font-bold text-zinc-500 uppercase text-xs">Giờ làm việc / Working Hours</p>
+                  <p className="mt-1 font-black text-base">{WORKING_HOURS}</p>
+                </div>
+              </div>
+            </div>
           </header>
 
           <section className="mt-12 grid min-w-0 gap-10 xl:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] xl:items-start">

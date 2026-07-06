@@ -182,6 +182,20 @@ export default async function ProductPage({ params }: PageProps) {
             {t("changeWarning")}
           </p>
         </div>
+        <div className="mb-6 border border-zinc-200 divide-y divide-zinc-200 rounded-sm">
+          <div className="p-4 bg-zinc-50">
+            <h3 className="font-bold text-xs uppercase tracking-wider text-zinc-500">{t("leadTimeTitle")}</h3>
+            <p className="mt-1 text-sm text-zinc-750">{t("leadTimeBody")}</p>
+          </div>
+          <div className="p-4 bg-zinc-50">
+            <h3 className="font-bold text-xs uppercase tracking-wider text-zinc-500">{t("depositTitle")}</h3>
+            <p className="mt-1 text-sm text-zinc-750">{t("depositBody")}</p>
+          </div>
+          <div className="p-4 bg-zinc-50">
+            <h3 className="font-bold text-xs uppercase tracking-wider text-zinc-500">{t("returnTitle")}</h3>
+            <p className="mt-1 text-sm text-zinc-750">{t("returnBody")}</p>
+          </div>
+        </div>
         <PurchasePanel
           colors={availableColors}
           labels={{
