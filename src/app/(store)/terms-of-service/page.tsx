@@ -15,10 +15,10 @@ export default function TermsOfServicePage() {
         <section>
           <h2 className="text-lg font-bold text-zinc-900 border-b border-zinc-200 pb-2">1. Quy trình đặt hàng & đặt cọc / Ordering & Deposit Policy</h2>
           <p className="mt-2">
-            Vì chúng tôi hoạt động theo mô hình order các sản phẩm thời trang cao cấp từ nước ngoài, khách hàng vui lòng thực hiện đặt cọc (ví dụ: cọc 50% hoặc thanh toán trước 100%) để xác nhận đơn hàng. Sau khi đơn hàng đã được chốt và đặt với nhà cung cấp quốc tế, thông tin size, màu và mẫu không thể thay đổi hoặc hủy bỏ. Tiền cọc sẽ không được hoàn lại nếu khách hàng đơn phương hủy đơn.
+            Vì chúng tôi hoạt động theo mô hình order các sản phẩm thời trang tuyển chọn từ nước ngoài, khách hàng vui lòng thực hiện đặt cọc 50% để xác nhận đơn hàng (50% còn lại thanh toán COD khi nhận hàng). Quý khách có thể hủy đơn và nhận lại 100% tiền cọc trong vòng 24 giờ kể từ khi cọc. Sau 24 giờ, khi shop đã tiến hành đặt hàng với nhà cung cấp, thông tin size, màu và mẫu không thể thay đổi hoặc hủy bỏ và tiền cọc sẽ không được hoàn lại.
           </p>
           <p className="mt-2 italic text-zinc-500">
-            Since we operate on a custom overseas order model for high-end streetwear, customers are required to make a deposit (e.g., 50% deposit or 100% full payment) to confirm the order. Once the order is placed with international suppliers, details (size, color, style) cannot be changed or cancelled. The deposit is non-refundable if the customer unilaterally cancels the order.
+            Since we operate on a custom overseas order model for curated streetwear, customers are required to pay a 50% deposit to confirm the order (with the remaining 50% paid via COD upon delivery). You can cancel your order and receive a 100% refund of your deposit within 24 hours of payment. After 24 hours, once the order is placed with suppliers, details (size, color, style) cannot be changed or cancelled, and the deposit is non-refundable.
           </p>
         </section>
 
