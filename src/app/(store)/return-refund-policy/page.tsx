@@ -65,19 +65,13 @@ export default function ReturnRefundPolicyPage() {
 
         <section>
           <h2 className="border-b border-zinc-200 pb-2 text-lg font-bold text-zinc-900">
-            4. Hoàn tiền / Refunds
+            4. Hoàn tiền & Hoàn cọc / Refunds & Deposits
           </h2>
           <p className="mt-2">
-            Nếu shop không thể đổi sản phẩm phù hợp, khoản hoàn tiền sẽ được xử
-            lý theo phương thức thanh toán ban đầu hoặc chuyển khoản ngân hàng
-            sau khi hai bên xác nhận. Tiền cọc không được hoàn lại nếu khách
-            đơn phương hủy đơn sau khi shop đã đặt hàng với nhà cung cấp.
+            Tiền cọc được hoàn lại 100% nếu quý khách yêu cầu hủy đơn trong vòng 24 giờ kể từ lúc đặt cọc. Sau 24 giờ, khi shop đã tiến hành đặt hàng với nhà cung cấp nước ngoài, tiền cọc sẽ không được hoàn lại nếu khách đơn phương hủy đơn. Trong trường hợp shop không thể đổi sản phẩm phù hợp khi có lỗi, hoặc sản phẩm hết hàng từ phía nhà cung cấp, shop sẽ hoàn trả 100% tiền cọc/tiền thanh toán ngay lập tức cho quý khách.
           </p>
           <p className="mt-2 italic text-zinc-500">
-            If a suitable exchange is unavailable, refunds are processed through
-            the original payment method or bank transfer after confirmation.
-            Deposits are non-refundable when a customer unilaterally cancels
-            after the supplier order has been placed.
+            Deposits are fully refundable if the cancellation request is made within 24 hours of payment. After 24 hours, once the supplier order has been placed, the deposit is non-refundable if the customer unilaterally cancels. We refund 100% of your deposit/payment immediately if a suitable exchange is unavailable or the item is out of stock from the supplier.
           </p>
         </section>
 
