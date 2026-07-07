@@ -1,6 +1,6 @@
 "use client";
 
-import { Menu, X } from "lucide-react";
+import { ArrowRight, Menu, ShoppingBag, X } from "lucide-react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
@@ -19,8 +19,8 @@ export function Header() {
   const t = useTranslations("common");
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const shopLink = { href: "/shop", label: t("shop") };
   const links = [
-    { href: "/shop", label: t("shop") },
     { href: "/order-request", label: t("orderRequest") },
     { href: "/about", label: t("about") },
     { href: "/contact", label: t("contact") }
@@ -55,7 +55,8 @@ export function Header() {
         </Link>
 
         <nav className="hidden items-center gap-7 lg:flex">
-          {links.map((link) => (
+          {/* Desktop nav — show shop link alongside other links */}
+          {[shopLink, ...links].map((link) => (
             <Link
               className={cn(
                 "relative py-2 text-[0.68rem] font-bold uppercase tracking-[0.14em] text-white/60 after:absolute after:inset-x-0 after:bottom-0 after:h-px after:origin-left after:scale-x-0 after:bg-[#d64b3d] after:transition-transform hover:text-white hover:after:scale-x-100",
@@ -99,6 +100,29 @@ export function Header() {
       >
         <nav className="container-shell py-5">
           <div className="flex flex-col">
+            {/* Shop — highlighted CTA at the top of the mobile menu */}
+            <Link
+              className={cn(
+                "flex items-center justify-between border-b border-white/10 py-4 text-xs font-black uppercase tracking-[0.12em] transition-colors",
+                pathname === shopLink.href
+                  ? "text-[#d64b3d]"
+                  : "text-white hover:text-[#d64b3d]"
+              )}
+              href={shopLink.href}
+              onClick={() => setOpen(false)}
+            >
+              <span className="flex items-center gap-2.5">
+                <ShoppingBag size={16} strokeWidth={2} />
+                {shopLink.label}
+              </span>
+              {pathname === shopLink.href ? (
+                <span className="size-1.5 rounded-full bg-[#d64b3d]" />
+              ) : (
+                <ArrowRight size={14} className="text-white/40" />
+              )}
+            </Link>
+
+            {/* Regular nav links */}
             {links.map((link) => {
               const isActive = pathname === link.href;
               return (
