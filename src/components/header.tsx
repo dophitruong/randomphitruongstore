@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Menu, ShoppingBag, X } from "lucide-react";
+
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
@@ -18,7 +18,6 @@ import { UserMenu } from "./user-menu";
 export function Header() {
   const t = useTranslations("common");
   const pathname = usePathname();
-  const [open, setOpen] = useState(false);
   const shopLink = { href: "/shop", label: t("shop") };
   const links = [
     { href: "/order-request", label: t("orderRequest") },
@@ -32,7 +31,6 @@ export function Header() {
         <Link
           className="group flex min-w-0 items-center gap-2 sm:gap-3"
           href="/"
-          onClick={() => setOpen(false)}
         >
           <span className="relative size-9 shrink-0 overflow-hidden rounded-full bg-white sm:size-10">
             <Image
@@ -54,8 +52,8 @@ export function Header() {
           </span>
         </Link>
 
+        {/* Desktop nav */}
         <nav className="hidden items-center gap-7 lg:flex">
-          {/* Desktop nav — show shop link alongside other links */}
           {[shopLink, ...links].map((link) => (
             <Link
               className={cn(
@@ -70,82 +68,23 @@ export function Header() {
           ))}
         </nav>
 
+        {/* Right-side actions */}
         <div className="flex shrink-0 items-center gap-1 sm:gap-2">
-          <div className="hidden sm:block">
+          {/* Desktop only: currency, language */}
+          <div className="hidden lg:block">
             <CurrencySelector />
           </div>
-          <div className="hidden sm:block">
+          <div className="hidden lg:block">
             <LanguageToggle />
           </div>
-          <CartCount />
-          <UserMenu />
-          <button
-            aria-label={open ? "Close menu" : "Open menu"}
-            className="p-2 lg:hidden"
-            onClick={() => setOpen((value) => !value)}
-            type="button"
-          >
-            {open ? <X size={22} /> : <Menu size={22} />}
-          </button>
+          {/* Cart & user visible on desktop only — mobile uses bottom nav */}
+          <div className="hidden lg:block">
+            <CartCount />
+          </div>
+          <div className="hidden lg:block">
+            <UserMenu />
+          </div>
         </div>
-      </div>
-
-      <div
-        className={cn(
-          "absolute left-0 right-0 top-full bg-[#11100e] border-b border-white/10 shadow-2xl transition-all duration-300 ease-in-out lg:hidden origin-top",
-          open
-            ? "visible scale-y-100 opacity-100 translate-y-0"
-            : "invisible scale-y-95 opacity-0 -translate-y-2 pointer-events-none"
-        )}
-      >
-        <nav className="container-shell py-5">
-          <div className="flex flex-col">
-            {/* Shop — highlighted CTA at the top of the mobile menu */}
-            <Link
-              className={cn(
-                "flex items-center justify-between border-b border-white/10 py-4 text-xs font-black uppercase tracking-[0.12em] transition-colors",
-                pathname === shopLink.href
-                  ? "text-[#d64b3d]"
-                  : "text-white hover:text-[#d64b3d]"
-              )}
-              href={shopLink.href}
-              onClick={() => setOpen(false)}
-            >
-              <span className="flex items-center gap-2.5">
-                <ShoppingBag size={16} strokeWidth={2} />
-                {shopLink.label}
-              </span>
-              {pathname === shopLink.href ? (
-                <span className="size-1.5 rounded-full bg-[#d64b3d]" />
-              ) : (
-                <ArrowRight size={14} className="text-white/40" />
-              )}
-            </Link>
-
-            {/* Regular nav links */}
-            {links.map((link) => {
-              const isActive = pathname === link.href;
-              return (
-                <Link
-                  className={cn(
-                    "flex items-center justify-between border-b border-white/5 py-3 text-xs font-bold uppercase tracking-[0.12em] transition-colors last:border-b-0",
-                    isActive ? "text-[#d64b3d]" : "text-white/70 hover:text-white"
-                  )}
-                  href={link.href}
-                  key={link.href}
-                  onClick={() => setOpen(false)}
-                >
-                  <span>{link.label}</span>
-                  {isActive && <span className="size-1.5 rounded-full bg-[#d64b3d]" />}
-                </Link>
-              );
-            })}
-          </div>
-          <div className="flex items-center justify-center gap-4 pt-4 border-t border-white/5 mt-3 sm:hidden">
-            <CurrencySelector />
-            <LanguageToggle />
-          </div>
-        </nav>
       </div>
     </header>
   );

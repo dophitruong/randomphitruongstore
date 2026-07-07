@@ -1,7 +1,7 @@
 import { FloatingZalo } from "@/components/floating-zalo";
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
-import { MobileShopBar } from "@/components/mobile-shop-bar";
+import { MobileNavBar } from "@/components/mobile-nav-bar";
 import { CartProvider } from "@/components/cart-provider";
 import { CurrencyProvider } from "@/components/currency-provider";
 import { AuthProvider } from "@/context/auth-context";
@@ -35,11 +35,11 @@ export default async function StoreLayout({
       >
         <CartProvider>
           <Header />
-          {/* pb-14 on mobile only to prevent sticky MobileShopBar from overlapping page footer */}
-          <main className="pb-14 lg:pb-0">{children}</main>
+          {/* pb-16 on mobile to prevent sticky MobileNavBar from overlapping footer content */}
+          <main className="pb-16 lg:pb-0">{children}</main>
           <Footer />
           <FloatingZalo />
-          <MobileShopBar />
+          <MobileNavBar />
         </CartProvider>
       </CurrencyProvider>
     </AuthProvider>
