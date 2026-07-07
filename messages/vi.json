@@ -76,10 +76,12 @@
     "size": "Kích thước",
     "color": "Màu sắc",
     "price": "Khoảng giá",
-    "noResults": "Không có sản phẩm phù hợp bộ lọc.",
+    "noResults": "Không tìm thấy sản phẩm phù hợp.",
     "filters": "Bộ lọc",
     "noImage": "Chưa có ảnh",
-    "outOfStock": "Hết hàng"
+    "outOfStock": "Hết hàng",
+    "search": "Tìm kiếm",
+    "searchPlaceholder": "Tìm theo tên sản phẩm..."
   },
   "product": {
     "material": "Chất liệu",
