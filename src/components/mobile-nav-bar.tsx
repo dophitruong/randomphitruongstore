@@ -28,10 +28,13 @@ export function MobileNavBar() {
   const { user, signOut } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // Close slide-up panel whenever route changes
-  useEffect(() => {
+  const [prevPathname, setPrevPathname] = useState(pathname);
+
+  // Close slide-up panel whenever route changes during rendering (React-compliant state adjustment)
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname);
     setMenuOpen(false);
-  }, [pathname]);
+  }
 
   // Prevent body scroll when panel is open
   useEffect(() => {
