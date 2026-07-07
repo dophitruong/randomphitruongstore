@@ -18,7 +18,8 @@
     "accountMenu": "Menu tài khoản",
     "profile": "Hồ sơ",
     "logout": "Đăng xuất",
-    "account": "Tài khoản"
+    "account": "Tài khoản",
+    "cart": "Giỏ hàng"
   },
   "home": {
     "eyebrow": "Sukajan · Order tại Việt Nam",
@@ -285,8 +286,8 @@
     "profile": "Hồ sơ",
     "signInRequiredBody": "Vui lòng đăng nhập để xem đơn hàng và yêu cầu tư vấn.",
     "signIn": "Đăng nhập",
-    "myOrders": "Đơn hàng của tôi",
-    "myConsultations": "Yêu cầu tư vấn",
+    "myOrders": "Đơn hàng",
+    "myConsultations": "Tư vấn",
     "orderHistory": "Lịch sử đơn hàng",
     "consultationHistory": "Lịch sử tư vấn",
     "noOrders": "Chưa có đơn hàng nào.",
