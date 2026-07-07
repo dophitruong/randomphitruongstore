@@ -127,22 +127,26 @@ export function AccountView({ title }: { title: string }) {
       </header>
 
       {/* Tab navigation */}
-      <nav className="flex border-b border-black/10 mb-8">
+      <nav className="mb-8 flex border-b border-black/10">
         {tabs.map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`flex flex-1 flex-col items-center gap-1 px-2 py-3 text-xs font-bold border-b-2 transition-colors sm:flex-row sm:flex-none sm:gap-2 sm:px-5 sm:text-sm ${
+            className={`flex flex-1 items-center justify-center gap-1.5 px-2 py-3 text-[11px] font-bold border-b-2 transition-colors sm:gap-2 sm:px-5 sm:text-sm ${
               activeTab === tab.key
                 ? "border-[#a72b1f] text-[#a72b1f]"
                 : "border-transparent text-zinc-500 hover:text-zinc-800"
             }`}
           >
-            {tab.icon}
-            <span>{tab.label}</span>
+            {/* Smaller icon on mobile to save space */}
+            <span className="shrink-0 [&>svg]:size-4 sm:[&>svg]:size-[18px]">
+              {tab.icon}
+            </span>
+            <span className="truncate leading-tight">{tab.label}</span>
           </button>
         ))}
       </nav>
+
 
       {activeTab === "orders" && <OrdersSection locale={locale} />}
       {activeTab === "consultations" && <ConsultationsSection locale={locale} />}

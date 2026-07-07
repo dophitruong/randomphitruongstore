@@ -172,38 +172,39 @@ export function MobileNavBar() {
         </div>
 
         {/* User section */}
-        <div className="border-b border-white/10 px-5 py-4">
+        <div className="border-b border-white/10 px-5 py-3">
           {user ? (
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="grid size-9 place-items-center rounded-full bg-white/10">
-                  <User size={16} className="text-white/70" />
+            <div className="flex flex-col gap-1">
+              {/* Profile row — full-width tap target */}
+              <Link
+                href="/account"
+                onClick={() => setMenuOpen(false)}
+                className="flex items-center gap-3 rounded-xl px-2 py-2.5 transition-colors hover:bg-white/8 active:bg-white/10"
+              >
+                <div className="grid size-10 shrink-0 place-items-center rounded-full bg-white/10">
+                  <User size={18} className="text-white/70" />
                 </div>
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-bold">{displayName}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-bold leading-tight">{displayName}</p>
                   <p className="truncate text-xs text-white/50">{user.email}</p>
                 </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Link
-                  href="/account"
-                  className="text-[10px] font-bold uppercase tracking-wider text-white/60 hover:text-white"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  {common("profile")}
-                </Link>
-                <button
-                  type="button"
-                  onClick={async () => {
-                    setMenuOpen(false);
-                    await signOut();
-                  }}
-                  className="grid size-8 place-items-center rounded-full bg-white/10 text-white/60 hover:bg-white/20 hover:text-white"
-                  aria-label={common("logout")}
-                >
-                  <LogOut size={14} />
-                </button>
-              </div>
+                <ArrowRight size={15} className="shrink-0 text-white/30" />
+              </Link>
+
+              {/* Logout row — separate, clearly labelled */}
+              <button
+                type="button"
+                onClick={async () => {
+                  setMenuOpen(false);
+                  await signOut();
+                }}
+                className="flex items-center gap-3 rounded-xl px-2 py-2.5 text-left transition-colors hover:bg-white/8 active:bg-white/10"
+              >
+                <div className="grid size-10 shrink-0 place-items-center rounded-full bg-white/[0.06]">
+                  <LogOut size={16} className="text-white/40" />
+                </div>
+                <span className="text-sm font-semibold text-white/50">{common("logout")}</span>
+              </button>
             </div>
           ) : (
             <Link
