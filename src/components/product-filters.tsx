@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, SlidersHorizontal, X, Check } from "lucide-react";
+import { ChevronDown, SlidersHorizontal, X, Check, Search } from "lucide-react";
 import { useMemo, useState, useRef, useEffect } from "react";
 import type { Locale } from "@/i18n/request";
 import { Pagination } from "./pagination";
@@ -36,12 +36,15 @@ export function ProductFilters({
     outOfStock: string;
     order: string;
     details: string;
+    search: string;
+    searchPlaceholder: string;
   };
 }) {
   const [category, setCategory] = useState("ALL");
   const [size, setSize] = useState("ALL");
   const [color, setColor] = useState("ALL");
   const [maxPrice, setMaxPrice] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 12;
@@ -60,20 +63,24 @@ export function ProductFilters({
     category !== "ALL",
     size !== "ALL",
     color !== "ALL",
-    maxPrice !== null && maxPrice < computedMaxPrice
+    maxPrice !== null && maxPrice < computedMaxPrice,
+    searchQuery.trim() !== ""
   ].filter(Boolean).length;
 
-  const filtered = useMemo(
-    () =>
-      products.filter(
-        (product) =>
-          product.stockStatus === "IN_STOCK" &&
-          (category === "ALL" || product.categoryId === category) &&
-          productMatchesVariantFilters(product.variants, { size, color }) &&
-          productBasePrice(product) <= currentMaxPrice
-      ),
-    [category, color, currentMaxPrice, products, size]
-  );
+  const filtered = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    return products.filter(
+      (product) =>
+        product.stockStatus === "IN_STOCK" &&
+        (category === "ALL" || product.categoryId === category) &&
+        productMatchesVariantFilters(product.variants, { size, color }) &&
+        productBasePrice(product) <= currentMaxPrice &&
+        (query === "" ||
+          product.nameVi.toLowerCase().includes(query) ||
+          product.nameEn.toLowerCase().includes(query) ||
+          product.slug.toLowerCase().includes(query))
+    );
+  }, [category, color, currentMaxPrice, products, size, searchQuery]);
 
   const pageCount = Math.ceil(filtered.length / pageSize);
   const activePage = Math.min(currentPage, Math.max(1, pageCount));
@@ -96,11 +103,51 @@ export function ProductFilters({
     setSize("ALL");
     setColor("ALL");
     setMaxPrice(null);
+    setSearchQuery("");
     setCurrentPage(1);
   }
 
   return (
     <div className="grid gap-7 lg:grid-cols-[240px_1fr] xl:grid-cols-[260px_1fr] lg:gap-10 xl:gap-12">
+      {/* ── Search bar (full-width, above the grid) ── */}
+      <div className="lg:col-span-2">
+        <div className="relative">
+          <label htmlFor="product-search" className="sr-only">
+            {labels.search}
+          </label>
+          <Search
+            size={18}
+            className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400"
+          />
+          <input
+            id="product-search"
+            type="search"
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(1);
+            }}
+            placeholder={labels.searchPlaceholder}
+            className="h-12 w-full border border-zinc-300 bg-white pl-11 pr-10 text-sm text-zinc-900 outline-none transition-all duration-200 placeholder:text-zinc-400 hover:border-zinc-400 focus:border-zinc-950 focus:ring-1 focus:ring-zinc-950"
+            autoComplete="off"
+            spellCheck={false}
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              aria-label="Clear search"
+              onClick={() => {
+                setSearchQuery("");
+                setCurrentPage(1);
+              }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-zinc-400 transition-colors hover:text-zinc-900"
+            >
+              <X size={16} />
+            </button>
+          )}
+        </div>
+      </div>
+
       <aside className="min-w-0">
         <button
           aria-expanded={filtersOpen}

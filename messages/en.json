@@ -76,10 +76,12 @@
     "size": "Size",
     "color": "Color",
     "price": "Price range",
-    "noResults": "No products match these filters.",
+    "noResults": "No products match your search.",
     "filters": "Filters",
     "noImage": "No image",
-    "outOfStock": "Out of stock"
+    "outOfStock": "Out of stock",
+    "search": "Search",
+    "searchPlaceholder": "Search by product name..."
   },
   "product": {
     "material": "Material",

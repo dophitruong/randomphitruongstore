@@ -55,7 +55,9 @@ export default async function ShopPage() {
           noImage: t("noImage"),
           outOfStock: t("outOfStock"),
           order: common("orderTime"),
-          details: common("viewDetails")
+          details: common("viewDetails"),
+          search: t("search"),
+          searchPlaceholder: t("searchPlaceholder")
         }}
         locale={locale}
         products={products}
