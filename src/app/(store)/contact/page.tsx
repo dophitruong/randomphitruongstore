@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import {
-  Banknote,
-  Instagram,
-  RefreshCcw,
-  Truck,
-  WalletCards
-} from "lucide-react";
+  faArrowsRotate,
+  faMoneyBillWave,
+  faTruck,
+  faWallet
+} from "@fortawesome/free-solid-svg-icons";
+import { faInstagram } from "@fortawesome/free-brands-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
 import { getLocale, getTranslations } from "next-intl/server";
 import Script from "next/script";
@@ -21,8 +22,7 @@ import {
   ZALO_URL,
   HOTLINE,
   WORKING_HOURS,
-  BRAND_NAME,
-  CONTACT_EMAIL
+  BRAND_NAME
 } from "@/lib/constants";
 
 export const metadata: Metadata = {
@@ -115,22 +115,22 @@ export default async function ContactPage() {
   const t = await getTranslations("contact");
   const policies = [
     {
-      icon: Banknote,
+      icon: faMoneyBillWave,
       title: t("depositPolicy"),
       body: t("depositPolicyBody")
     },
     {
-      icon: Truck,
+      icon: faTruck,
       title: t("deliveryPolicy"),
       body: t("deliveryPolicyBody")
     },
     {
-      icon: RefreshCcw,
+      icon: faArrowsRotate,
       title: t("returnPolicy"),
       body: t("returnPolicyBody")
     },
     {
-      icon: WalletCards,
+      icon: faWallet,
       title: t("paymentPolicy"),
       body: t("paymentPolicyBody")
     }
@@ -226,7 +226,7 @@ export default async function ContactPage() {
                 rel="noreferrer"
                 target="_blank"
               >
-                <Instagram />
+                  <FontAwesomeIcon icon={faInstagram} className="text-[24px]" />
                 <p className="mt-10 font-black">Instagram</p>
                 <p className="mt-1 truncate text-sm text-zinc-500">
                   @random.phitruong4
@@ -269,7 +269,7 @@ export default async function ContactPage() {
               key={title}
             >
               <div className="flex items-start justify-between gap-5">
-                <Icon className="text-[#a72b1f]" size={25} strokeWidth={1.7} />
+                <FontAwesomeIcon icon={Icon} className="text-[22px] text-[#a72b1f]" />
                 <span className="text-xs font-black tracking-[0.15em] text-black/30">
                   0{index + 1}
                 </span>
