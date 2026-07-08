@@ -14,14 +14,19 @@ export function ProductGallery({
   const selected = images[active];
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Sync scroll position when active index changes
+  const isScrollingRef = useRef<boolean>(false);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Sync scroll position when active index changes (triggered by dots/thumbnails)
   useEffect(() => {
     if (containerRef.current) {
       const width = containerRef.current.clientWidth;
-      const currentScrollIndex = Math.round(containerRef.current.scrollLeft / width);
-      if (currentScrollIndex !== active) {
+      const targetLeft = active * width;
+      
+      // Only programmatically scroll if we're not currently swiping/scrolling via touch
+      if (Math.abs(containerRef.current.scrollLeft - targetLeft) > 5 && !isScrollingRef.current) {
         containerRef.current.scrollTo({
-          left: active * width,
+          left: targetLeft,
           behavior: "smooth"
         });
       }
@@ -30,16 +35,38 @@ export function ProductGallery({
 
   const handleScroll = () => {
     if (containerRef.current) {
+      isScrollingRef.current = true;
+      
+      // Clear previous timeout
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+
       const scrollLeft = containerRef.current.scrollLeft;
       const width = containerRef.current.clientWidth;
+      
       if (width > 0) {
+        // Calculate index based on current scroll position
         const index = Math.round(scrollLeft / width);
         if (index >= 0 && index < images.length && index !== active) {
           setActive(index);
         }
       }
+
+      // Reset scrolling flag after a small delay when scroll stops
+      scrollTimeoutRef.current = setTimeout(() => {
+        isScrollingRef.current = false;
+      }, 150);
     }
   };
+
+  useEffect(() => {
+    return () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!lightboxOpen) return;
@@ -138,9 +165,9 @@ export function ProductGallery({
         </div>
       ) : null}
 
-      {/* Lightbox Modal */}
+      {/* Lightbox Modal — elevated z-index to z-[60] to overlay mobile bottom nav bar */}
       {lightboxOpen && selected && (
-        <div className="fixed inset-0 z-50 bg-black/95 flex flex-col justify-between p-4 sm:p-6 md:p-8 text-white select-none">
+        <div className="fixed inset-0 z-[60] bg-black flex flex-col justify-between p-4 sm:p-6 md:p-8 text-white select-none">
           {/* Header */}
           <div className="flex items-center justify-between w-full">
             <span className="text-sm font-bold text-zinc-400">
