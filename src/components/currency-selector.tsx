@@ -1,6 +1,7 @@
 "use client";
 
-import { DollarSign } from "lucide-react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faDollarSign } from "@fortawesome/free-solid-svg-icons";
 import { cn } from "@/lib/utils";
 import { useCurrency } from "./currency-provider";
 
@@ -33,7 +34,7 @@ export function CurrencySelector() {
           title={item}
           type="button"
         >
-          {item === "USD" ? <DollarSign size={13} /> : "₫"}
+          {item === "USD" ? <FontAwesomeIcon icon={faDollarSign} className="text-[11px]" /> : "₫"}
         </button>
       ))}
     </div>
