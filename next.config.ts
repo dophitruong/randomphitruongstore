@@ -13,7 +13,8 @@ const scriptSrc = [
   "https://www.google-analytics.com",
   "https://www.googleadservices.com",
   "https://googleads.g.doubleclick.net",
-  "https://challenges.cloudflare.com"
+  "https://challenges.cloudflare.com",
+  "https://va.vercel-scripts.com"
 ];
 
 const contentSecurityPolicy = [
