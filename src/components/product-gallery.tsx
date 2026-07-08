@@ -17,13 +17,15 @@ export function ProductGallery({
   const isScrollingRef = useRef<boolean>(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Sync scroll position when active index changes (triggered by dots/thumbnails)
+  const lightboxContainerRef = useRef<HTMLDivElement>(null);
+  const isLightboxScrollingRef = useRef<boolean>(false);
+  const lightboxScrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Sync scroll position in main gallery when active changes
   useEffect(() => {
     if (containerRef.current) {
       const width = containerRef.current.clientWidth;
       const targetLeft = active * width;
-      
-      // Only programmatically scroll if we're not currently swiping/scrolling via touch
       if (Math.abs(containerRef.current.scrollLeft - targetLeft) > 5 && !isScrollingRef.current) {
         containerRef.current.scrollTo({
           left: targetLeft,
@@ -33,38 +35,68 @@ export function ProductGallery({
     }
   }, [active]);
 
+  // Sync scroll position in Lightbox modal when active index changes
+  useEffect(() => {
+    if (lightboxOpen && lightboxContainerRef.current) {
+      const width = lightboxContainerRef.current.clientWidth;
+      const targetLeft = active * width;
+      if (Math.abs(lightboxContainerRef.current.scrollLeft - targetLeft) > 5 && !isLightboxScrollingRef.current) {
+        lightboxContainerRef.current.scrollTo({
+          left: targetLeft,
+          behavior: "smooth"
+        });
+      }
+    }
+  }, [active, lightboxOpen]);
+
   const handleScroll = () => {
     if (containerRef.current) {
       isScrollingRef.current = true;
-      
-      // Clear previous timeout
       if (scrollTimeoutRef.current) {
         clearTimeout(scrollTimeoutRef.current);
       }
 
       const scrollLeft = containerRef.current.scrollLeft;
       const width = containerRef.current.clientWidth;
-      
       if (width > 0) {
-        // Calculate index based on current scroll position
         const index = Math.round(scrollLeft / width);
         if (index >= 0 && index < images.length && index !== active) {
           setActive(index);
         }
       }
 
-      // Reset scrolling flag after a small delay when scroll stops
       scrollTimeoutRef.current = setTimeout(() => {
         isScrollingRef.current = false;
       }, 150);
     }
   };
 
+  const handleLightboxScroll = () => {
+    if (lightboxContainerRef.current) {
+      isLightboxScrollingRef.current = true;
+      if (lightboxScrollTimeoutRef.current) {
+        clearTimeout(lightboxScrollTimeoutRef.current);
+      }
+
+      const scrollLeft = lightboxContainerRef.current.scrollLeft;
+      const width = lightboxContainerRef.current.clientWidth;
+      if (width > 0) {
+        const index = Math.round(scrollLeft / width);
+        if (index >= 0 && index < images.length && index !== active) {
+          setActive(index);
+        }
+      }
+
+      lightboxScrollTimeoutRef.current = setTimeout(() => {
+        isLightboxScrollingRef.current = false;
+      }, 150);
+    }
+  };
+
   useEffect(() => {
     return () => {
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current);
-      }
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+      if (lightboxScrollTimeoutRef.current) clearTimeout(lightboxScrollTimeoutRef.current);
     };
   }, []);
 
@@ -183,8 +215,8 @@ export function ProductGallery({
             </button>
           </div>
 
-          {/* Main Content */}
-          <div className="relative flex-1 flex items-center justify-center w-full max-h-[80vh] my-4">
+          {/* Main Content — converted into a hardware-accelerated horizontal swipe slider */}
+          <div className="relative flex-1 flex items-center justify-center w-full max-h-[85vh] my-2">
             {images.length > 1 && (
               <button
                 type="button"
@@ -192,20 +224,32 @@ export function ProductGallery({
                   e.stopPropagation();
                   setActive((prev) => (prev === 0 ? images.length - 1 : prev - 1));
                 }}
-                className="absolute left-2 sm:left-4 z-10 p-3 bg-zinc-900/80 hover:bg-zinc-800 text-zinc-300 hover:text-white rounded-full transition-colors"
+                className="absolute left-2 sm:left-4 z-20 p-3 bg-zinc-900/80 hover:bg-zinc-800 text-zinc-300 hover:text-white rounded-full transition-colors hidden sm:block"
                 aria-label="Previous image"
               >
                 <ChevronLeft size={24} />
               </button>
             )}
 
-            <div className="relative w-full h-full flex items-center justify-center p-2">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={selected.url}
-                alt={selected.alt}
-                className="max-w-full max-h-full object-contain pointer-events-none"
-              />
+            <div
+              ref={lightboxContainerRef}
+              onScroll={handleLightboxScroll}
+              className="flex w-full h-full overflow-x-auto snap-x snap-mandatory scroll-smooth [&::-webkit-scrollbar]:hidden [scrollbar-width:none]"
+            >
+              {images.map((image, index) => (
+                <div 
+                  key={`lightbox-slide-${image.url}-${index}`} 
+                  className="w-full h-full shrink-0 snap-center relative flex items-center justify-center p-4"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={image.url}
+                    alt={image.alt}
+                    className="max-w-full max-h-full object-contain pointer-events-none"
+                    loading={index === active ? "eager" : "lazy"}
+                  />
+                </div>
+              ))}
             </div>
 
             {images.length > 1 && (
@@ -215,7 +259,7 @@ export function ProductGallery({
                   e.stopPropagation();
                   setActive((prev) => (prev === images.length - 1 ? 0 : prev + 1));
                 }}
-                className="absolute right-2 sm:right-4 z-10 p-3 bg-zinc-900/80 hover:bg-zinc-800 text-zinc-300 hover:text-white rounded-full transition-colors"
+                className="absolute right-2 sm:right-4 z-20 p-3 bg-zinc-900/80 hover:bg-zinc-800 text-zinc-300 hover:text-white rounded-full transition-colors hidden sm:block"
                 aria-label="Next image"
               >
                 <ChevronRight size={24} />
@@ -229,7 +273,7 @@ export function ProductGallery({
               {images.map((image, index) => (
                 <button
                   type="button"
-                  key={`lightbox-${image.url}-${index}`}
+                  key={`lightbox-thumb-${image.url}-${index}`}
                   onClick={() => setActive(index)}
                   className={`relative w-14 h-14 shrink-0 overflow-hidden border-2 ${
                     active === index ? "border-white" : "border-transparent opacity-60 hover:opacity-100"
