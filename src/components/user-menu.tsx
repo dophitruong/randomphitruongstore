@@ -1,6 +1,13 @@
 "use client";
 
-import { LogOut, User, ChevronDown, Loader2 } from "lucide-react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faChevronDown,
+  faCircleUser,
+  faRightFromBracket,
+  faSpinner,
+  faUser
+} from "@fortawesome/free-solid-svg-icons";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useState } from "react";
@@ -15,7 +22,7 @@ export function UserMenu() {
   if (loading) {
     return (
       <div className="p-2">
-        <Loader2 className="size-5 animate-spin text-white/70" />
+        <FontAwesomeIcon icon={faSpinner} className="text-[18px] animate-spin text-white/70" />
       </div>
     );
   }
@@ -27,7 +34,7 @@ export function UserMenu() {
         className="p-2 text-white/70 hover:text-white"
         href="/login"
       >
-        <User size={18} />
+        <FontAwesomeIcon icon={faCircleUser} className="text-[18px]" />
       </Link>
     );
   }
@@ -61,10 +68,10 @@ export function UserMenu() {
               style={{ backgroundImage: `url(${JSON.stringify(avatarUrl)})` }}
             />
           ) : (
-            <User className="size-5 text-white/70" />
+            <FontAwesomeIcon icon={faUser} className="text-[18px] text-white/70" />
           )}
         </div>
-        <ChevronDown className={cn("size-4 text-white/70 transition-transform", open && "rotate-180")} />
+        <FontAwesomeIcon icon={faChevronDown} className={cn("text-[13px] text-white/70 transition-transform", open && "rotate-180")} />
       </button>
 
       {open && (
@@ -85,7 +92,7 @@ export function UserMenu() {
                 href="/account"
                 onClick={() => setOpen(false)}
               >
-                <User size={16} />
+                  <FontAwesomeIcon icon={faCircleUser} className="text-[14px]" />
                 {t("profile")}
               </Link>
               <button
@@ -93,7 +100,7 @@ export function UserMenu() {
                 onClick={handleSignOut}
                 type="button"
               >
-                <LogOut size={16} />
+                  <FontAwesomeIcon icon={faRightFromBracket} className="text-[14px]" />
                 {t("logout")}
               </button>
             </div>

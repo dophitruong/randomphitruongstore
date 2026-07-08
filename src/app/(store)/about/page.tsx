@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { ArrowUpRight, Check } from "lucide-react";
+import { faArrowUpRightFromSquare, faCheck } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
@@ -114,7 +115,7 @@ export default async function AboutPage() {
                 className="flex min-w-0 items-center gap-3 border-b border-r border-white/25 p-5"
                 key={item}
               >
-                <Check className="shrink-0" size={18} />
+                <FontAwesomeIcon icon={faCheck} className="shrink-0 text-[14px]" />
                 <span className="font-bold">{item}</span>
               </div>
             ))}
@@ -174,7 +175,7 @@ export default async function AboutPage() {
             href="/contact"
           >
             {common("contact")}
-            <ArrowUpRight size={17} />
+            <FontAwesomeIcon icon={faArrowUpRightFromSquare} className="text-[14px]" />
           </Link>
         </div>
       </section>

@@ -1,4 +1,6 @@
-import { ArrowUpRight, Check, Facebook, Instagram, Mail } from "lucide-react";
+import { faArrowUpRightFromSquare, faCheck, faEnvelope } from "@fortawesome/free-solid-svg-icons";
+import { faFacebook, faInstagram } from "@fortawesome/free-brands-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { getTranslations } from "next-intl/server";
 import Image from "next/image";
 import Link from "next/link";
@@ -66,7 +68,7 @@ export async function Footer() {
               rel="noreferrer"
               target="_blank"
             >
-              <Instagram aria-hidden="true" size={18} />
+              <FontAwesomeIcon icon={faInstagram} className="text-[18px]" />
             </TrackedLink>
             <a
               aria-label="TikTok"
@@ -84,7 +86,7 @@ export async function Footer() {
               rel="noreferrer"
               target="_blank"
             >
-              <Facebook aria-hidden="true" size={18} />
+              <FontAwesomeIcon icon={faFacebook} className="text-[18px]" />
             </a>
           </div>
         </div>
@@ -97,12 +99,7 @@ export async function Footer() {
                 className="flex min-w-0 items-start gap-3 border-b border-white/10 pb-4 text-sm leading-6 text-white/70"
                 key={policy}
               >
-                <Check
-                  aria-hidden="true"
-                  className="mt-1 shrink-0 text-[#d64b3d]"
-                  size={16}
-                  strokeWidth={2.5}
-                />
+                <FontAwesomeIcon icon={faCheck} className="mt-1 shrink-0 text-[14px] text-[#d64b3d]" />
                 <span>{policy}</span>
               </li>
             ))}
@@ -115,7 +112,7 @@ export async function Footer() {
                 key={link.href}
               >
                 {link.label}
-                <ArrowUpRight aria-hidden="true" size={15} />
+                <FontAwesomeIcon icon={faArrowUpRightFromSquare} className="text-[12px]" />
               </Link>
             ))}
           </nav>
@@ -161,7 +158,7 @@ export async function Footer() {
                   className="inline-flex items-center gap-2 text-sm font-bold text-white/70 hover:text-white"
                   href={`mailto:${CONTACT_EMAIL}`}
                 >
-                  <Mail size={18} />
+                  <FontAwesomeIcon icon={faEnvelope} className="text-[16px]" />
                   <span className="whitespace-nowrap">Email: {CONTACT_EMAIL}</span>
                 </a>
                 <div className="text-sm font-bold text-white/70">
