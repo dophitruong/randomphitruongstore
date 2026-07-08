@@ -1,6 +1,7 @@
 "use client";
 
-import { ChevronDown } from "lucide-react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -24,12 +25,12 @@ export function FAQAccordion({
               type="button"
             >
               {item.question}
-              <ChevronDown
+              <FontAwesomeIcon
+                icon={faChevronDown}
                 className={cn(
-                  "text-zinc-400 transition-all duration-300 ease-out shrink-0 translate-y-[-0.5px] group-hover:text-[#a72b1f]",
+                  "text-[16px] text-zinc-400 transition-all duration-300 ease-out shrink-0 translate-y-[-0.5px] group-hover:text-[#a72b1f]",
                   open ? "rotate-180 text-[#a72b1f]" : ""
                 )}
-                size={18}
               />
             </button>
             <div
