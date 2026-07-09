@@ -100,16 +100,22 @@ export default async function AdminDashboardPage() {
         {stats.map((stat) => {
           return (
             <article
-              className={`border p-3.5 sm:p-5 shadow-[0_10px_30px_rgba(0,0,0,0.02)] rounded-r-lg transition-transform duration-200 hover:-translate-y-0.5 ${stat.themeClass}`}
+              className={`relative border p-3.5 sm:p-5 shadow-[0_10px_30px_rgba(0,0,0,0.02)] rounded-r-lg transition-transform duration-200 hover:-translate-y-0.5 ${stat.themeClass} overflow-hidden`}
               key={stat.label}
             >
-              <div className="flex items-center justify-between text-zinc-400">
-                <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-zinc-650">
-                  {stat.label}
-                </span>
-                <FontAwesomeIcon icon={stat.icon} className={`text-sm sm:text-base ${stat.iconColor}`} />
+              <div className="flex items-start justify-between gap-2">
+                <div className="space-y-1 flex-1 min-w-0">
+                  <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-zinc-500 block leading-tight truncate sm:whitespace-normal">
+                    {stat.label}
+                  </span>
+                  <p className="text-xl sm:text-4xl font-black text-zinc-900 leading-none pt-1 sm:pt-2">
+                    {stat.value}
+                  </p>
+                </div>
+                <div className={`flex size-7 sm:size-9 shrink-0 items-center justify-center rounded-full bg-white shadow-sm border border-zinc-100 ${stat.iconColor}`}>
+                  <FontAwesomeIcon icon={stat.icon} className="text-xs sm:text-sm" />
+                </div>
               </div>
-              <p className="mt-4 sm:mt-8 text-2xl sm:text-4xl font-black text-zinc-900">{stat.value}</p>
             </article>
           );
         })}
