@@ -836,116 +836,234 @@ export function AdminProductManager({
           type="button"
         >
           <Plus size={16} />
-          New product
+          Thêm sản phẩm
         </button>
       </div>
-      <AdminTable
-        headers={[
-          "Product",
-          "Category",
-          "Price",
-          "Stock",
-          "Featured",
-          "Active",
-          "Actions"
-        ]}
-      >
+      {/* Desktop view */}
+      <div className="hidden md:block">
+        <AdminTable
+          headers={[
+            "Sản phẩm",
+            "Phân loại",
+            "Giá",
+            "Kho hàng",
+            "Nổi bật",
+            "Hiển thị",
+            "Thao tác"
+          ]}
+        >
+          {paginatedProducts.map((product) => (
+            <tr key={product.id}>
+              <td className="px-4 py-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="font-bold">{productDisplayName(product)}</p>
+                  <ProductStatusBadge status={product.status} />
+                </div>
+                {productDisplaySlug(product) ? (
+                  <p className="mt-1 text-xs text-zinc-500">{productDisplaySlug(product)}</p>
+                ) : null}
+                {product.images.length > 0 ? (
+                  <div className="mt-3 flex max-w-[320px] gap-2 overflow-x-auto pb-1">
+                    {product.images.map((image, index) => (
+                      <div
+                        className="relative size-12 shrink-0 overflow-hidden border border-zinc-200 bg-zinc-100"
+                        key={image.id}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          alt={`${productDisplayName(product)} image ${index + 1}`}
+                          className="h-full w-full object-cover"
+                          src={image.url}
+                        />
+                        {index === 0 ? (
+                          <span className="absolute inset-x-0 bottom-0 bg-black/70 px-1 py-0.5 text-center text-[0.5rem] font-black uppercase tracking-[0.08em] text-white">
+                            Ảnh chính
+                          </span>
+                        ) : null}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="mt-2 text-xs text-zinc-400">Không có ảnh</p>
+                )}
+              </td>
+              <td className="px-4 py-4">
+                <CategoryBadge
+                  category={product.categoryRecord?.nameEn ?? "Chưa phân loại"}
+                />
+              </td>
+              <td className="px-4 py-4">
+                {product.status === "DRAFT" && product.basePrice <= 0 ? (
+                  <span className="text-xs font-bold uppercase tracking-[0.08em] text-zinc-400">
+                    Chưa đặt giá
+                  </span>
+                ) : (
+                  <>
+                    {new Intl.NumberFormat("vi-VN").format(product.basePrice)}{" "}
+                    VND
+                  </>
+                )}
+                {product.variants.length ? (
+                  <p className="mt-1 text-xs text-zinc-500">
+                    {product.variants.length} biến thể
+                  </p>
+                ) : null}
+              </td>
+              <td className="px-4 py-4">
+                <StockBadge status={product.stockStatus} />
+              </td>
+              <td className="px-4 py-4">
+                <BooleanBadge enabled={product.isFeatured} label="Nổi bật" />
+              </td>
+              <td className="px-4 py-4">
+                <BooleanBadge
+                  enabled={product.isActive}
+                  label={product.isActive ? "Hiển thị" : "Ẩn"}
+                />
+              </td>
+              <td className="px-4 py-4">
+                <div className="flex gap-2">
+                  <button
+                    aria-label={product.status === "DRAFT" ? "Resume draft" : "Edit product"}
+                    className={cn(
+                      "inline-flex min-h-10 items-center justify-center gap-2 border border-zinc-300 bg-white text-zinc-800 transition-colors hover:border-zinc-900 hover:bg-zinc-900 hover:text-white",
+                      product.status === "DRAFT" ? "px-3 text-xs font-bold uppercase tracking-[0.08em]" : "w-10"
+                    )}
+                    onClick={() => editProduct(product)}
+                    type="button"
+                  >
+                    <Pencil size={15} />
+                    {product.status === "DRAFT" ? <span>Tiếp tục</span> : null}
+                  </button>
+                  <button
+                    aria-label={product.status === "DRAFT" ? "Delete draft" : "Delete product"}
+                    className="grid size-10 place-items-center border border-red-200 bg-white text-red-700 transition-colors hover:border-red-700 hover:bg-red-700 hover:text-white"
+                    onClick={() => remove(product)}
+                    type="button"
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </AdminTable>
+      </div>
+
+      {/* Mobile view */}
+      <div className="block md:hidden space-y-4">
         {paginatedProducts.map((product) => (
-          <tr key={product.id}>
-            <td className="px-4 py-4">
-              <div className="flex flex-wrap items-center gap-2">
-                <p className="font-bold">{productDisplayName(product)}</p>
-                <ProductStatusBadge status={product.status} />
-              </div>
-              {productDisplaySlug(product) ? (
-                <p className="mt-1 text-xs text-zinc-500">{productDisplaySlug(product)}</p>
-              ) : null}
-              {product.images.length > 0 ? (
-                <div className="mt-3 flex max-w-[320px] gap-2 overflow-x-auto pb-1">
-                  {product.images.map((image, index) => (
-                    <div
-                      className="relative size-12 shrink-0 overflow-hidden border border-zinc-200 bg-zinc-100"
-                      key={image.id}
-                    >
+          <div key={product.id} className="bg-white border border-zinc-200 p-4 rounded-lg shadow-sm space-y-3">
+            <div className="flex justify-between items-start gap-4">
+              <div className="flex gap-3">
+                {/* Primary Image or Placeholder */}
+                <div className="flex-shrink-0">
+                  {product.images.length > 0 ? (
+                    <div className="relative size-16 overflow-hidden border border-zinc-200 bg-zinc-100 rounded">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
-                        alt={`${productDisplayName(product)} image ${index + 1}`}
+                        alt={productDisplayName(product)}
                         className="h-full w-full object-cover"
-                        src={image.url}
+                        src={product.images[0].url}
                       />
-                      {index === 0 ? (
-                        <span className="absolute inset-x-0 bottom-0 bg-black/70 px-1 py-0.5 text-center text-[0.5rem] font-black uppercase tracking-[0.08em] text-white">
-                          Primary
-                        </span>
-                      ) : null}
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="mt-2 text-xs text-zinc-400">No images</p>
-              )}
-            </td>
-            <td className="px-4 py-4">
-              <CategoryBadge
-                category={product.categoryRecord?.nameEn ?? "Uncategorized"}
-              />
-            </td>
-            <td className="px-4 py-4">
-              {product.status === "DRAFT" && product.basePrice <= 0 ? (
-                <span className="text-xs font-bold uppercase tracking-[0.08em] text-zinc-400">
-                  Not set
-                </span>
-              ) : (
-                <>
-                  {new Intl.NumberFormat("vi-VN").format(product.basePrice)}{" "}
-                  VND
-                </>
-              )}
-              {product.variants.length ? (
-                <p className="mt-1 text-xs text-zinc-500">
-                  {product.variants.length} variants
-                </p>
-              ) : null}
-            </td>
-            <td className="px-4 py-4">
-              <StockBadge status={product.stockStatus} />
-            </td>
-            <td className="px-4 py-4">
-              <BooleanBadge enabled={product.isFeatured} label="Featured" />
-            </td>
-            <td className="px-4 py-4">
-              <BooleanBadge
-                enabled={product.isActive}
-                label={product.isActive ? "Active" : "Inactive"}
-              />
-            </td>
-            <td className="px-4 py-4">
-              <div className="flex gap-2">
-                <button
-                  aria-label={product.status === "DRAFT" ? "Resume draft" : "Edit product"}
-                  className={cn(
-                    "inline-flex min-h-10 items-center justify-center gap-2 border border-zinc-300 bg-white text-zinc-800 transition-colors hover:border-zinc-900 hover:bg-zinc-900 hover:text-white",
-                    product.status === "DRAFT" ? "px-3 text-xs font-bold uppercase tracking-[0.08em]" : "w-10"
+                  ) : (
+                    <div className="w-16 h-16 bg-zinc-50 border border-dashed border-zinc-200 flex items-center justify-center text-[10px] text-zinc-400 rounded">
+                      No Image
+                    </div>
                   )}
-                  onClick={() => editProduct(product)}
-                  type="button"
-                >
-                  <Pencil size={15} />
-                  {product.status === "DRAFT" ? <span>Resume</span> : null}
-                </button>
-                <button
-                  aria-label={product.status === "DRAFT" ? "Delete draft" : "Delete product"}
-                  className="grid size-10 place-items-center border border-red-200 bg-white text-red-700 transition-colors hover:border-red-700 hover:bg-red-700 hover:text-white"
-                  onClick={() => remove(product)}
-                  type="button"
-                >
-                  <Trash2 size={15} />
-                </button>
+                </div>
+                {/* Product Name & Slug */}
+                <div>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <p className="font-bold text-sm text-zinc-900 leading-tight">{productDisplayName(product)}</p>
+                    <ProductStatusBadge status={product.status} />
+                  </div>
+                  {productDisplaySlug(product) ? (
+                    <p className="mt-1 text-[11px] text-zinc-500">{productDisplaySlug(product)}</p>
+                  ) : null}
+                  <div className="mt-2">
+                    <CategoryBadge
+                      category={product.categoryRecord?.nameEn ?? "Uncategorized"}
+                    />
+                  </div>
+                </div>
               </div>
-            </td>
-          </tr>
+            </div>
+
+            {/* Price & Variants / Stock / Badges */}
+            <div className="bg-zinc-50 p-2.5 rounded text-xs space-y-2">
+              <div className="flex justify-between">
+                <span className="text-zinc-500 font-medium">Giá bán:</span>
+                <span className="font-bold text-zinc-900">
+                  {product.status === "DRAFT" && product.basePrice <= 0 ? (
+                    <span className="text-zinc-400">Chưa đặt giá</span>
+                  ) : (
+                    `${new Intl.NumberFormat("vi-VN").format(product.basePrice)} VND`
+                  )}
+                  {product.variants.length ? (
+                    <span className="ml-1 text-[10px] text-zinc-500 font-normal">({product.variants.length} phân loại)</span>
+                  ) : null}
+                </span>
+              </div>
+              <div className="flex justify-between items-center border-t border-zinc-200/60 pt-2">
+                <span className="text-zinc-500 font-medium">Kho hàng:</span>
+                <StockBadge status={product.stockStatus} />
+              </div>
+              <div className="flex justify-between items-center pt-1">
+                <span className="text-zinc-500 font-medium">Tùy chọn:</span>
+                <div className="flex gap-2">
+                  <BooleanBadge enabled={product.isFeatured} label="Nổi bật" />
+                  <BooleanBadge enabled={product.isActive} label={product.isActive ? "Hiển thị" : "Ẩn"} />
+                </div>
+              </div>
+            </div>
+
+            {/* Images list on mobile */}
+            {product.images.length > 1 ? (
+              <div className="flex gap-1.5 overflow-x-auto pb-1">
+                {product.images.slice(1).map((image, index) => (
+                  <div
+                    className="relative size-10 shrink-0 overflow-hidden border border-zinc-200 bg-zinc-100 rounded"
+                    key={image.id}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      alt={`${productDisplayName(product)} image ${index + 2}`}
+                      className="h-full w-full object-cover"
+                      src={image.url}
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : null}
+
+            {/* Action buttons */}
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-zinc-100">
+              <button
+                aria-label={product.status === "DRAFT" ? "Resume draft" : "Edit product"}
+                className={cn(
+                  "inline-flex min-h-10 items-center justify-center gap-1.5 border border-zinc-300 bg-white px-3 text-xs font-bold uppercase text-zinc-800 transition-colors hover:border-zinc-900 hover:bg-zinc-900 hover:text-white rounded cursor-pointer",
+                  product.status === "DRAFT" ? "" : "w-auto"
+                )}
+                onClick={() => editProduct(product)}
+                type="button"
+              >
+                <Pencil size={14} />
+                <span>{product.status === "DRAFT" ? "Tiếp tục" : "Sửa"}</span>
+              </button>
+              <button
+                aria-label={product.status === "DRAFT" ? "Delete draft" : "Delete product"}
+                className="grid size-10 place-items-center border border-red-200 bg-white text-red-700 transition-colors hover:border-red-700 hover:bg-red-700 hover:text-white rounded cursor-pointer"
+                onClick={() => remove(product)}
+                type="button"
+              >
+                <Trash2 size={14} />
+              </button>
+            </div>
+          </div>
         ))}
-      </AdminTable>
+      </div>
       {filteredProducts.length === 0 ? (
         <div className="border-x border-b border-zinc-200 bg-white px-5 py-12 text-center text-sm text-zinc-500">
           No products match the selected filters.
@@ -967,18 +1085,52 @@ export function AdminProductManager({
             >
               <ChevronLeft size={16} />
             </button>
-            <span className="min-w-24 text-center text-xs font-bold text-zinc-700">
-              Page {currentPage} / {pageCount}
-            </span>
+            <div className="flex items-center gap-1">
+              {Array.from({ length: pageCount }, (_, i) => i + 1).map((p) => {
+                const isCurrent = p === currentPage;
+                return (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    className={cn(
+                      "grid size-9 place-items-center border text-xs font-bold transition-colors rounded cursor-pointer",
+                      isCurrent
+                        ? "border-[#a72b1f] bg-[#a72b1f] text-white"
+                        : "border-zinc-300 bg-white text-zinc-800 hover:bg-zinc-900 hover:text-white"
+                    )}
+                    type="button"
+                  >
+                    {p}
+                  </button>
+                );
+              })}
+            </div>
             <button
               aria-label="Next page"
-              className="grid size-9 place-items-center border border-zinc-300 bg-white text-zinc-800 transition-colors hover:bg-zinc-900 hover:text-white disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-300"
+              className="grid size-9 place-items-center border border-zinc-300 bg-white text-zinc-800 transition-colors hover:bg-zinc-900 hover:text-white disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-300 rounded cursor-pointer"
               disabled={currentPage === pageCount}
               onClick={() => setPage((value) => Math.min(pageCount, value + 1))}
               type="button"
             >
               <ChevronRight size={16} />
             </button>
+
+            <div className="flex items-center gap-1.5 ml-1 border-l border-zinc-200 pl-2">
+              <span className="text-[10px] font-bold text-zinc-450 uppercase tracking-wider">Đến:</span>
+              <input
+                type="number"
+                min={1}
+                max={pageCount}
+                onChange={(e) => {
+                  const val = Number(e.target.value);
+                  if (val >= 1 && val <= pageCount) {
+                    setPage(val);
+                  }
+                }}
+                placeholder={currentPage.toString()}
+                className="w-10 h-9 border border-zinc-300 bg-white px-1 text-center text-xs font-bold text-zinc-800 rounded focus:border-[#a72b1f] focus:ring-1 focus:ring-[#a72b1f] outline-none"
+              />
+            </div>
           </div>
         </div>
       )}
@@ -1820,28 +1972,32 @@ export function AdminProductManager({
                   )}
                 />
               </div>
-              <div className="grid grid-cols-2 gap-3.5 sm:col-span-2 border border-zinc-200 bg-zinc-50/50 p-4 rounded-md">
-                <div className="col-span-2 border-b border-zinc-200 pb-2 mb-1">
-                  <h3 className="text-xs font-black uppercase tracking-wider text-zinc-700">Trạng thái sản phẩm / Product Status</h3>
+              <div className="sm:col-span-2 flex flex-wrap gap-4 sm:gap-6 bg-zinc-50 border border-zinc-200 p-2.5 rounded-lg items-center">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-zinc-400">Trạng thái:</span>
                 </div>
-                <label className="flex items-center justify-between border border-zinc-200 bg-white p-3 rounded cursor-pointer select-none transition-colors hover:bg-zinc-50 col-span-1">
-                  <div className="flex flex-col pr-2">
-                    <span className="text-xs font-bold text-zinc-800">Featured / Nổi bật</span>
-                    <span className="text-[9px] text-zinc-500 font-medium leading-tight">Hiện trên trang chủ</span>
-                  </div>
+                
+                <label className="flex items-center gap-2.5 cursor-pointer select-none">
                   <div className="relative shrink-0">
                     <input type="checkbox" {...register("isFeatured")} className="sr-only peer" />
-                    <div className="w-9 h-5.5 bg-zinc-350 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-[14px] peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-[#a72b1f] transition-colors duration-200" />
+                    <div className="w-9 h-5 bg-zinc-200 rounded-full peer peer-focus:ring-1 peer-focus:ring-zinc-150 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#a72b1f] transition-colors duration-200" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-zinc-800 leading-none">Nổi bật (Featured)</span>
+                    <span className="text-[9px] text-zinc-500 mt-0.5">Hiện trang chủ</span>
                   </div>
                 </label>
-                <label className="flex items-center justify-between border border-zinc-200 bg-white p-3 rounded cursor-pointer select-none transition-colors hover:bg-zinc-50 col-span-1">
-                  <div className="flex flex-col pr-2">
-                    <span className="text-xs font-bold text-zinc-800">Active / Kích hoạt</span>
-                    <span className="text-[9px] text-zinc-500 font-medium leading-tight">Cho phép khách mua</span>
-                  </div>
+
+                <div className="w-px h-6 bg-zinc-200 self-center hidden sm:block" />
+
+                <label className="flex items-center gap-2.5 cursor-pointer select-none">
                   <div className="relative shrink-0">
                     <input type="checkbox" {...register("isActive")} className="sr-only peer" />
-                    <div className="w-9 h-5.5 bg-zinc-350 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-[14px] peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-[#a72b1f] transition-colors duration-200" />
+                    <div className="w-9 h-5 bg-zinc-200 rounded-full peer peer-focus:ring-1 peer-focus:ring-zinc-150 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#a72b1f] transition-colors duration-200" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-zinc-800 leading-none">Kích hoạt (Active)</span>
+                    <span className="text-[9px] text-zinc-500 mt-0.5">Cho phép mua</span>
                   </div>
                 </label>
               </div>

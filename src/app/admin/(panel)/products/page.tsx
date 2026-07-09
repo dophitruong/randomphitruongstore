@@ -27,8 +27,8 @@ export default async function AdminProductsPage() {
   return (
     <>
       <header className="mb-8">
-        <p className="eyebrow text-zinc-500">Catalog</p>
-        <h1 className="mt-2 text-4xl font-black">Products</h1>
+        <p className="eyebrow text-zinc-500">Danh mục</p>
+        <h1 className="mt-2 text-4xl font-black">Sản phẩm</h1>
       </header>
       <AdminProductManager
         categories={categories}

@@ -20,6 +20,12 @@ const notoSerifJp = Noto_Serif_JP({
   weight: ["500", "700", "900"]
 });
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover"
+};
+
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   verification: {
