@@ -1,7 +1,7 @@
 "use client";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faDollarSign } from "@fortawesome/free-solid-svg-icons";
+import { faCoins } from "@fortawesome/free-solid-svg-icons";
 import { cn } from "@/lib/utils";
 import { useCurrency } from "./currency-provider";
 
@@ -12,31 +12,25 @@ export function CurrencySelector() {
     return null;
   }
 
+  function toggleCurrency() {
+    const currentIndex = enabled.indexOf(currency);
+    const nextIndex = (currentIndex + 1) % enabled.length;
+    setCurrency(enabled[nextIndex]);
+  }
+
   return (
-    <div
-      aria-label="Currency"
+    <button
+      aria-label="Toggle currency"
+      disabled={isPending}
+      onClick={toggleCurrency}
+      type="button"
       className={cn(
-        "grid overflow-hidden rounded-full border border-white/20 bg-white/5 p-0.5 text-[10px] font-black leading-none",
-        enabled.length === 2 ? "grid-cols-2" : "grid-cols-1",
-        isPending && "opacity-60"
+        "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-black uppercase tracking-wider text-white/60 hover:text-white hover:bg-white/5 active:bg-white/10 transition-all border-0 bg-transparent cursor-pointer outline-none",
+        isPending && "opacity-60 pointer-events-none"
       )}
     >
-      {enabled.map((item) => (
-        <button
-          aria-label={`Show prices in ${item}`}
-          className={cn(
-            "grid h-6 w-8 place-items-center rounded-full uppercase transition-colors",
-            currency === item ? "bg-white text-black" : "text-white/55 hover:text-white"
-          )}
-          disabled={isPending}
-          key={item}
-          onClick={() => setCurrency(item)}
-          title={item}
-          type="button"
-        >
-          {item === "USD" ? <FontAwesomeIcon icon={faDollarSign} className="text-[11px]" /> : "₫"}
-        </button>
-      ))}
-    </div>
+      <FontAwesomeIcon icon={faCoins} className="text-[12px] text-zinc-400" />
+      <span>{currency}</span>
+    </button>
   );
 }
