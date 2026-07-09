@@ -39,7 +39,12 @@ function createSettlementStore() {
       id: "order-1",
       orderNumber: "RPT-0001",
       paymentMethod: "ONLINE_100_SEPAY",
+      displayCurrency: "VND",
       status: "PENDING_ONLINE_PAYMENT",
+      customer: {
+        email: "customer@example.com",
+        phone: "0901234567"
+      },
       payments: [
         {
           id: "payment-1",
