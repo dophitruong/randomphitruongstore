@@ -75,6 +75,7 @@ type AdminProductInquiry = {
   preferredSize: string | null;
   preferredColor: string | null;
   status: string;
+  createdAt: Date;
   images: Array<{
     id: string;
     imageUrl: string;

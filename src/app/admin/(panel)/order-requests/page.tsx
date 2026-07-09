@@ -65,6 +65,9 @@ export default async function AdminProductInquiriesPage() {
                   <p className="font-bold">{request.fullName}</p>
                   <p className="text-xs text-zinc-500">{request.phone}</p>
                   <p className="text-xs text-zinc-500">{socialContact}</p>
+                  <p className="mt-1 text-[11px] text-zinc-400 font-medium">
+                    Gửi lúc: {request.createdAt.toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh", hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit", year: "numeric" })}
+                  </p>
                 </td>
                 <td className="max-w-xs px-4 py-4">
                   <p>Kích thước: {request.preferredSize ?? "-"}</p>
@@ -141,6 +144,9 @@ export default async function AdminProductInquiriesPage() {
                       <p className="font-bold text-sm text-zinc-900">{request.fullName}</p>
                       <p className="text-xs text-zinc-500 mt-0.5">{request.phone}</p>
                       <p className="text-xs text-zinc-500">{socialContact}</p>
+                      <p className="mt-1 text-[10px] text-zinc-400 font-medium">
+                        Gửi lúc: {request.createdAt.toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh", hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit", year: "numeric" })}
+                      </p>
                     </div>
                   </div>
                   {/* Status Badge */}
