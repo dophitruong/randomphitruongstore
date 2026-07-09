@@ -65,8 +65,8 @@ export function AdminSidebar() {
               href={link.href}
             >
               <div className={cn(
-                "size-8 rounded-full flex items-center justify-center transition-all duration-200",
-                active ? "border border-[#bd3a2d] bg-[#a72b1f]/10 text-[#bd3a2d]" : "text-white/50"
+                "flex items-center justify-center transition-all duration-200 text-white/50",
+                active && "text-[#bd3a2d]"
               )}>
                 <FontAwesomeIcon icon={link.icon} className="text-[13px]" />
               </div>
@@ -84,7 +84,7 @@ export function AdminSidebar() {
           <Link className="text-lg font-black tracking-tight" href="/">
             random.phitruong
           </Link>
-          <span className="h-5 w-px bg-white/20" />
+          <span className="h-5 w-px bg-zinc-800" />
           <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">
             Không gian quản trị
           </span>
@@ -98,9 +98,9 @@ export function AdminSidebar() {
             return (
               <Link
                 className={cn(
-                  "flex min-h-10 items-center gap-2 border border-transparent px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white/65 transition-colors hover:bg-white/10 hover:text-white rounded",
+                  "flex min-h-10 items-center gap-2 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white/65 transition-colors hover:bg-white/10 hover:text-white rounded",
                   active &&
-                    "border-[#bd3a2d] bg-[#a72b1f] text-white hover:border-[#bd3a2d] hover:bg-[#8f241a] hover:text-white"
+                    "bg-[#a72b1f] text-white hover:bg-[#8f241a] hover:text-white"
                 )}
                 href={link.href}
                 key={link.href}
@@ -114,7 +114,7 @@ export function AdminSidebar() {
 
         <div>
           <button
-            className="flex min-h-10 items-center gap-2 border border-transparent px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white/50 transition-colors hover:bg-white/10 hover:text-white cursor-pointer rounded"
+            className="flex min-h-10 items-center gap-2 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white/50 transition-colors hover:bg-white/10 hover:text-white cursor-pointer rounded"
             onClick={logout}
             type="button"
           >

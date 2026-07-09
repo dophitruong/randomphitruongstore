@@ -82,8 +82,8 @@ export function UserMenu() {
             aria-hidden="true"
           />
           <div className="absolute right-0 z-50 mt-2 w-56 origin-top-right animate-in fade-in-0 zoom-in-95">
-            <div className="border border-white/15 bg-[#11100e] rounded-xl shadow-lg overflow-hidden">
-              <div className="p-3 border-b border-white/10">
+            <div className="border border-zinc-900/60 bg-[#11100e] rounded-xl shadow-lg overflow-hidden">
+              <div className="p-3 border-b border-zinc-900/60">
                 <p className="font-bold text-sm truncate">{displayName}</p>
                 <p className="text-xs text-white/50 truncate">{user.email}</p>
               </div>

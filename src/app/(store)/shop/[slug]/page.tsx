@@ -30,12 +30,16 @@ export async function generateMetadata({
   if (!product) {
     return { title: "Product not found" };
   }
+  const locale = await getLocale();
+  const name = locale === "vi" ? product.nameVi : product.nameEn;
+  const description = locale === "vi" ? product.descriptionVi : product.descriptionEn;
+
   return {
-    title: product.nameVi,
-    description: product.descriptionVi,
+    title: name,
+    description: description,
     openGraph: {
-      title: product.nameVi,
-      description: product.descriptionVi,
+      title: name,
+      description: description,
       images: product.images[0]?.url ? [product.images[0].url] : undefined
     }
   };
