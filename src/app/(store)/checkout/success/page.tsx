@@ -63,6 +63,19 @@ export default async function SuccessPage({ searchParams }: PageProps) {
                 gtag('event', 'conversion', {'send_to': 'AW-18283180920/qk-5CJuWucocEPjmjI5E'});
               `}
             </Script>
+            {/* Meta Pixel Purchase conversion event snippet */}
+            {process.env.NEXT_PUBLIC_META_PIXEL_ID && (
+              <Script id="meta-pixel-success-conversion" strategy="afterInteractive">
+                {`
+                  fbq('track', 'Purchase', {
+                    value: ${order.totalAmount},
+                    currency: '${order.displayCurrency}'
+                  }, {
+                    eventID: '${order.orderNumber}'
+                  });
+                `}
+              </Script>
+            )}
             <div className="mx-auto size-16 flex items-center justify-center rounded-full bg-emerald-100">
               <svg className="size-8 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />

@@ -1,5 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import type { SePayIpnPayload } from "@/lib/sepay";
+import { sendMetaCapiEvent } from "@/lib/meta-capi";
 
 type SettlementPayment = {
   id: string;
@@ -10,12 +11,19 @@ type SettlementPayment = {
   gatewayTransactionId: string | null;
 };
 
+type SettlementCustomer = {
+  email: string | null;
+  phone: string;
+};
+
 type SettlementOrder = {
   id: string;
   orderNumber: string;
   paymentMethod: string;
   status: string;
+  displayCurrency: string;
   payments: SettlementPayment[];
+  customer: SettlementCustomer;
 };
 
 type SettlementTransaction = {
@@ -64,7 +72,7 @@ export type SePaySettlementStore = {
   order: {
     findUnique(args: {
       where: { orderNumber: string };
-      include: { payments: true };
+      include: { payments: true, customer: true };
     }): Promise<SettlementOrder | null>;
   };
   $transaction<T>(
@@ -98,7 +106,7 @@ export async function settleSePayPayment({
 
   const order = await prisma.order.findUnique({
     where: { orderNumber: payload.order.order_invoice_number },
-    include: { payments: true }
+    include: { payments: true, customer: true }
   });
   if (!order || order.paymentMethod !== "ONLINE_100_SEPAY") {
     throw new SePaySettlementError("SePay order not found", 404);
@@ -128,7 +136,7 @@ export async function settleSePayPayment({
   validatePaymentAmounts(payload, payment.amount);
   const gatewayResponse = JSON.parse(JSON.stringify(payload)) as Prisma.JsonObject;
 
-  return prisma.$transaction(async (transaction) => {
+  const result = await prisma.$transaction(async (transaction) => {
     const claimed = await transaction.payment.updateMany({
       where: {
         id: payment.id,
@@ -171,6 +179,22 @@ export async function settleSePayPayment({
 
     return "paid" as const;
   });
+
+  if (result === "paid") {
+    // Send Meta Conversions API event
+    sendMetaCapiEvent({
+      eventName: "Purchase",
+      eventId: order.orderNumber,
+      email: order.customer.email,
+      phone: order.customer.phone,
+      value: payment.amount,
+      currency: order.displayCurrency
+    }).catch((capiError) => {
+      console.error("[Meta CAPI] Error sending Purchase event:", capiError);
+    });
+  }
+
+  return result;
 }
 
 function validatePaymentAmounts(payload: SePayIpnPayload, expectedAmount: number) {
