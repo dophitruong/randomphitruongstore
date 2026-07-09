@@ -37,7 +37,7 @@ export default async function AdminPanelLayout({
   }
 
   return (
-    <div className="admin-shell min-h-screen w-full max-w-full overflow-x-hidden bg-[#f3f2ef] text-zinc-950 lg:flex">
+    <div className="admin-shell min-h-screen w-full max-w-full bg-[#f3f2ef] text-zinc-950 lg:flex">
       <AdminSidebar />
       <main className="min-w-0 flex-1 p-4 pb-[calc(5.5rem+env(safe-area-inset-bottom))] sm:p-7 sm:pb-[calc(5.5rem+env(safe-area-inset-bottom))] lg:p-10 lg:pb-10">{children}</main>
     </div>
