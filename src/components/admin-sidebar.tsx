@@ -78,48 +78,51 @@ export function AdminSidebar() {
         })}
       </nav>
 
-      {/* Desktop Sidebar (lg Screen and Up) */}
-      <aside className="hidden border-r border-white/10 bg-[#171715] p-6 text-white lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-64 lg:flex-col lg:justify-between shrink-0">
-        <div>
-          <Link className="block px-3 py-3 text-xl font-black tracking-tight" href="/">
+      {/* Desktop Top Header (lg Screen and Up) */}
+      <header className="hidden lg:sticky lg:top-0 lg:z-50 lg:flex lg:h-16 lg:w-full lg:items-center lg:justify-between bg-[#171715] px-6 text-white shadow-md">
+        <div className="flex items-center gap-6">
+          <Link className="text-lg font-black tracking-tight" href="/">
             random.phitruong
           </Link>
-          <p className="mb-8 px-3 text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">
+          <span className="h-5 w-px bg-white/20" />
+          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">
             Không gian quản trị
-          </p>
-          <nav className="flex flex-col gap-2">
-            {links.map((link) => {
-              const active =
-                pathname === link.href ||
-                (link.href !== "/admin" && pathname.startsWith(link.href));
-              return (
-                <Link
-                  className={cn(
-                    "flex min-h-11 items-center gap-3 border border-transparent px-3 py-2.5 text-xs font-bold uppercase tracking-wider text-white/65 transition-colors hover:border-white/10 hover:bg-white/10 hover:text-white",
-                    active &&
-                      "border-[#bd3a2d] bg-[#a72b1f] text-white hover:border-[#bd3a2d] hover:bg-[#8f241a] hover:text-white"
-                  )}
-                  href={link.href}
-                  key={link.href}
-                >
-                  <FontAwesomeIcon icon={link.icon} className="text-[14px] shrink-0 w-4 text-center" />
-                  {link.label}
-                </Link>
-              );
-            })}
-          </nav>
+          </span>
         </div>
+
+        <nav className="flex items-center gap-2">
+          {links.map((link) => {
+            const active =
+              pathname === link.href ||
+              (link.href !== "/admin" && pathname.startsWith(link.href));
+            return (
+              <Link
+                className={cn(
+                  "flex min-h-10 items-center gap-2 border border-transparent px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white/65 transition-colors hover:border-white/10 hover:bg-white/10 hover:text-white rounded",
+                  active &&
+                    "border-[#bd3a2d] bg-[#a72b1f] text-white hover:border-[#bd3a2d] hover:bg-[#8f241a] hover:text-white"
+                )}
+                href={link.href}
+                key={link.href}
+              >
+                <FontAwesomeIcon icon={link.icon} className="text-[12px]" />
+                {link.label}
+              </Link>
+            );
+          })}
+        </nav>
+
         <div>
           <button
-            className="mt-6 flex min-h-11 w-full items-center gap-3 border border-transparent px-3 py-2.5 text-xs font-bold uppercase tracking-wider text-white/50 transition-colors hover:border-white/10 hover:bg-white/10 hover:text-white cursor-pointer"
+            className="flex min-h-10 items-center gap-2 border border-transparent px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white/50 transition-colors hover:border-white/10 hover:bg-white/10 hover:text-white cursor-pointer rounded"
             onClick={logout}
             type="button"
           >
-            <FontAwesomeIcon icon={faRightFromBracket} className="text-[14px] shrink-0 w-4 text-center" />
+            <FontAwesomeIcon icon={faRightFromBracket} className="text-[12px]" />
             Đăng xuất
           </button>
         </div>
-      </aside>
+      </header>
     </>
   );
 }
