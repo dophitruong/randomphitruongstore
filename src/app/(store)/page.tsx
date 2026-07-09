@@ -23,11 +23,13 @@ import {
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Sukajan Order",
-  description:
-    "Hơn 4 năm tuyển chọn Sukajan và streetwear, giao hàng 7-10 ngày với tư vấn trực tiếp."
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("home");
+  return {
+    title: t("title"),
+    description: t("subtitle")
+  };
+}
 
 export default async function HomePage() {
   const t = await getTranslations("home");
