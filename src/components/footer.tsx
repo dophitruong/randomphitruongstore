@@ -1,4 +1,4 @@
-import { faArrowUpRightFromSquare, faCheck, faEnvelope } from "@fortawesome/free-solid-svg-icons";
+import { faArrowUpRightFromSquare, faCheck, faEnvelope, faPhone } from "@fortawesome/free-solid-svg-icons";
 import { faFacebook, faInstagram } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { getTranslations } from "next-intl/server";
@@ -161,9 +161,13 @@ export async function Footer() {
                   <FontAwesomeIcon icon={faEnvelope} className="text-[16px]" />
                   <span className="whitespace-nowrap">Email: {CONTACT_EMAIL}</span>
                 </a>
-                <div className="text-sm font-bold text-white/70">
-                  Hotline: {HOTLINE}
-                </div>
+                <a
+                  className="inline-flex items-center gap-2 text-sm font-bold text-white/70 hover:text-white"
+                  href={`tel:${HOTLINE.replace(/\s+/g, "")}`}
+                >
+                  <FontAwesomeIcon icon={faPhone} className="text-[16px]" />
+                  <span>Hotline: {HOTLINE}</span>
+                </a>
                 <div className="text-xs text-white/55">
                   Giờ làm việc / Hours: {WORKING_HOURS}
                 </div>
