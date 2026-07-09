@@ -1,5 +1,7 @@
 "use client";
 
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faGlobe } from "@fortawesome/free-solid-svg-icons";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
@@ -11,7 +13,8 @@ export function LanguageToggle() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  function updateLocale(nextLocale: "vi" | "en") {
+  function toggleLocale() {
+    const nextLocale = locale === "vi" ? "en" : "vi";
     startTransition(async () => {
       await fetch("/api/locale", {
         method: "POST",
@@ -23,27 +26,18 @@ export function LanguageToggle() {
   }
 
   return (
-    <div
+    <button
       aria-label={t("language")}
+      disabled={isPending}
+      onClick={toggleLocale}
+      type="button"
       className={cn(
-        "grid grid-cols-2 overflow-hidden rounded-full border border-white/20 bg-white/5 p-0.5 text-[10px] font-black leading-none",
-        isPending && "opacity-60"
+        "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-black uppercase tracking-wider text-white/60 hover:text-white hover:bg-white/5 active:bg-white/10 transition-all border-0 bg-transparent cursor-pointer outline-none",
+        isPending && "opacity-60 pointer-events-none"
       )}
     >
-      {(["vi", "en"] as const).map((item) => (
-        <button
-          className={cn(
-            "grid h-6 w-7 place-items-center rounded-full uppercase transition-colors",
-            locale === item ? "bg-white text-black" : "text-white/55 hover:text-white"
-          )}
-          disabled={isPending}
-          key={item}
-          onClick={() => updateLocale(item)}
-          type="button"
-        >
-          {item}
-        </button>
-      ))}
-    </div>
+      <FontAwesomeIcon icon={faGlobe} className="text-[12px] text-zinc-400" />
+      <span>{locale}</span>
+    </button>
   );
 }
