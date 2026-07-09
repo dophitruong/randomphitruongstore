@@ -57,6 +57,17 @@ export function ProductFilters({
   }, [products]);
 
   const currentMaxPrice = maxPrice ?? computedMaxPrice;
+
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = { ALL: products.length };
+    products.forEach((p) => {
+      if (p.categoryId) {
+        counts[p.categoryId] = (counts[p.categoryId] || 0) + 1;
+      }
+    });
+    return counts;
+  }, [products]);
+
   const sizes = [...new Set(products.flatMap((product) => productVariantSizes(product.variants)))];
   const colors = [...new Set(products.flatMap((product) => productVariantColors(product.variants, locale)))];
   const activeFilterCount = [
@@ -111,66 +122,120 @@ export function ProductFilters({
     <div className="grid gap-7 lg:grid-cols-[240px_1fr] xl:grid-cols-[260px_1fr] lg:gap-10 xl:gap-12">
       {/* ── Search bar (full-width, above the grid) ── */}
       <div className="lg:col-span-2">
-        <div className="relative">
-          <label htmlFor="product-search" className="sr-only">
-            {labels.search}
-          </label>
-          <Search
-            size={18}
-            className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400"
-          />
-          <input
-            id="product-search"
-            type="search"
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setCurrentPage(1);
-            }}
-            placeholder={labels.searchPlaceholder}
-            className="h-12 w-full border border-zinc-300 bg-white pl-11 pr-10 text-sm text-zinc-900 outline-none transition-all duration-200 placeholder:text-zinc-400 hover:border-zinc-400 focus:border-zinc-950 focus:ring-1 focus:ring-zinc-950"
-            autoComplete="off"
-            spellCheck={false}
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              aria-label="Clear search"
-              onClick={() => {
-                setSearchQuery("");
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <label htmlFor="product-search" className="sr-only">
+              {labels.search}
+            </label>
+            <Search
+              size={18}
+              className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400"
+            />
+            <input
+              id="product-search"
+              type="search"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-zinc-400 transition-colors hover:text-zinc-900"
-            >
-              <X size={16} />
-            </button>
-          )}
+              placeholder={labels.searchPlaceholder}
+              className="h-12 w-full border border-zinc-300 bg-white pl-11 pr-10 text-sm text-zinc-900 outline-none transition-all duration-200 placeholder:text-zinc-400 hover:border-zinc-400 focus:border-zinc-950 focus:ring-1 focus:ring-zinc-950"
+              autoComplete="off"
+              spellCheck={false}
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                aria-label="Clear search"
+                onClick={() => {
+                  setSearchQuery("");
+                  setCurrentPage(1);
+                }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-zinc-400 transition-colors hover:text-zinc-900"
+              >
+                <X size={16} />
+              </button>
+            )}
+          </div>
+
+          {/* Mobile & Tablet Toggle Filter Button (Unified next to Search) */}
+          <button
+            aria-expanded={filtersOpen}
+            onClick={() => setFiltersOpen((open) => !open)}
+            type="button"
+            className={cn(
+              "flex lg:hidden h-12 px-4 items-center gap-2 border border-zinc-300 bg-white text-xs font-bold uppercase tracking-wider text-zinc-800 transition-all duration-200 hover:border-zinc-950",
+              filtersOpen && "border-zinc-950 bg-zinc-50"
+            )}
+          >
+            <SlidersHorizontal size={16} />
+            <span className="hidden sm:inline">{labels.filters}</span>
+            {activeFilterCount > 0 && (
+              <span className="grid size-4.5 place-items-center rounded-full bg-[#a72b1f] text-[9px] font-black text-white">
+                {activeFilterCount}
+              </span>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* ── Category Navigation (full-width, below Search bar) ── */}
+      <div className="lg:col-span-2 min-w-0">
+        {/* Wrapping Flex pills (All visible, no horizontal scroll, extremely tidy) */}
+        <div className="flex flex-wrap gap-2 border-b border-black/10 pb-5 mb-2">
+          <button
+            onClick={() => {
+              setCategory("ALL");
+              setCurrentPage(1);
+            }}
+            className={cn(
+              "px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-wider transition-all duration-200 border flex items-center gap-1.5",
+              category === "ALL"
+                ? "bg-[#11100e] border-[#11100e] text-white shadow-sm"
+                : "bg-white border-zinc-200 text-zinc-700 hover:border-zinc-950 hover:bg-zinc-50"
+            )}
+          >
+            <span>{labels.all}</span>
+            <span className={cn(
+              "text-[9px] px-1.5 py-0.2 font-bold rounded-full",
+              category === "ALL" ? "bg-white/20 text-white" : "bg-zinc-100 text-zinc-500"
+            )}>
+              {categoryCounts["ALL"] || 0}
+            </span>
+          </button>
+          {categories.map((item) => {
+            const isSelected = category === item.id;
+            const count = categoryCounts[item.id] || 0;
+            return (
+              <button
+                key={item.id}
+                onClick={() => {
+                  setCategory(item.id);
+                  setCurrentPage(1);
+                }}
+                className={cn(
+                  "px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-wider transition-all duration-200 border flex items-center gap-1.5",
+                  isSelected
+                    ? "bg-[#11100e] border-[#11100e] text-white shadow-sm"
+                    : "bg-white border-zinc-200 text-zinc-700 hover:border-zinc-950 hover:bg-zinc-50"
+                )}
+              >
+                <span>{locale === "vi" ? item.nameVi : item.nameEn}</span>
+                <span className={cn(
+                  "text-[9px] px-1.5 py-0.2 font-bold rounded-full",
+                  isSelected ? "bg-white/20 text-white" : "bg-zinc-100 text-zinc-500"
+                )}>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
       <aside className="min-w-0">
-        <button
-          aria-expanded={filtersOpen}
-          className="flex min-h-12 w-full items-center justify-between border-y border-black px-1 text-left lg:hidden"
-          onClick={() => setFiltersOpen((open) => !open)}
-          type="button"
-        >
-          <span className="flex items-center gap-2">
-            <SlidersHorizontal size={16} className="translate-y-[-0.5px]" />
-            <span className="text-xs font-black uppercase tracking-[0.14em]">
-              {labels.filters}
-            </span>
-            {activeFilterCount > 0 ? (
-              <span className="grid size-5 place-items-center rounded-full bg-[#a72b1f] text-[10px] font-black text-white">
-                {activeFilterCount}
-              </span>
-            ) : null}
-          </span>
-          <ChevronDown
-            className={`transition-transform ${filtersOpen ? "rotate-180" : ""}`}
-            size={18}
-          />
-        </button>
+
 
         <div
           className={cn(
@@ -186,19 +251,6 @@ export function ProductFilters({
               <p className="eyebrow">{labels.filters}</p>
             </div>
           <div className="grid gap-4 py-5 sm:grid-cols-2 lg:grid-cols-1 lg:gap-6 lg:py-6">
-            <FilterSelect
-              allLabel={labels.all}
-              label={labels.category}
-              onChange={(value) => {
-                setCategory(value);
-                setCurrentPage(1);
-              }}
-              options={categories.map((item) => ({
-                value: item.id,
-                label: locale === "vi" ? item.nameVi : item.nameEn
-              }))}
-              value={category}
-            />
             <FilterSelect
               allLabel={labels.all}
               label={labels.size}
@@ -219,24 +271,34 @@ export function ProductFilters({
               options={colors.map((item) => ({ value: item, label: item }))}
               value={color}
             />
-            <label className="block">
-              <span className="label">{labels.price}</span>
-              <input
-                className="w-full accent-black"
-                max={computedMaxPrice}
-                min="500000"
-                onChange={(event) => {
-                  setMaxPrice(Number(event.target.value));
-                  setCurrentPage(1);
-                }}
-                step="100000"
-                type="range"
-                value={currentMaxPrice}
-              />
-              <span className="mt-2 block text-xs font-bold">
-                ≤ <Money amountVnd={currentMaxPrice} />
-              </span>
-            </label>
+            <div className="relative block w-full">
+              <div className="flex justify-between items-center mb-2">
+                <span className="label !mb-0">{labels.price}</span>
+                <span className="text-[10px] font-black text-[#a72b1f] bg-[#a72b1f]/5 px-2 py-0.5 border border-[#a72b1f]/10 rounded-sm">
+                  ≤ <Money amountVnd={currentMaxPrice} />
+                </span>
+              </div>
+              <div className="flex min-h-12 w-full items-center border border-zinc-300 bg-white px-4 py-2">
+                <div className="w-full flex items-center gap-3">
+                  <span className="text-[9px] font-bold text-zinc-400">500k</span>
+                  <input
+                    className="w-full h-1 bg-zinc-200 rounded appearance-none cursor-pointer accent-[#a72b1f]"
+                    max={computedMaxPrice}
+                    min="500000"
+                    onChange={(event) => {
+                      setMaxPrice(Number(event.target.value));
+                      setCurrentPage(1);
+                    }}
+                    step="100000"
+                    type="range"
+                    value={currentMaxPrice}
+                  />
+                  <span className="text-[9px] font-bold text-zinc-400 whitespace-nowrap">
+                    {Math.round(computedMaxPrice / 1000000)}M+
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
           {activeFilterCount > 0 ? (
             <button

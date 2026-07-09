@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { BrandValues } from "@/components/brand-values";
 
 export const metadata: Metadata = {
   title: "Hành trình của Phi Trường",
@@ -130,32 +131,15 @@ export default async function AboutPage() {
             Giá trị & Quy trình thương hiệu
           </h2>
           
-          <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="bg-white p-6 border border-zinc-205 shadow-sm rounded-sm">
-              <h3 className="text-lg font-bold text-zinc-900 border-b border-zinc-200 pb-2">{t("brandIntroTitle")}</h3>
-              <p className="mt-3 text-sm text-zinc-600 leading-6">{t("brandIntroBody")}</p>
-            </div>
-            
-            <div className="bg-white p-6 border border-zinc-205 shadow-sm rounded-sm">
-              <h3 className="text-lg font-bold text-zinc-900 border-b border-zinc-200 pb-2">{t("originStoryTitle")}</h3>
-              <p className="mt-3 text-sm text-zinc-600 leading-6">{t("originStoryBody")}</p>
-            </div>
-            
-            <div className="bg-white p-6 border border-zinc-205 shadow-sm rounded-sm">
-              <h3 className="text-lg font-bold text-zinc-900 border-b border-zinc-200 pb-2">{t("selectionProcessTitle")}</h3>
-              <p className="mt-3 text-sm text-zinc-600 leading-6">{t("selectionProcessBody")}</p>
-            </div>
-            
-            <div className="bg-white p-6 border border-zinc-205 shadow-sm rounded-sm sm:col-span-2 lg:col-span-1">
-              <h3 className="text-lg font-bold text-zinc-900 border-b border-zinc-200 pb-2">{t("qualityCommitmentTitle")}</h3>
-              <p className="mt-3 text-sm text-zinc-600 leading-6">{t("qualityCommitmentBody")}</p>
-            </div>
-            
-            <div className="bg-white p-6 border border-zinc-205 shadow-sm rounded-sm sm:col-span-2 lg:col-span-2">
-              <h3 className="text-lg font-bold text-zinc-900 border-b border-zinc-200 pb-2">{t("supportProcessTitle")}</h3>
-              <p className="mt-3 text-sm text-zinc-600 leading-6">{t("supportProcessBody")}</p>
-            </div>
-          </div>
+          <BrandValues
+            items={[
+              { num: "01", title: t("brandIntroTitle"), body: t("brandIntroBody") },
+              { num: "02", title: t("originStoryTitle"), body: t("originStoryBody") },
+              { num: "03", title: t("selectionProcessTitle"), body: t("selectionProcessBody") },
+              { num: "04", title: t("qualityCommitmentTitle"), body: t("qualityCommitmentBody") },
+              { num: "05", title: t("supportProcessTitle"), body: t("supportProcessBody") }
+            ]}
+          />
         </div>
       </section>
 

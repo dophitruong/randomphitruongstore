@@ -26,6 +26,16 @@ pnpm-debug.log*
 public/uploads/*
 !public/uploads/.gitkeep
 
+# PUDO runtime artifacts
+.pudo/
+
+# PUDO repo overlay files
+/AGENTS.md
+/CLAUDE.md
+/GEMINI.md
+/.github/copilot-instructions.md
+/.github/pull_request_template.md
+
 # Private keys and certificates
 *.pem
 *.key
