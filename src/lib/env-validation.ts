@@ -87,6 +87,20 @@ export function validateRuntimeEnvironment(env: Environment = process.env) {
     });
   }
 
+  if (env.NEXT_PUBLIC_META_PIXEL_ID) {
+    addConfiguredValueIssues("NEXT_PUBLIC_META_PIXEL_ID", env.NEXT_PUBLIC_META_PIXEL_ID, issues, {
+      minLength: 10,
+      required: false
+    });
+  }
+
+  if (env.META_ACCESS_TOKEN) {
+    addConfiguredValueIssues("META_ACCESS_TOKEN", env.META_ACCESS_TOKEN, issues, {
+      minLength: 50,
+      required: false
+    });
+  }
+
   throwIfIssues(issues);
 }
 
