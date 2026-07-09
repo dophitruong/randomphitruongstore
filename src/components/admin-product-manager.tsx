@@ -1105,13 +1105,30 @@ export function AdminProductManager({
             </div>
             <button
               aria-label="Next page"
-              className="grid size-9 place-items-center border border-zinc-300 bg-white text-zinc-800 transition-colors hover:bg-zinc-900 hover:text-white disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-300"
+              className="grid size-9 place-items-center border border-zinc-300 bg-white text-zinc-800 transition-colors hover:bg-zinc-900 hover:text-white disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-300 rounded cursor-pointer"
               disabled={currentPage === pageCount}
               onClick={() => setPage((value) => Math.min(pageCount, value + 1))}
               type="button"
             >
               <ChevronRight size={16} />
             </button>
+
+            <div className="flex items-center gap-1.5 ml-1 border-l border-zinc-200 pl-2">
+              <span className="text-[10px] font-bold text-zinc-450 uppercase tracking-wider">Đến:</span>
+              <input
+                type="number"
+                min={1}
+                max={pageCount}
+                onChange={(e) => {
+                  const val = Number(e.target.value);
+                  if (val >= 1 && val <= pageCount) {
+                    setPage(val);
+                  }
+                }}
+                placeholder={currentPage.toString()}
+                className="w-10 h-9 border border-zinc-300 bg-white px-1 text-center text-xs font-bold text-zinc-800 rounded focus:border-[#a72b1f] focus:ring-1 focus:ring-[#a72b1f] outline-none"
+              />
+            </div>
           </div>
         </div>
       )}
