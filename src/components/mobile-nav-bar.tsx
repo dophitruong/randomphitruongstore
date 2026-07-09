@@ -89,7 +89,7 @@ export function MobileNavBar() {
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
         aria-label="Mobile navigation"
       >
-        <div className="flex h-16 items-stretch border-t border-white/10 bg-[#11100e]">
+        <div className="flex h-16 items-stretch border-t border-zinc-800/40 bg-[#11100e]">
           {/* Regular tabs */}
           {tabs.map(({ href, label, icon: Icon, badge }) => {
             const isActive = pathname === href || pathname.startsWith(href + "/");
@@ -180,7 +180,7 @@ export function MobileNavBar() {
         style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 4rem)" }}
       >
         {/* Panel header */}
-        <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
+        <div className="flex items-center justify-between px-5 py-4">
           <p className="text-xs font-black uppercase tracking-[0.16em] text-white/50">
             Menu
           </p>
@@ -195,7 +195,7 @@ export function MobileNavBar() {
         </div>
 
         {/* User section */}
-        <div className="border-b border-white/10 px-5 py-3">
+        <div className="px-5 py-3">
           {user ? (
             <div className="flex flex-col gap-1">
               {/* Profile row — full-width tap target */}
@@ -254,7 +254,7 @@ export function MobileNavBar() {
                 href={link.href}
                 onClick={() => setMenuOpen(false)}
                 className={cn(
-                  "flex items-center justify-between border-b border-white/5 py-3.5 text-sm font-bold last:border-0 transition-colors",
+                  "flex items-center justify-between py-3.5 text-sm font-bold last:border-0 transition-colors",
                   isActive ? "text-[#d64b3d]" : "text-white/75 hover:text-white"
                 )}
               >
@@ -270,10 +270,7 @@ export function MobileNavBar() {
         </nav>
 
         {/* Language & Currency */}
-        <div className="flex items-center gap-4 border-t border-white/10 px-5 py-4">
-          <span className="grid size-8 shrink-0 place-items-center rounded-full bg-[#d64b3d]/10 text-[#d64b3d]">
-            <FontAwesomeIcon icon={faGlobe} className="text-[12px]" />
-          </span>
+        <div className="flex items-center justify-start gap-4 px-5 py-4">
           <CurrencySelector />
           <LanguageToggle />
         </div>
