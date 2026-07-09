@@ -960,6 +960,7 @@ export function AdminProductManager({
                 <div className="flex-shrink-0">
                   {product.images.length > 0 ? (
                     <div className="relative size-16 overflow-hidden border border-zinc-200 bg-zinc-100 rounded">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         alt={productDisplayName(product)}
                         className="h-full w-full object-cover"
@@ -1026,6 +1027,7 @@ export function AdminProductManager({
                     className="relative size-10 shrink-0 overflow-hidden border border-zinc-200 bg-zinc-100 rounded"
                     key={image.id}
                   >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       alt={`${productDisplayName(product)} image ${index + 2}`}
                       className="h-full w-full object-cover"

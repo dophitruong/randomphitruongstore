@@ -241,7 +241,7 @@ export default async function AdminDashboardPage() {
                     </div>
                     {inquiry.customerMessage && (
                       <p className="mt-2 text-[11px] text-zinc-555 line-clamp-1 border-t border-zinc-100 pt-1.5 italic">
-                        "{inquiry.customerMessage}"
+                        &quot;{inquiry.customerMessage}&quot;
                       </p>
                     )}
                   </div>
