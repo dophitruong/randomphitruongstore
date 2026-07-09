@@ -17,10 +17,14 @@
 
 html {
   scroll-behavior: smooth;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 body {
   margin: 0;
+  max-width: 100%;
+  overflow-x: hidden;
   background: var(--background);
   color: var(--foreground);
   font-family:
@@ -179,4 +183,11 @@ a {
   margin-top: 0.35rem;
   color: #b42318;
   font-size: 0.75rem;
+}
+
+/* Prevent iOS Safari auto-zoom on inputs on mobile screens */
+@media (max-width: 1023px) {
+  input, select, textarea, .field {
+    font-size: 16px !important;
+  }
 }
