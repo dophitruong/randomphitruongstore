@@ -89,38 +89,38 @@ export default async function AdminDashboardPage() {
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       <header>
-        <p className="eyebrow text-zinc-500">Tổng quan</p>
-        <h1 className="mt-2 text-4xl font-black">Bảng điều khiển</h1>
+        <p className="eyebrow text-zinc-500 text-[10px] sm:text-xs">Tổng quan</p>
+        <h1 className="mt-1 sm:mt-2 text-2xl sm:text-4xl font-black">Bảng điều khiển</h1>
       </header>
 
-      {/* KPI Cards */}
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {/* KPI Cards (2 columns on mobile, 4 columns on desktop) */}
+      <section className="grid gap-3 sm:gap-4 grid-cols-2 xl:grid-cols-4">
         {stats.map((stat) => {
           return (
             <article
-              className={`border p-5 shadow-[0_10px_30px_rgba(0,0,0,0.02)] rounded-r-lg transition-transform duration-200 hover:-translate-y-0.5 ${stat.themeClass}`}
+              className={`border p-3.5 sm:p-5 shadow-[0_10px_30px_rgba(0,0,0,0.02)] rounded-r-lg transition-transform duration-200 hover:-translate-y-0.5 ${stat.themeClass}`}
               key={stat.label}
             >
               <div className="flex items-center justify-between text-zinc-400">
-                <span className="text-xs font-bold uppercase tracking-wider text-zinc-600">
+                <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-zinc-650">
                   {stat.label}
                 </span>
-                <FontAwesomeIcon icon={stat.icon} className={`text-base ${stat.iconColor}`} />
+                <FontAwesomeIcon icon={stat.icon} className={`text-sm sm:text-base ${stat.iconColor}`} />
               </div>
-              <p className="mt-8 text-4xl font-black text-zinc-900">{stat.value}</p>
+              <p className="mt-4 sm:mt-8 text-2xl sm:text-4xl font-black text-zinc-900">{stat.value}</p>
             </article>
           );
         })}
       </section>
 
-      {/* Recent Data Sections */}
+      {/* Recent Data Sections (Stacked on mobile, side-by-side on desktop) */}
       <div className="grid gap-6 lg:grid-cols-12">
         {/* Recent Orders Column */}
-        <section className="lg:col-span-7 bg-white border border-zinc-200 rounded-lg p-5 shadow-[0_10px_30px_rgba(0,0,0,0.02)]">
-          <div className="flex items-center justify-between border-b border-zinc-100 pb-4 mb-4">
-            <h2 className="text-sm font-black uppercase tracking-wider text-zinc-800">Đơn hàng gần đây</h2>
+        <section className="lg:col-span-7 bg-white border border-zinc-200 rounded-lg p-4 sm:p-5 shadow-[0_10px_30px_rgba(0,0,0,0.02)]">
+          <div className="flex items-center justify-between border-b border-zinc-100 pb-3 mb-3.5">
+            <h2 className="text-xs sm:text-sm font-black uppercase tracking-wider text-zinc-800">Đơn hàng gần đây</h2>
             <Link 
               href="/admin/orders" 
               className="text-xs font-bold text-[#a72b1f] hover:underline flex items-center gap-1"
@@ -129,7 +129,35 @@ export default async function AdminDashboardPage() {
             </Link>
           </div>
 
-          <div className="overflow-x-auto -mx-5 sm:mx-0">
+          {/* Mobile view for orders (Cards) */}
+          <div className="block sm:hidden space-y-3">
+            {recentOrders.length === 0 ? (
+              <p className="py-6 text-center text-xs text-zinc-400">Không có đơn hàng nào</p>
+            ) : (
+              recentOrders.map((order) => {
+                const statusInfo = ORDER_STATUS_LABELS[order.status] || { text: order.status, classes: "bg-zinc-100 text-zinc-800" };
+                return (
+                  <div key={order.id} className="p-3 bg-zinc-50 border border-zinc-150 rounded space-y-2 text-xs">
+                    <div className="flex items-center justify-between">
+                      <Link href="/admin/orders" className="font-mono font-bold text-zinc-900 hover:text-[#a72b1f]">
+                        {order.orderNumber}
+                      </Link>
+                      <span className={`px-2 py-0.5 border text-[9px] font-bold rounded-full ${statusInfo.classes}`}>
+                        {statusInfo.text}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="text-zinc-650 font-bold">{order.customer.fullName}</span>
+                      <span className="font-extrabold text-zinc-950">{order.totalAmount.toLocaleString("vi-VN")} đ</span>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          {/* Desktop view for orders (Table) */}
+          <div className="hidden sm:block overflow-x-auto">
             <table className="w-full min-w-[500px] text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-zinc-50 border-y border-zinc-200 text-zinc-500 font-bold uppercase">
@@ -176,9 +204,9 @@ export default async function AdminDashboardPage() {
         </section>
 
         {/* Recent Sourcing Requests Column */}
-        <section className="lg:col-span-5 bg-white border border-zinc-200 rounded-lg p-5 shadow-[0_10px_30px_rgba(0,0,0,0.02)]">
-          <div className="flex items-center justify-between border-b border-zinc-100 pb-4 mb-4">
-            <h2 className="text-sm font-black uppercase tracking-wider text-zinc-800">Yêu cầu tìm nguồn mới nhất</h2>
+        <section className="lg:col-span-5 bg-white border border-zinc-200 rounded-lg p-4 sm:p-5 shadow-[0_10px_30px_rgba(0,0,0,0.02)]">
+          <div className="flex items-center justify-between border-b border-zinc-100 pb-3 mb-3.5">
+            <h2 className="text-xs sm:text-sm font-black uppercase tracking-wider text-zinc-800">Yêu cầu tìm nguồn mới nhất</h2>
             <Link 
               href="/admin/order-requests" 
               className="text-xs font-bold text-[#a72b1f] hover:underline flex items-center gap-1"
@@ -187,7 +215,7 @@ export default async function AdminDashboardPage() {
             </Link>
           </div>
 
-          <div className="space-y-3.5">
+          <div className="space-y-3">
             {recentInquiries.length === 0 ? (
               <p className="py-8 text-center text-xs text-zinc-400">Không có yêu cầu nào</p>
             ) : (
@@ -206,7 +234,7 @@ export default async function AdminDashboardPage() {
                       <span>{new Date(inquiry.createdAt).toLocaleDateString("vi-VN")}</span>
                     </div>
                     {inquiry.customerMessage && (
-                      <p className="mt-2 text-[11px] text-zinc-500 line-clamp-1 border-t border-zinc-100 pt-1.5 italic">
+                      <p className="mt-2 text-[11px] text-zinc-555 line-clamp-1 border-t border-zinc-100 pt-1.5 italic">
                         "{inquiry.customerMessage}"
                       </p>
                     )}
