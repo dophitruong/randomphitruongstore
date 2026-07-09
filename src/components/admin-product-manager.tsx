@@ -1083,9 +1083,17 @@ export function AdminProductManager({
             >
               <ChevronLeft size={16} />
             </button>
-            <span className="min-w-24 text-center text-xs font-bold text-zinc-700">
-              Page {currentPage} / {pageCount}
-            </span>
+            <select
+              value={currentPage}
+              onChange={(e) => setPage(Number(e.target.value))}
+              className="h-9 px-3 text-xs font-bold border border-zinc-300 bg-white text-zinc-800 focus:ring-1 focus:ring-[#a72b1f] focus:border-[#a72b1f] outline-none cursor-pointer rounded"
+            >
+              {Array.from({ length: pageCount }, (_, i) => i + 1).map((p) => (
+                <option key={p} value={p}>
+                  Trang {p} / {pageCount}
+                </option>
+              ))}
+            </select>
             <button
               aria-label="Next page"
               className="grid size-9 place-items-center border border-zinc-300 bg-white text-zinc-800 transition-colors hover:bg-zinc-900 hover:text-white disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-300"
