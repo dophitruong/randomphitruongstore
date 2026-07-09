@@ -112,7 +112,7 @@ export default async function AdminDashboardPage() {
                     {stat.value}
                   </p>
                 </div>
-                <div className={`flex size-7 sm:size-9 shrink-0 items-center justify-center rounded-full bg-white shadow-sm border border-zinc-100 ${stat.iconColor}`}>
+                <div className={`flex size-7 sm:size-9 shrink-0 items-center justify-center ${stat.iconColor}`}>
                   <FontAwesomeIcon icon={stat.icon} className="text-xs sm:text-sm" />
                 </div>
               </div>
