@@ -1083,17 +1083,26 @@ export function AdminProductManager({
             >
               <ChevronLeft size={16} />
             </button>
-            <select
-              value={currentPage}
-              onChange={(e) => setPage(Number(e.target.value))}
-              className="h-9 px-3 text-xs font-bold border border-zinc-300 bg-white text-zinc-800 focus:ring-1 focus:ring-[#a72b1f] focus:border-[#a72b1f] outline-none cursor-pointer rounded"
-            >
-              {Array.from({ length: pageCount }, (_, i) => i + 1).map((p) => (
-                <option key={p} value={p}>
-                  Trang {p} / {pageCount}
-                </option>
-              ))}
-            </select>
+            <div className="flex items-center gap-1">
+              {Array.from({ length: pageCount }, (_, i) => i + 1).map((p) => {
+                const isCurrent = p === currentPage;
+                return (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    className={cn(
+                      "grid size-9 place-items-center border text-xs font-bold transition-colors rounded cursor-pointer",
+                      isCurrent
+                        ? "border-[#a72b1f] bg-[#a72b1f] text-white"
+                        : "border-zinc-300 bg-white text-zinc-800 hover:bg-zinc-900 hover:text-white"
+                    )}
+                    type="button"
+                  >
+                    {p}
+                  </button>
+                );
+              })}
+            </div>
             <button
               aria-label="Next page"
               className="grid size-9 place-items-center border border-zinc-300 bg-white text-zinc-800 transition-colors hover:bg-zinc-900 hover:text-white disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-300"
@@ -1944,28 +1953,32 @@ export function AdminProductManager({
                   )}
                 />
               </div>
-              <div className="grid grid-cols-2 gap-3.5 sm:col-span-2 border border-zinc-200 bg-zinc-50/50 p-4 rounded-md">
-                <div className="col-span-2 border-b border-zinc-200 pb-2 mb-1">
-                  <h3 className="text-xs font-black uppercase tracking-wider text-zinc-700">Trạng thái sản phẩm / Product Status</h3>
+              <div className="sm:col-span-2 flex flex-wrap gap-4 sm:gap-6 bg-zinc-50 border border-zinc-200 p-2.5 rounded-lg items-center">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-zinc-400">Trạng thái:</span>
                 </div>
-                <label className="flex items-center justify-between border border-zinc-200 bg-white p-3 rounded cursor-pointer select-none transition-colors hover:bg-zinc-50 col-span-1">
-                  <div className="flex flex-col pr-2">
-                    <span className="text-xs font-bold text-zinc-800">Featured / Nổi bật</span>
-                    <span className="text-[9px] text-zinc-500 font-medium leading-tight">Hiện trên trang chủ</span>
-                  </div>
+                
+                <label className="flex items-center gap-2.5 cursor-pointer select-none">
                   <div className="relative shrink-0">
                     <input type="checkbox" {...register("isFeatured")} className="sr-only peer" />
-                    <div className="w-11 h-6 bg-zinc-200 rounded-full peer peer-focus:ring-2 peer-focus:ring-zinc-150 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#a72b1f] transition-colors duration-200" />
+                    <div className="w-9 h-5 bg-zinc-200 rounded-full peer peer-focus:ring-1 peer-focus:ring-zinc-150 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#a72b1f] transition-colors duration-200" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-zinc-800 leading-none">Nổi bật (Featured)</span>
+                    <span className="text-[9px] text-zinc-500 mt-0.5">Hiện trang chủ</span>
                   </div>
                 </label>
-                <label className="flex items-center justify-between border border-zinc-200 bg-white p-3 rounded cursor-pointer select-none transition-colors hover:bg-zinc-50 col-span-1">
-                  <div className="flex flex-col pr-2">
-                    <span className="text-xs font-bold text-zinc-800">Active / Kích hoạt</span>
-                    <span className="text-[9px] text-zinc-500 font-medium leading-tight">Cho phép khách mua</span>
-                  </div>
+
+                <div className="w-px h-6 bg-zinc-200 self-center hidden sm:block" />
+
+                <label className="flex items-center gap-2.5 cursor-pointer select-none">
                   <div className="relative shrink-0">
                     <input type="checkbox" {...register("isActive")} className="sr-only peer" />
-                    <div className="w-11 h-6 bg-zinc-200 rounded-full peer peer-focus:ring-2 peer-focus:ring-zinc-150 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#a72b1f] transition-colors duration-200" />
+                    <div className="w-9 h-5 bg-zinc-200 rounded-full peer peer-focus:ring-1 peer-focus:ring-zinc-150 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#a72b1f] transition-colors duration-200" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-zinc-800 leading-none">Kích hoạt (Active)</span>
+                    <span className="text-[9px] text-zinc-500 mt-0.5">Cho phép mua</span>
                   </div>
                 </label>
               </div>
