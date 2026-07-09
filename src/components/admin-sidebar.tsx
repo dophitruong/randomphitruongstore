@@ -41,7 +41,7 @@ export function AdminSidebar() {
         <button
           onClick={logout}
           type="button"
-          className="flex items-center gap-1 px-2 py-1 border border-white/10 rounded text-[9px] font-bold uppercase tracking-wider hover:bg-white/5 active:bg-white/10 transition-colors cursor-pointer"
+          className="flex items-center gap-1 px-2 py-1 border border-transparent rounded text-[9px] font-bold uppercase tracking-wider hover:bg-white/5 active:bg-white/10 transition-colors cursor-pointer"
           aria-label="Đăng xuất"
         >
           <FontAwesomeIcon icon={faRightFromBracket} className="text-[10px]" />
@@ -98,7 +98,7 @@ export function AdminSidebar() {
             return (
               <Link
                 className={cn(
-                  "flex min-h-10 items-center gap-2 border border-transparent px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white/65 transition-colors hover:border-white/10 hover:bg-white/10 hover:text-white rounded",
+                  "flex min-h-10 items-center gap-2 border border-transparent px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white/65 transition-colors hover:bg-white/10 hover:text-white rounded",
                   active &&
                     "border-[#bd3a2d] bg-[#a72b1f] text-white hover:border-[#bd3a2d] hover:bg-[#8f241a] hover:text-white"
                 )}
@@ -114,7 +114,7 @@ export function AdminSidebar() {
 
         <div>
           <button
-            className="flex min-h-10 items-center gap-2 border border-transparent px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white/50 transition-colors hover:border-white/10 hover:bg-white/10 hover:text-white cursor-pointer rounded"
+            className="flex min-h-10 items-center gap-2 border border-transparent px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white/50 transition-colors hover:bg-white/10 hover:text-white cursor-pointer rounded"
             onClick={logout}
             type="button"
           >
