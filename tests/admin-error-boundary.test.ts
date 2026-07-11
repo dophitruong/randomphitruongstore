@@ -15,6 +15,6 @@ describe("admin panel error boundary", () => {
     );
 
     assert.doesNotMatch(html, new RegExp(sensitiveMessage));
-    assert.match(html, /An unexpected error occurred\. Please try again\./);
+    assert.match(html, /An unexpected error occurred\. This could be due to a transient network disruption or session change\./);
   });
 });
