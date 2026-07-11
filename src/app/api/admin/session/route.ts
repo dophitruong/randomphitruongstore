@@ -69,3 +69,13 @@ export async function DELETE() {
   await destroyAdminSession(getPrisma());
   return ok({ ok: true });
 }
+
+export async function GET() {
+  const { getCurrentAdmin } = await import("@/lib/admin-auth");
+  const admin = await getCurrentAdmin();
+  if (!admin) {
+    return ok({ authenticated: false });
+  }
+  return ok({ authenticated: true, user: admin });
+}
+

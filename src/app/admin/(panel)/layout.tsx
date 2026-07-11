@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { AdminSidebar } from "@/components/admin-sidebar";
+import { AdminSessionValidator } from "@/components/admin-session-validator";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { createPerfContext, withPerfTiming } from "@/lib/perf-diagnostics";
 
@@ -38,8 +39,10 @@ export default async function AdminPanelLayout({
 
   return (
     <div className="admin-shell min-h-screen w-full max-w-full bg-[#f3f2ef] text-zinc-950">
+      <AdminSessionValidator />
       <AdminSidebar />
       <main className="min-w-0 flex-1 p-4 pb-[calc(5.5rem+env(safe-area-inset-bottom))] sm:p-7 sm:pb-[calc(5.5rem+env(safe-area-inset-bottom))] lg:p-10 lg:pb-10">{children}</main>
     </div>
   );
 }
+
