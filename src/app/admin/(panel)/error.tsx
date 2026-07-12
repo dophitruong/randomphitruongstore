@@ -2,6 +2,10 @@
 
 import { useEffect, useState } from "react";
 
+// Track retry counts at the module level so they persist across component resets (when reset() is called)
+let globalRetryCount = 0;
+let globalLastRetryTime = 0;
+
 export default function AdminPanelError({
   error,
   reset
@@ -18,7 +22,40 @@ export default function AdminPanelError({
       digest: error.digest,
       stack: error.stack
     });
-  }, [error]);
+
+    // Check for Next.js ChunkLoadErrors (which often occur when assets change after a deployment)
+    const isChunkError =
+      error.message?.includes("Failed to fetch dynamically imported module") ||
+      error.message?.includes("loading Chunk") ||
+      error.message?.includes("error loading dynamically imported module");
+
+    if (isChunkError) {
+      console.warn("Next.js chunk loading failure detected. Reloading page to fetch latest bundles...");
+      window.location.reload();
+      return;
+    }
+
+    // Auto-retry transient errors up to 3 times, with a minimum 1 second cooldown
+    const now = Date.now();
+    if (globalRetryCount < 3 && now - globalLastRetryTime > 1000) {
+      globalRetryCount++;
+      globalLastRetryTime = now;
+      console.warn(`AdminPanelError: Attempting automatic recovery/retry ${globalRetryCount}/3...`);
+
+      const timer = setTimeout(() => {
+        reset();
+      }, 500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [error, reset]);
+
+  // Reset retry counter on successful recovery / component unmount
+  useEffect(() => {
+    return () => {
+      globalRetryCount = 0;
+    };
+  }, []);
 
   return (
     <div className="flex min-h-[65vh] flex-col items-center justify-center p-6 text-center">
@@ -31,7 +68,10 @@ export default function AdminPanelError({
       <div className="mt-8 flex flex-wrap justify-center gap-3">
         <button
           className="button-primary px-5 py-2 text-xs font-black uppercase tracking-wider bg-zinc-900 text-white rounded hover:bg-zinc-800 transition-colors cursor-pointer"
-          onClick={reset}
+          onClick={() => {
+            globalRetryCount = 0;
+            reset();
+          }}
           type="button"
         >
           Thử lại
