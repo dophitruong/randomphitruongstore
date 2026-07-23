@@ -20,7 +20,11 @@ export default async function ProductInquiryPage() {
     "color",
     "note",
     "success",
-    "successBody"
+    "successBody",
+    "loginNotice",
+    "loginButton",
+    "registerButton",
+    "loginRequiredError"
   ] as const;
   const labels = Object.fromEntries(keys.map((key) => [key, t(key)]));
 

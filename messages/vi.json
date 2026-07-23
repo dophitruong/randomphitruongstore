@@ -211,7 +211,11 @@
     "color": "Màu mong muốn",
     "note": "Ghi chú",
     "success": "Đã nhận yêu cầu của bạn.",
-    "successBody": "Shop sẽ kiểm tra mẫu và liên hệ báo giá. Bạn có thể nhắn Zalo để được xử lý nhanh hơn."
+    "successBody": "Shop sẽ kiểm tra mẫu và liên hệ báo giá. Bạn có thể nhắn Zalo để được xử lý nhanh hơn.",
+    "loginNotice": "⚠️ Bạn cần đăng nhập hoặc đăng ký tài khoản trước khi gửi yêu cầu. Sau khi đăng nhập, bạn có thể theo dõi trạng thái yêu cầu của mình.",
+    "loginButton": "Đăng nhập ngay",
+    "registerButton": "Đăng ký tài khoản",
+    "loginRequiredError": "Vui lòng đăng nhập để gửi yêu cầu tìm mẫu."
   },
   "about": {
     "eyebrow": "Từ năm 2022 · Phi Trường",
