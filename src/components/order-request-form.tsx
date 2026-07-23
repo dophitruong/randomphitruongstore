@@ -1,10 +1,13 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ImageUp } from "lucide-react";
+import { AlertTriangle, ImageUp } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { useAuth } from "@/context/auth-context";
 import { ZALO_URL } from "@/lib/constants";
 import { ZaloIcon } from "./brand-icons";
 import { TrackedLink } from "./tracked-link";
@@ -25,6 +28,8 @@ export function ProductInquiryForm({
 }: {
   labels: Record<string, string>;
 }) {
+  const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const [image, setImage] = useState<File | null>(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
@@ -38,6 +43,11 @@ export function ProductInquiryForm({
 
   async function onSubmit(values: RequestFormValues) {
     setError("");
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+
     if (!image) {
       setError("Please select an inspiration image.");
       return;
@@ -110,6 +120,33 @@ export function ProductInquiryForm({
       className="grid gap-5 border border-zinc-300 bg-white p-5 sm:grid-cols-2 sm:p-8"
       onSubmit={handleSubmit(onSubmit)}
     >
+      {!authLoading && !user ? (
+        <div className="border border-amber-300 bg-amber-50 p-4 text-amber-950 sm:col-span-2">
+          <div className="flex items-start gap-2.5 text-sm font-medium leading-6">
+            <AlertTriangle size={18} className="mt-0.5 shrink-0 text-amber-600" />
+            <div>
+              <p>
+                {labels.loginNotice ||
+                  "⚠️ Bạn cần đăng nhập hoặc đăng ký tài khoản trước khi gửi yêu cầu. Sau khi đăng nhập, bạn có thể theo dõi trạng thái yêu cầu của mình."}
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2.5">
+                <Link
+                  className="inline-block bg-black px-4 py-2 text-xs font-bold text-white hover:bg-zinc-800"
+                  href="/login"
+                >
+                  {labels.loginButton || "Đăng nhập ngay"}
+                </Link>
+                <Link
+                  className="inline-block border border-black bg-white px-4 py-2 text-xs font-bold text-black hover:bg-zinc-100"
+                  href="/register"
+                >
+                  {labels.registerButton || "Đăng ký tài khoản"}
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
       <RequestField
         error={errors.fullName?.message}
         label={labels.fullName}

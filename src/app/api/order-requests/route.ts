@@ -33,7 +33,10 @@ export async function POST(request: Request) {
   try {
     const supabase = await getSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();
-    const email = normalizeEmail(user?.email);
+    if (!user) {
+      return err("Vui lòng đăng nhập để gửi yêu cầu tìm mẫu.", 401);
+    }
+    const email = normalizeEmail(user.email);
     const inquiry = await createProductInquiry({
       prisma: getPrisma(),
       input: parsed.data,

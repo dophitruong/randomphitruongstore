@@ -211,7 +211,11 @@
     "color": "Desired color",
     "note": "Note",
     "success": "We received your request.",
-    "successBody": "The shop will review the item and contact you with a quote. Message Zalo for faster handling."
+    "successBody": "The shop will review the item and contact you with a quote. Message Zalo for faster handling.",
+    "loginNotice": "⚠️ Please log in or register an account before submitting a sourcing request. Once logged in, you can track your request status.",
+    "loginButton": "Log in now",
+    "registerButton": "Register account",
+    "loginRequiredError": "Please log in to submit a request."
   },
   "about": {
     "eyebrow": "Since 2022 · Phi Truong",
