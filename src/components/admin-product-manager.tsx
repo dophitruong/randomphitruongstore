@@ -243,6 +243,7 @@ export function AdminProductManager({
   const pendingDraftPayloadRef = useRef<{ payload: DraftPayload; key: string } | null>(null);
   const lastSavedDraftPayloadRef = useRef<string | null>(null);
   const draftSessionRef = useRef(0);
+  const isPublishingRef = useRef(false);
   const canSaveDraft = !editingId || editingProductStatus === "DRAFT";
 
   // Warn before page unload when form has unsaved changes
@@ -255,7 +256,7 @@ export function AdminProductManager({
   }, [isDirty]);
 
   useEffect(() => {
-    if (!open || !canSaveDraft || isSubmitting || !isDirty) return;
+    if (!open || !canSaveDraft || isSubmitting || !isDirty || isPublishingRef.current) return;
     const payload = toDraftPayload(watchedFormValues as Partial<FormValues>);
     if (!hasMeaningfulProductDraftData(payload)) {
       return;
@@ -268,7 +269,9 @@ export function AdminProductManager({
 
     if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
     autoSaveTimerRef.current = setTimeout(() => {
-      void persistDraftPayload(payload, { autosave: true });
+      if (!isPublishingRef.current) {
+        void persistDraftPayload(payload, { autosave: true });
+      }
     }, 1000);
 
     return () => {
@@ -417,7 +420,7 @@ export function AdminProductManager({
     payload: DraftPayload,
     { autosave = false }: { autosave?: boolean } = {}
   ) {
-    if (!canSaveDraft) {
+    if (!canSaveDraft || isPublishingRef.current) {
       return null;
     }
 
@@ -464,7 +467,7 @@ export function AdminProductManager({
 
     let processPendingDraft = true;
     try {
-      if (requestSession !== draftSessionRef.current) {
+      if (requestSession !== draftSessionRef.current || isPublishingRef.current) {
         processPendingDraft = false;
         return null;
       }
@@ -498,6 +501,7 @@ export function AdminProductManager({
       if (
         processPendingDraft &&
         requestSession === draftSessionRef.current &&
+        !isPublishingRef.current &&
         pending &&
         pending.key !== lastSavedDraftPayloadRef.current
       ) {
@@ -581,13 +585,15 @@ export function AdminProductManager({
   }
 
   function updateImageUrls(urls: string[]) {
-    setValue("images", urls.join("\n"), {
+    const uniqueUrls = Array.from(new Set(urls.map((u) => u.trim()).filter(Boolean)));
+    setValue("images", uniqueUrls.join("\n"), {
       shouldDirty: true,
       shouldValidate: true
     });
   }
 
   async function save(values: FormValues) {
+    if (isPublishingRef.current) return;
     setServerError("");
     const isPublishingDraft = !editingId || editingProductStatus === "DRAFT";
     if (
@@ -599,25 +605,35 @@ export function AdminProductManager({
       return;
     }
 
-    const endpoint = editingId ? `/api/products/${editingId}` : "/api/products";
-    const response = await fetch(endpoint, {
-      method: editingId ? "PATCH" : "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ...values,
-        categoryId: values.categoryId,
-        sizeTemplateId: values.sizeTemplateId || null,
-        images: splitProductImageUrls(values.images)
-      })
-    });
-    const result = await response.json();
-    if (!response.ok) {
-      setServerError(result.error ?? "Unable to save product");
-      return;
-    }
+    isPublishingRef.current = true;
     resetDraftSaveState();
-    setOpen(false);
-    router.refresh();
+
+    try {
+      const endpoint = editingId ? `/api/products/${editingId}` : "/api/products";
+      const response = await fetch(endpoint, {
+        method: editingId ? "PATCH" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...values,
+          categoryId: values.categoryId,
+          sizeTemplateId: values.sizeTemplateId || null,
+          images: Array.from(new Set(splitProductImageUrls(values.images)))
+        })
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        setServerError(result.error ?? "Unable to save product");
+        return;
+      }
+      setEditingProductStatus("PUBLISHED");
+      setEditingId(null);
+      draftProductIdRef.current = null;
+      resetDraftSaveState();
+      setOpen(false);
+      router.refresh();
+    } finally {
+      isPublishingRef.current = false;
+    }
   }
 
   async function uploadProductImages(files: FileList | null) {

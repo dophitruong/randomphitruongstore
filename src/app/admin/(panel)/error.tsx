@@ -35,6 +35,28 @@ export default function AdminPanelError({
       return;
     }
 
+    const isNetworkOrResumeError =
+      error.name === "TypeError" ||
+      error.message?.includes("Failed to fetch") ||
+      error.message?.includes("NetworkError") ||
+      error.message?.includes("Load failed") ||
+      error.message?.includes("Network request failed");
+
+    const handleReconnect = () => {
+      console.warn("Reconnection/Visibility event detected in AdminPanelError. Triggering automatic recovery...");
+      globalRetryCount = 0;
+      reset();
+    };
+
+    window.addEventListener("online", handleReconnect);
+    window.addEventListener("pageshow", handleReconnect);
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        handleReconnect();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
     // Auto-retry transient errors up to 3 times, with a minimum 1 second cooldown
     const now = Date.now();
     if (globalRetryCount < 3 && now - globalLastRetryTime > 1000) {
@@ -44,10 +66,21 @@ export default function AdminPanelError({
 
       const timer = setTimeout(() => {
         reset();
-      }, 500);
+      }, isNetworkOrResumeError ? 1200 : 500);
 
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener("online", handleReconnect);
+        window.removeEventListener("pageshow", handleReconnect);
+        document.removeEventListener("visibilitychange", handleVisibilityChange);
+      };
     }
+
+    return () => {
+      window.removeEventListener("online", handleReconnect);
+      window.removeEventListener("pageshow", handleReconnect);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, [error, reset]);
 
   // Reset retry counter on successful recovery / component unmount

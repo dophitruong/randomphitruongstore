@@ -363,7 +363,7 @@ export function buildProductCatalogWrite(input: ProductInput) {
       isActive: input.isActive,
       sizeTemplateId: input.sizeTemplateId || null
     },
-    images: input.images.map((url, index) => ({
+    images: Array.from(new Set(input.images)).map((url, index) => ({
       url,
       altVi: input.nameVi,
       altEn: input.nameEn,
@@ -424,7 +424,7 @@ export function buildProductDraftWrite(
       isActive: input.isActive,
       sizeTemplateId: input.sizeTemplateId || null
     },
-    images: (input.images ?? []).map((url, index) => ({
+    images: Array.from(new Set(input.images ?? [])).map((url, index) => ({
       url,
       altVi: nameVi,
       altEn: nameEn,
