@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import { getOptimizedCloudinaryUrl } from "@/lib/cloudinary";
 
 export function ProductGallery({
   images
@@ -137,7 +138,7 @@ export function ProductGallery({
                 fill
                 priority={index === 0}
                 sizes="(max-width: 1024px) 100vw, 55vw"
-                src={image.url}
+                src={getOptimizedCloudinaryUrl(image.url, { width: 1200 })}
               />
             </button>
           ))}
@@ -190,7 +191,7 @@ export function ProductGallery({
                 className="object-cover"
                 fill
                 sizes="120px"
-                src={image.url}
+                src={getOptimizedCloudinaryUrl(image.url, { width: 200 })}
               />
             </button>
           ))}
@@ -243,7 +244,7 @@ export function ProductGallery({
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={image.url}
+                    src={getOptimizedCloudinaryUrl(image.url, { width: 1600 })}
                     alt={image.alt}
                     className="max-w-full max-h-full object-contain pointer-events-none"
                     loading={index === active ? "eager" : "lazy"}
@@ -281,7 +282,7 @@ export function ProductGallery({
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={image.url}
+                    src={getOptimizedCloudinaryUrl(image.url, { width: 200 })}
                     alt={image.alt}
                     className="w-full h-full object-cover"
                   />
@@ -294,3 +295,4 @@ export function ProductGallery({
     </div>
   );
 }
+
