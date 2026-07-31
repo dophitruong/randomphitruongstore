@@ -107,6 +107,7 @@ export default async function AdminProductInquiriesPage() {
         ) : (
           requests.map((request) => {
             const { imageUrl, linkUrl } = adminInquiryPresentationUrls(request);
+            const optimizedImageUrl = getOptimizedCloudinaryUrl(imageUrl, { width: 200 });
             const socialContact =
               request.instagramHandle ?? request.zaloPhone ?? request.email ?? "-";
 
