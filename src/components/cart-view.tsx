@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
+import { getOptimizedCloudinaryUrl } from "@/lib/cloudinary";
 import { useCart } from "./cart-provider";
 import { Money } from "./money";
 
@@ -59,7 +60,7 @@ export function CartView() {
                           className="object-cover"
                           fill
                           sizes="112px"
-                          src={item.imageUrl}
+                          src={getOptimizedCloudinaryUrl(item.imageUrl, { width: 200 })}
                         />
                       ) : null}
                     </Link>

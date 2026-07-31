@@ -5,6 +5,7 @@ import { AdminInquiryDeleteButton } from "@/components/admin-inquiry-delete-butt
 import { StatusBadge } from "@/components/status-badge";
 import { InquiryMessage } from "@/components/inquiry-message";
 import { getPrisma } from "@/lib/prisma";
+import { getOptimizedCloudinaryUrl } from "@/lib/cloudinary";
 import {
   adminInquiryPresentationUrls,
   listAdminProductInquiries
@@ -32,6 +33,7 @@ export default async function AdminProductInquiriesPage() {
         >
           {requests.map((request) => {
             const { imageUrl, linkUrl } = adminInquiryPresentationUrls(request);
+            const optimizedImageUrl = getOptimizedCloudinaryUrl(imageUrl, { width: 200 });
             const socialContact =
               request.instagramHandle ?? request.zaloPhone ?? request.email ?? "-";
 
@@ -44,7 +46,7 @@ export default async function AdminProductInquiriesPage() {
                         alt="Customer inspiration"
                         className="h-20 w-16 object-cover"
                         height={80}
-                        src={imageUrl}
+                        src={optimizedImageUrl}
                         width={64}
                       />
                     </a>
@@ -120,7 +122,7 @@ export default async function AdminProductInquiriesPage() {
                             alt="Customer inspiration"
                             className="h-20 w-16 object-cover rounded border border-zinc-200"
                             height={80}
-                            src={imageUrl}
+                            src={optimizedImageUrl}
                             width={64}
                           />
                         </a>
