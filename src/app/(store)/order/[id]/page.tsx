@@ -10,6 +10,7 @@ import { guestOrderAccessToken } from "@/lib/guest-order-cookie";
 import { PaymentButtons } from "@/components/payment-buttons";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { canAccessOrder } from "@/lib/order-access";
+import { getOptimizedCloudinaryUrl } from "@/lib/cloudinary";
 import type { Locale } from "@/i18n/request";
 
 export const dynamic = "force-dynamic";
@@ -110,7 +111,7 @@ export default async function OrderPage({ params }: PageProps) {
                     {item.product?.images[0] && (
                       <div className="relative h-20 w-16 shrink-0 overflow-hidden bg-zinc-200 rounded">
                         <Image
-                          src={item.product.images[0].url}
+                          src={getOptimizedCloudinaryUrl(item.product.images[0].url, { width: 200 })}
                           alt={productName}
                           fill
                           sizes="64px"
