@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Locale } from "@/i18n/request";
 import { productBasePrice } from "@/lib/product-pricing";
+import { getOptimizedCloudinaryUrl } from "@/lib/cloudinary";
 import type { CatalogProductDTO } from "@/types";
 import { Money } from "./money";
 import { OrderBadge } from "./order-badge";
@@ -30,6 +31,11 @@ export function ProductCard({
     : "";
   const isOutOfStock = product.stockStatus === "OUT_OF_STOCK";
 
+  const primaryOptimizedUrl = image ? getOptimizedCloudinaryUrl(image.url, { width: 600 }) : "";
+  const secondaryOptimizedUrl = product.images[1]
+    ? getOptimizedCloudinaryUrl(product.images[1].url, { width: 600 })
+    : "";
+
   return (
     <article className="group min-w-0 border-t border-black/20 pt-2 sm:pt-3">
       <Link
@@ -51,7 +57,7 @@ export function ProductCard({
                 }`}
                 fill
                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 33vw"
-                src={image.url}
+                src={primaryOptimizedUrl}
               />
               {product.images[1] ? (
                 <Image
@@ -60,10 +66,10 @@ export function ProductCard({
                       ? product.images[1].altVi
                       : product.images[1].altEn
                   }
-                  className="object-contain transition duration-700 ease-out absolute inset-0 opacity-0 group-hover:opacity-100 group-hover:scale-[1.04]"
+                  className="object-contain transition duration-700 ease-out absolute inset-0 opacity-0 hidden sm:block group-hover:opacity-100 group-hover:scale-[1.04]"
                   fill
                   sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 33vw"
-                  src={product.images[1].url}
+                  src={secondaryOptimizedUrl}
                 />
               ) : null}
             </>
