@@ -57,7 +57,7 @@ describe("currency conversion and formatting", () => {
     );
   });
 
-  it("resolves manual choice, country default, admin default, then VND fallback", () => {
+  it("resolves manual choice, admin default, then VND fallback", () => {
     const settings = {
       defaultCurrency: "VND" as const,
       vndEnabled: true,
@@ -85,6 +85,15 @@ describe("currency conversion and formatting", () => {
       resolveCurrencySelection({
         countryCode: "US",
         settings
+      }),
+      "VND"
+    );
+    assert.equal(
+      resolveCurrencySelection({
+        settings: {
+          ...settings,
+          defaultCurrency: "USD"
+        }
       }),
       "USD"
     );
