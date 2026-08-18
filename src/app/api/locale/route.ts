@@ -16,7 +16,9 @@ export async function POST(request: Request) {
   const { locale } = parsed.data;
   const response = NextResponse.json({ success: true, data: { locale } });
   response.cookies.set("locale", locale, {
+    httpOnly: true,
     sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
     path: "/",
     maxAge: 60 * 60 * 24 * 365
   });

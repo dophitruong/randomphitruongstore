@@ -152,7 +152,6 @@ export function resolveEnabledCurrency(
 
 export function resolveCurrencySelection({
   manualCurrency,
-  countryCode,
   settings
 }: {
   manualCurrency?: unknown;
@@ -161,14 +160,6 @@ export function resolveCurrencySelection({
 }): Currency {
   if (isCurrency(manualCurrency) && isCurrencyEnabled(manualCurrency, settings)) {
     return manualCurrency;
-  }
-
-  const normalizedCountry = countryCode?.trim().toUpperCase();
-  if (normalizedCountry === "VN" || normalizedCountry === "VIETNAM") {
-    return resolveEnabledCurrency("VND", settings);
-  }
-  if (normalizedCountry && isCurrencyEnabled("USD", settings)) {
-    return "USD";
   }
 
   return resolveEnabledCurrency(settings.defaultCurrency, settings);

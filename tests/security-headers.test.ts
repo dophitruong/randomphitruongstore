@@ -25,4 +25,22 @@ describe("production security headers", () => {
     assert.match(config, /source:\s*["']\/admin\/:path\*["']/);
     assert.match(config, /source:\s*["']\/api\/:path\*["']/);
   });
+
+  it("ensures all sensitive and preference cookies enforce httpOnly", async () => {
+    const files = [
+      "src/lib/admin-auth.ts",
+      "src/lib/guest-order-cookie.ts",
+      "src/app/api/currency/route.ts",
+      "src/app/api/locale/route.ts"
+    ];
+
+    for (const file of files) {
+      const content = await readFile(new URL(`../${file}`, import.meta.url), "utf8");
+      assert.match(
+        content,
+        /httpOnly:\s*true/,
+        `Expected ${file} to set httpOnly: true on cookies`
+      );
+    }
+  });
 });
