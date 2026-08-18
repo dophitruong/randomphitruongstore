@@ -7,7 +7,6 @@ import {
   faBars,
   faCartShopping,
   faCircleUser,
-  faGlobe,
   faPaperPlane,
   faRightFromBracket,
   faXmark
