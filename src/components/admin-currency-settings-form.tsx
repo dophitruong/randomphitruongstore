@@ -8,6 +8,7 @@ import {
   type Currency,
   type CurrencySettings
 } from "@/lib/currency";
+import { formatVietnamDateTime } from "@/lib/format";
 
 export function AdminCurrencySettingsForm({
   initialSettings
@@ -183,7 +184,7 @@ export function AdminCurrencySettingsForm({
             <dt className="text-zinc-500">Last updated</dt>
             <dd className="text-right font-bold">
               {settings.exchangeRateUpdatedAt
-                ? new Date(settings.exchangeRateUpdatedAt).toLocaleString()
+                ? formatVietnamDateTime(settings.exchangeRateUpdatedAt)
                 : "Never"}
             </dd>
           </div>

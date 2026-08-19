@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { AdminStatusSelect } from "@/components/admin-status-select";
 import { AdminOrderDeleteButton } from "@/components/admin-order-delete-button";
 import { StatusBadge } from "@/components/status-badge";
-import { formatPrice } from "@/lib/format";
+import { formatPrice, formatVietnamDateTime } from "@/lib/format";
 import { getPrisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -94,7 +94,7 @@ export default async function AdminOrderDetailPage({
             />
             <Detail
               label="Created"
-              value={order.createdAt.toLocaleString("vi-VN")}
+              value={formatVietnamDateTime(order.createdAt)}
             />
           </dl>
           <div className="mt-5 divide-y divide-zinc-200 border-t border-zinc-200">
@@ -112,7 +112,7 @@ export default async function AdminOrderDetailPage({
                     </p>
                     <p className="mt-1 text-xs text-zinc-500">
                       {payment.paidAt
-                        ? `Paid ${payment.paidAt.toLocaleString("vi-VN")}`
+                        ? `Paid ${formatVietnamDateTime(payment.paidAt)}`
                         : "Awaiting payment"}
                     </p>
                   </div>
@@ -163,7 +163,7 @@ export default async function AdminOrderDetailPage({
                   <p className="mt-2 text-zinc-600">{history.note || "-"}</p>
                 </div>
                 <p className="text-xs font-bold text-zinc-500">
-                  {history.createdAt.toLocaleString("vi-VN")}
+                  {formatVietnamDateTime(history.createdAt)}
                 </p>
               </div>
             ))

@@ -7,6 +7,7 @@ import {
   faArrowRight
 } from "@fortawesome/free-solid-svg-icons";
 import { getPrisma } from "@/lib/prisma";
+import { formatVietnamDateTime } from "@/lib/format";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -237,7 +238,7 @@ export default async function AdminDashboardPage() {
                     </div>
                     <div className="mt-1 flex items-center justify-between text-[10px] text-zinc-400">
                       <span>SDT: {inquiry.phone}</span>
-                      <span>{new Date(inquiry.createdAt).toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh", hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit", year: "numeric" })}</span>
+                      <span>{formatVietnamDateTime(inquiry.createdAt)}</span>
                     </div>
                     {inquiry.customerMessage && (
                       <p className="mt-2 text-[11px] text-zinc-555 line-clamp-1 border-t border-zinc-100 pt-1.5 italic">

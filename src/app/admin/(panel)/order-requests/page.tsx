@@ -4,6 +4,7 @@ import { AdminTable } from "@/components/admin-table";
 import { AdminInquiryDeleteButton } from "@/components/admin-inquiry-delete-button";
 import { StatusBadge } from "@/components/status-badge";
 import { InquiryMessage } from "@/components/inquiry-message";
+import { formatVietnamDateTime } from "@/lib/format";
 import { getPrisma } from "@/lib/prisma";
 import { getOptimizedCloudinaryUrl } from "@/lib/cloudinary";
 import {
@@ -68,7 +69,7 @@ export default async function AdminProductInquiriesPage() {
                   <p className="text-xs text-zinc-500">{request.phone}</p>
                   <p className="text-xs text-zinc-500">{socialContact}</p>
                   <p className="mt-1 text-[11px] text-zinc-400 font-medium">
-                    Gửi lúc: {request.createdAt.toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh", hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit", year: "numeric" })}
+                    Gửi lúc: {formatVietnamDateTime(request.createdAt)}
                   </p>
                 </td>
                 <td className="max-w-xs px-4 py-4">
@@ -148,7 +149,7 @@ export default async function AdminProductInquiriesPage() {
                       <p className="text-xs text-zinc-500 mt-0.5">{request.phone}</p>
                       <p className="text-xs text-zinc-500">{socialContact}</p>
                       <p className="mt-1 text-[10px] text-zinc-400 font-medium">
-                        Gửi lúc: {request.createdAt.toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh", hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit", year: "numeric" })}
+                        Gửi lúc: {formatVietnamDateTime(request.createdAt)}
                       </p>
                     </div>
                   </div>
