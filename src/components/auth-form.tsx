@@ -1,7 +1,8 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, MailCheck } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -42,6 +43,7 @@ export function AuthForm({
   const router = useRouter();
   const { refreshUser } = useAuth();
   const [serverError, setServerError] = useState<string | null>(null);
+  const [registeredEmailNotice, setRegisteredEmailNotice] = useState<string | null>(null);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [widgetId, setWidgetId] = useState<string | null>(null);
 
@@ -101,6 +103,7 @@ export function AuthForm({
 
   async function submit(values: Values) {
     setServerError(null);
+    setRegisteredEmailNotice(null);
 
     if (!captchaToken) {
       setServerError("Vui lòng xác minh CAPTCHA để tiếp tục / Please complete the CAPTCHA to proceed.");
@@ -133,8 +136,39 @@ export function AuthForm({
       return;
     }
 
+    if (mode === "register" && json.data?.requiresEmailConfirmation) {
+      setRegisteredEmailNotice(
+        json.data.message ||
+          "Đăng ký thành công! Vui lòng kiểm tra hộp thư email (kể cả mục Spam) để kích hoạt tài khoản trước khi đăng nhập."
+      );
+      return;
+    }
+
     await refreshUser();
     router.replace("/account");
+  }
+
+  if (registeredEmailNotice) {
+    return (
+      <div className="mt-8 border border-emerald-300 bg-emerald-50/70 p-6 shadow-[8px_8px_0_rgba(17,16,14,0.08)] sm:p-8 space-y-4">
+        <div className="flex items-center gap-3 text-emerald-800">
+          <MailCheck size={28} className="shrink-0 text-emerald-600" />
+          <h2 className="text-lg font-black tracking-tight">Đăng ký tài khoản thành công!</h2>
+        </div>
+        <p className="text-sm leading-relaxed text-zinc-700">
+          {registeredEmailNotice}
+        </p>
+        <div className="pt-2">
+          <Link
+            className="button-primary inline-flex items-center gap-2"
+            href="/login"
+          >
+            Đến trang Đăng nhập
+            <ArrowRight size={16} />
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   return (
