@@ -42,8 +42,13 @@ export async function POST(request: Request) {
 
   const result = registrationClientResult({
     user: data.user,
+    session: data.session,
     error
   });
+
+  if (!result.success) {
+    return err(result.error, result.status);
+  }
 
   return ok(result.body, result.status);
 }

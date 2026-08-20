@@ -32,7 +32,23 @@ export async function POST(request: Request) {
   });
 
   if (error) {
-    return err("Invalid email or password", 401);
+    const errorMsg = error.message?.toLowerCase() ?? "";
+    if (
+      errorMsg.includes("email not confirmed") ||
+      errorMsg.includes("email_not_confirmed")
+    ) {
+      return err(
+        "Email chưa được kích hoạt. Vui lòng kiểm tra hộp thư email (kể cả mục Spam) và nhấp vào liên kết xác nhận để kích hoạt tài khoản.",
+        400
+      );
+    }
+    if (errorMsg.includes("captcha")) {
+      return err(
+        "Xác thực CAPTCHA không hợp lệ hoặc đã hết hạn. Vui lòng thử lại.",
+        400
+      );
+    }
+    return err("Email hoặc mật khẩu không chính xác", 401);
   }
 
   // Note: Session duration ("Remember me") is configured in Supabase Dashboard
