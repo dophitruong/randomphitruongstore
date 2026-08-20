@@ -13,7 +13,6 @@ const scriptSrc = [
   "https://www.google-analytics.com",
   "https://www.googleadservices.com",
   "https://googleads.g.doubleclick.net",
-  "https://challenges.cloudflare.com",
   "https://va.vercel-scripts.com",
   "https://connect.facebook.net"
 ];
@@ -28,8 +27,8 @@ const contentSecurityPolicy = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https://images.unsplash.com https://qr.sepay.vn https://*.supabase.co https://res.cloudinary.com https://www.google-analytics.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://*.doubleclick.net https://*.google.com https://*.google.com.vn https://*.googleadservices.com https://www.facebook.com",
   "font-src 'self' data:",
-  "connect-src 'self' https://*.supabase.co https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://*.doubleclick.net https://*.google.com https://*.google.com.vn https://*.googleadservices.com https://challenges.cloudflare.com https://www.facebook.com",
-  "frame-src 'self' https://www.googletagmanager.com https://*.doubleclick.net https://challenges.cloudflare.com",
+  "connect-src 'self' https://*.supabase.co https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://*.doubleclick.net https://*.google.com https://*.google.com.vn https://*.googleadservices.com https://www.facebook.com",
+  "frame-src 'self' https://www.googletagmanager.com https://*.doubleclick.net",
   ...(isProduction ? ["upgrade-insecure-requests"] : [])
 ].join("; ");
 

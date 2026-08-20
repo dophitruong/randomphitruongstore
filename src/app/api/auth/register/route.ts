@@ -31,8 +31,7 @@ export async function POST(request: Request) {
     options: {
       data: {
         full_name: parsed.data.fullName ?? ""
-      },
-      captchaToken: parsed.data.captchaToken
+      }
     }
   });
 
