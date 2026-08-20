@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowRight, MailCheck } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import Script from "next/script";
 import { useAuth } from "@/context/auth-context";
@@ -18,7 +18,7 @@ interface TurnstileWindow {
         sitekey: string;
         callback: (token: string) => void;
         "expired-callback"?: () => void;
-        "error-callback"?: () => void;
+        "error-callback"?: (errorCode?: string) => void;
       }
     ) => string;
     reset: (widgetId: string) => void;
@@ -42,10 +42,12 @@ export function AuthForm({
 }) {
   const router = useRouter();
   const { refreshUser } = useAuth();
+  const containerRef = useRef<HTMLDivElement>(null);
   const [serverError, setServerError] = useState<string | null>(null);
   const [registeredEmailNotice, setRegisteredEmailNotice] = useState<string | null>(null);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [widgetId, setWidgetId] = useState<string | null>(null);
+  const [turnstileError, setTurnstileError] = useState<string | null>(null);
 
   const schema = mode === "register" ? registerInputSchema : loginInputSchema;
 
@@ -58,25 +60,32 @@ export function AuthForm({
   });
 
   useEffect(() => {
-    // eslint-disable-next-line prefer-const
-    let checkInterval: NodeJS.Timeout;
-    
     const initTurnstile = () => {
       const tsWindow = window as unknown as TurnstileWindow;
-      if (typeof window !== "undefined" && tsWindow.turnstile) {
+      if (typeof window !== "undefined" && tsWindow.turnstile && containerRef.current) {
         clearInterval(checkInterval);
         if (widgetId === null) {
           try {
-            const id = tsWindow.turnstile.render("#turnstile-container", {
-              sitekey: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "1x00000000000000000000AA",
+            const sitekey =
+              process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "1x00000000000000000000AA";
+            const id = tsWindow.turnstile.render(containerRef.current, {
+              sitekey,
               callback: (token: string) => {
                 setCaptchaToken(token);
+                setTurnstileError(null);
+                setServerError(null);
               },
               "expired-callback": () => {
                 setCaptchaToken(null);
               },
-              "error-callback": () => {
+              "error-callback": (errorCode) => {
                 setCaptchaToken(null);
+                console.warn("[Turnstile Error]", errorCode);
+                if (errorCode === "110200" || errorCode === "110600") {
+                  setTurnstileError(
+                    "Domain hiện tại chưa được cấp phép trong Cloudflare Turnstile. Vui lòng thêm domain vào Cloudflare Dashboard."
+                  );
+                }
               }
             });
             setWidgetId(id);
@@ -87,7 +96,7 @@ export function AuthForm({
       }
     };
 
-    checkInterval = setInterval(initTurnstile, 200);
+    const checkInterval = setInterval(initTurnstile, 200);
 
     return () => {
       clearInterval(checkInterval);
@@ -223,8 +232,13 @@ export function AuthForm({
           </label>
         )}
 
-        <div className="flex justify-center my-2">
-          <div id="turnstile-container"></div>
+        <div className="flex flex-col items-center justify-center my-2 gap-2">
+          <div ref={containerRef}></div>
+          {turnstileError ? (
+            <p className="text-center text-xs text-amber-700 bg-amber-50 border border-amber-200 p-2 rounded max-w-sm">
+              {turnstileError}
+            </p>
+          ) : null}
         </div>
 
         <button className="button-primary" disabled={isSubmitting} type="submit">
