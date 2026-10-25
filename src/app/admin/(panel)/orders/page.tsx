@@ -1,9 +1,11 @@
 import { AdminOrdersManager } from "@/components/admin-orders-manager";
+import { requireAdmin } from "@/lib/admin-auth";
 import { getPrisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminOrdersPage() {
+  await requireAdmin();
   const orders = await getPrisma().order.findMany({
     include: {
       customer: true,

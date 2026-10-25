@@ -110,15 +110,19 @@ describe("SePay settlement", () => {
   it("atomically pays once and creates only one history record on a replay", async () => {
     const { store, state } = createSettlementStore();
 
+    const tracked: unknown[] = [];
+
     const first = await settleSePayPayment({
       prisma: store,
       payload: basePayload,
-      now: () => new Date("2026-06-21T12:00:00.000Z")
+      now: () => new Date("2026-06-21T12:00:00.000Z"),
+      trackPurchase: (event) => tracked.push(event)
     });
     const replay = await settleSePayPayment({
       prisma: store,
       payload: basePayload,
-      now: () => new Date("2026-06-21T12:01:00.000Z")
+      now: () => new Date("2026-06-21T12:01:00.000Z"),
+      trackPurchase: (event) => tracked.push(event)
     });
 
     assert.equal(first, "paid");
@@ -126,6 +130,25 @@ describe("SePay settlement", () => {
     assert.equal(state.order.payments[0].paymentStatus, "PAID");
     assert.equal(state.order.status, "PAID_FULL");
     assert.equal(state.history.length, 1);
+    assert.equal(tracked.length, 1);
+  });
+
+  it("reports the Meta purchase in VND even when the shopper browsed in USD", async () => {
+    const { store } = createSettlementStore();
+    const order = (await store.order.findUnique({ where: { orderNumber: "RPT-0001" } }))!;
+    Object.assign(order, { displayCurrency: "USD" });
+    const tracked: Array<{ value: number; currency: string }> = [];
+
+    await settleSePayPayment({
+      prisma: store,
+      payload: basePayload,
+      trackPurchase: (event) => tracked.push(event)
+    });
+
+    assert.deepEqual(
+      tracked.map(({ value, currency }) => ({ value, currency })),
+      [{ value: 50000, currency: "VND" }]
+    );
   });
 
   it("rejects an IPN whose order or transaction amount differs from stored payment", async () => {

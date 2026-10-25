@@ -1,6 +1,9 @@
 import type { Prisma } from "@prisma/client";
 import type { SePayIpnPayload } from "@/lib/sepay";
-import { sendMetaCapiEvent } from "@/lib/meta-capi";
+import {
+  scheduleMetaCapiEvent,
+  type MetaCapiEventOptions
+} from "@/lib/meta-capi";
 
 type SettlementPayment = {
   id: string;
@@ -21,7 +24,6 @@ type SettlementOrder = {
   orderNumber: string;
   paymentMethod: string;
   status: string;
-  displayCurrency: string;
   payments: SettlementPayment[];
   customer: SettlementCustomer;
 };
@@ -90,11 +92,13 @@ export class SePaySettlementError extends Error {
 export async function settleSePayPayment({
   prisma,
   payload,
-  now = () => new Date()
+  now = () => new Date(),
+  trackPurchase = scheduleMetaCapiEvent
 }: {
   prisma: SePaySettlementStore;
   payload: SePayIpnPayload;
   now?: () => Date;
+  trackPurchase?: (event: MetaCapiEventOptions) => void;
 }): Promise<"paid" | "already_processed" | "ignored"> {
   if (
     payload.notification_type !== "ORDER_PAID" ||
@@ -181,16 +185,14 @@ export async function settleSePayPayment({
   });
 
   if (result === "paid") {
-    // Send Meta Conversions API event
-    sendMetaCapiEvent({
+    // payment.amount is always VND (validatePaymentAmounts enforces it); displayCurrency is only what the shopper saw.
+    trackPurchase({
       eventName: "Purchase",
       eventId: order.orderNumber,
       email: order.customer.email,
       phone: order.customer.phone,
       value: payment.amount,
-      currency: order.displayCurrency
-    }).catch((capiError) => {
-      console.error("[Meta CAPI] Error sending Purchase event:", capiError);
+      currency: "VND"
     });
   }
 

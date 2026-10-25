@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { AdminStatusSelect } from "@/components/admin-status-select";
 import { AdminOrderDeleteButton } from "@/components/admin-order-delete-button";
 import { StatusBadge } from "@/components/status-badge";
+import { requireAdmin } from "@/lib/admin-auth";
 import { formatPrice, formatVietnamDateTime } from "@/lib/format";
 import { getPrisma } from "@/lib/prisma";
 
@@ -25,6 +26,7 @@ export default async function AdminOrderDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  await requireAdmin();
   const { id } = await params;
   const order = await getPrisma().order.findUnique({
     where: { id },
