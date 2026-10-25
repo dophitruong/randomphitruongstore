@@ -158,6 +158,8 @@ export const productDraftInputSchema = z.object({
   isActive: z.boolean().default(true)
 });
 
+export const maxOrderLineItems = 50;
+
 export const orderInputSchema = z.object({
   fullName: z.string().trim().min(2),
   phone: phoneSchema,
@@ -185,6 +187,8 @@ export const orderInputSchema = z.object({
       })
     )
     .min(1)
+    // The cart merges repeat variants into one line, so real orders stay far below this.
+    .max(maxOrderLineItems)
 });
 
 export const profileUpdateSchema = z.object({

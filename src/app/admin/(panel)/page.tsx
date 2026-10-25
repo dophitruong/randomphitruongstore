@@ -6,6 +6,7 @@ import {
   faClipboardList,
   faArrowRight
 } from "@fortawesome/free-solid-svg-icons";
+import { requireAdmin } from "@/lib/admin-auth";
 import { getPrisma } from "@/lib/prisma";
 import { formatVietnamDateTime } from "@/lib/format";
 import Link from "next/link";
@@ -33,6 +34,7 @@ const INQUIRY_STATUS_LABELS: Record<string, { text: string; classes: string }> =
 };
 
 export default async function AdminDashboardPage() {
+  await requireAdmin();
   const prisma = getPrisma();
 
   const [

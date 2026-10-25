@@ -1,9 +1,11 @@
 import { AdminProductManager } from "@/components/admin-product-manager";
+import { requireAdmin } from "@/lib/admin-auth";
 import { getPrisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminProductsPage() {
+  await requireAdmin();
   const [products, categories, sizeTemplates] = await Promise.all([
     getPrisma().product.findMany({
       include: {

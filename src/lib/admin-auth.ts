@@ -4,6 +4,7 @@ import {
 } from "node:crypto";
 import type { AdminRole } from "@prisma/client";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import {
   hashAdminPassword,
   verifyAdminPasswordHash
@@ -184,6 +185,15 @@ export async function getCurrentAdmin(prisma = getPrisma()) {
 
 export async function isAdminAuthenticated() {
   return Boolean(await getCurrentAdmin());
+}
+
+// Every admin page must call this itself: Next.js skips the shared layout on client navigation requests.
+export async function requireAdmin() {
+  const admin = await getCurrentAdmin();
+  if (!admin) {
+    redirect("/admin/login");
+  }
+  return admin;
 }
 
 export async function createAdminSession(

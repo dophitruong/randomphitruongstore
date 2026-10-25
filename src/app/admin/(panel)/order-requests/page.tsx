@@ -4,6 +4,7 @@ import { AdminTable } from "@/components/admin-table";
 import { AdminInquiryDeleteButton } from "@/components/admin-inquiry-delete-button";
 import { StatusBadge } from "@/components/status-badge";
 import { InquiryMessage } from "@/components/inquiry-message";
+import { requireAdmin } from "@/lib/admin-auth";
 import { formatVietnamDateTime } from "@/lib/format";
 import { getPrisma } from "@/lib/prisma";
 import { getOptimizedCloudinaryUrl } from "@/lib/cloudinary";
@@ -17,6 +18,7 @@ export const dynamic = "force-dynamic";
 const statuses = ["NEW", "CONTACTED", "QUOTED", "CLOSED"];
 
 export default async function AdminProductInquiriesPage() {
+  await requireAdmin();
   const requests = await listAdminProductInquiries(getPrisma());
 
   return (

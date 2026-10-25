@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { after } from "next/server";
 
 function hashValue(value: string | null | undefined): string | null {
   if (!value) return null;
@@ -6,7 +7,7 @@ function hashValue(value: string | null | undefined): string | null {
   return crypto.createHash("sha256").update(normalized).digest("hex");
 }
 
-type MetaCapiEventOptions = {
+export type MetaCapiEventOptions = {
   eventName: "Purchase";
   eventId: string;
   email?: string | null;
@@ -16,6 +17,11 @@ type MetaCapiEventOptions = {
   clientIpAddress?: string | null;
   clientUserAgent?: string | null;
 };
+
+// A bare un-awaited promise can be frozen once a serverless response is sent; after() keeps it alive.
+export function scheduleMetaCapiEvent(options: MetaCapiEventOptions) {
+  after(() => sendMetaCapiEvent(options));
+}
 
 export async function sendMetaCapiEvent(options: MetaCapiEventOptions) {
   const pixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID;

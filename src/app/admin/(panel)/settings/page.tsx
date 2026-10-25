@@ -1,9 +1,11 @@
 import { AdminCurrencySettingsForm } from "@/components/admin-currency-settings-form";
+import { requireAdmin } from "@/lib/admin-auth";
 import { getCurrencySettings } from "@/lib/currency-settings";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminSettingsPage() {
+  await requireAdmin();
   const currencySettings = await getCurrencySettings();
 
   return (
