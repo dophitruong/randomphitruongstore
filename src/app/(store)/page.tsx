@@ -122,7 +122,7 @@ export default async function HomePage() {
 
             <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center">
               <Link
-                className="button-primary w-full border-white bg-white text-black hover:border-[#a72b1f] hover:bg-[#a72b1f] hover:text-white sm:w-auto"
+                className="button-primary min-h-14 w-full border-[#a72b1f] bg-[#a72b1f] px-8 text-sm text-white shadow-[0_12px_32px_rgba(214,75,61,0.5)] ring-2 ring-[#d64b3d]/60 ring-offset-2 ring-offset-[#11100e] hover:border-[#c23526] hover:bg-[#c23526] sm:w-auto"
                 href="/shop"
               >
                 {common("viewShop")}
