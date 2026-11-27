@@ -12,8 +12,25 @@ export const WORKING_HOURS = "09:00 - 22:00 (Hàng ngày / Everyday)";
 export const BANK_DETAILS = {
   bank: "BIDV - PGD Thanh Xuân Bắc",
   accountNumber: "2153102265",
+  // The QR code has always used this number (likely a SePay virtual account forwarding to accountNumber).
+  qrAccountNumber: "9624715031978",
   accountHolder: "DO PHI TRUONG"
 } as const;
+
+export function bankTransferQrUrl(amount?: number, orderNumber?: string) {
+  const params = new URLSearchParams({
+    bank: "BIDV",
+    acc: BANK_DETAILS.qrAccountNumber,
+    template: "compact",
+    showinfo: "true",
+    fullacc: "true",
+    holder: BANK_DETAILS.accountHolder,
+    store: "randomphitruong"
+  });
+  if (amount) params.set("amount", String(amount));
+  if (orderNumber) params.set("des", orderNumber);
+  return `https://qr.sepay.vn/img?${params}`;
+}
 
 export const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
