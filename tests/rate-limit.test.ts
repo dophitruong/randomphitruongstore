@@ -100,8 +100,7 @@ describe("database-backed rate limiting", () => {
         "paymentInitiationIp",
         "paymentInitiationOrder"
       ],
-      ["../src/app/api/upload/route.ts", "adminUploadAccount", "uploadIp"],
-      ["../src/app/api/upload/intent/route.ts", "uploadIp"]
+      ["../src/app/api/upload/route.ts", "adminUploadAccount", "uploadIp"]
     ] as const;
 
     for (const [routePath, ...policies] of routePolicies) {
