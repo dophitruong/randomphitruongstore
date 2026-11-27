@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
@@ -51,14 +51,17 @@ describe("Vercel build script", () => {
       ]
     );
   });
-  it("skips migrations gracefully when DIRECT_URL is missing even in production", () => {
-    // The dry-run plan still lists migrate deploy, but the real run skips it
-    // when DIRECT_URL is absent so the build does not crash.
-    const plan = dryRun({ VERCEL_ENV: "production" });
-    assert.ok(
-      plan.includes("prisma migrate deploy"),
-      "plan should include migrate deploy step"
-    );
+
+  it("fails a production build before doing any work when DIRECT_URL is missing", () => {
+    const result = spawnSync(process.execPath, ["scripts/vercel-build.mjs"], {
+      cwd: projectRoot,
+      encoding: "utf8",
+      env: { ...process.env, VERCEL_ENV: "production", DIRECT_URL: "" }
+    });
+
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /DIRECT_URL is not set/);
+    assert.doesNotMatch(result.stdout, /Running next build/);
   });
 });
 
