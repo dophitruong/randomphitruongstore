@@ -1,5 +1,5 @@
 import { err, handlePrismaError, ok, zodDetails } from "@/lib/api-response";
-import { getCurrentAdmin } from "@/lib/admin-auth";
+import { getCurrentAdmin, isManager } from "@/lib/admin-auth";
 import {
   OrderLifecycleError,
   updateAdminOrderLifecycle
@@ -9,38 +9,18 @@ import { orderStatusSchema } from "@/lib/validations";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
-export async function GET(_: Request, context: RouteContext) {
-  const admin = await getCurrentAdmin();
-  if (!admin) {
-    return err("Unauthorized", 401);
-  }
-  const { id } = await context.params;
-  try {
-    const order = await getPrisma().order.findUnique({
-      where: { id },
-      include: {
-        customer: true,
-        items: { include: { product: true, productVariant: true } },
-        payments: { orderBy: { createdAt: "asc" } },
-        shippingAddress: true,
-        statusHistory: { orderBy: { createdAt: "desc" } }
-      }
-    });
-    if (!order) {
-      return err("Order not found", 404);
-    }
-    return ok(order);
-  } catch (error) {
-    return handlePrismaError(error);
-  }
-}
-
 export async function PATCH(request: Request, context: RouteContext) {
   const admin = await getCurrentAdmin();
   if (!admin) {
     return err("Unauthorized", 401);
   }
-  const parsed = orderStatusSchema.safeParse(await request.json());
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return err("Invalid JSON payload", 400);
+  }
+  const parsed = orderStatusSchema.safeParse(body);
   if (!parsed.success) {
     return err("Invalid status", 400, zodDetails(parsed.error));
   }
@@ -58,10 +38,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     if (error instanceof OrderLifecycleError) {
       return err(error.message, error.status);
     }
-    console.error("[PATCH Order Error]", error);
-    const rawMessage = error instanceof Error ? error.message : String(error);
-    const sanitizedMessage = rawMessage.replace(/(postgresql:\/\/)[^@]+@/g, "$1****@");
-    return err(sanitizedMessage, 500);
+    return handlePrismaError(error);
   }
 }
 
@@ -70,20 +47,27 @@ export async function DELETE(_: Request, context: RouteContext) {
   if (!admin) {
     return err("Unauthorized", 401);
   }
+  if (!isManager(admin)) {
+    return err("Only an owner or admin can delete orders", 403);
+  }
   const { id } = await context.params;
   try {
     const order = await getPrisma().order.findUnique({
-      where: { id }
+      where: { id },
+      select: { payments: { where: { paymentStatus: "PAID" }, select: { id: true } } }
     });
     if (!order) {
       return err("Order not found", 404);
+    }
+    // Deleting cascades payments and history, so paid orders must be cancelled instead to keep the money trail.
+    if (order.payments.length > 0) {
+      return err("Đơn hàng đã có thanh toán, không thể xóa. Hãy chuyển trạng thái sang Đã hủy.", 409);
     }
     await getPrisma().order.delete({
       where: { id }
     });
     return ok({ deleted: true });
   } catch (error) {
-    console.error("[DELETE Order Error]", error);
     return handlePrismaError(error);
   }
 }

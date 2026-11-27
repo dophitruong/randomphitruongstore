@@ -1,5 +1,5 @@
 import { err, handlePrismaError, ok, zodDetails } from "@/lib/api-response";
-import { isAdminAuthenticated } from "@/lib/admin-auth";
+import { getCurrentAdmin, isAdminAuthenticated, isManager } from "@/lib/admin-auth";
 import {
   buildProductCatalogWrite,
   buildProductVariantSyncPlan
@@ -104,8 +104,12 @@ export async function PATCH(request: Request, context: RouteContext) {
 }
 
 export async function DELETE(_: Request, context: RouteContext) {
-  if (!(await isAdminAuthenticated())) {
+  const admin = await getCurrentAdmin();
+  if (!admin) {
     return err("Unauthorized", 401);
+  }
+  if (!isManager(admin)) {
+    return err("Only an owner or admin can delete products", 403);
   }
 
   const { id } = await context.params;
