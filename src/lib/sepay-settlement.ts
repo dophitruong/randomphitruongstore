@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import type { OrderStatus, PaymentStatus, Prisma } from "@prisma/client";
 import type { SePayIpnPayload } from "@/lib/sepay";
 import {
   scheduleMetaCapiEvent,
@@ -8,7 +8,7 @@ import {
 type SettlementPayment = {
   id: string;
   amount: number;
-  paymentStatus: string;
+  paymentStatus: PaymentStatus;
   gatewayProvider: string | null;
   gatewayOrderId: string | null;
   gatewayTransactionId: string | null;
@@ -23,7 +23,7 @@ type SettlementOrder = {
   id: string;
   orderNumber: string;
   paymentMethod: string;
-  status: string;
+  status: OrderStatus;
   payments: SettlementPayment[];
   customer: SettlementCustomer;
 };
@@ -33,7 +33,7 @@ type SettlementTransaction = {
     updateMany(args: {
       where: {
         id: string;
-        paymentStatus: "PENDING";
+        paymentStatus: PaymentStatus;
         OR: Array<
           { gatewayTransactionId: null } | { gatewayTransactionId: string }
         >;
@@ -63,7 +63,7 @@ type SettlementTransaction = {
     create(args: {
       data: {
         orderId: string;
-        status: "PAID_FULL";
+        status: OrderStatus;
         note: string;
       };
     }): Promise<unknown>;
@@ -99,7 +99,7 @@ export async function settleSePayPayment({
   payload: SePayIpnPayload;
   now?: () => Date;
   trackPurchase?: (event: MetaCapiEventOptions) => void;
-}): Promise<"paid" | "already_processed" | "ignored"> {
+}): Promise<"paid" | "already_processed" | "ignored" | "needs_review"> {
   if (
     payload.notification_type !== "ORDER_PAID" ||
     payload.order.order_status !== "CAPTURED" ||
@@ -127,12 +127,13 @@ export async function settleSePayPayment({
     return "already_processed";
   }
 
-  const payment = order.payments.find(
-    (item) =>
-      item.paymentStatus === "PENDING" &&
-      (item.gatewayProvider === null || item.gatewayProvider === "sepay") &&
-      (item.gatewayOrderId === null || item.gatewayOrderId === order.orderNumber)
-  );
+  const isSePayPayment = (item: SettlementPayment) =>
+    (item.gatewayProvider === null || item.gatewayProvider === "sepay") &&
+    (item.gatewayOrderId === null || item.gatewayOrderId === order.orderNumber);
+  // A CANCELLED payment can still receive money when the shopper pays an old SePay tab, so it is recorded too.
+  const payment =
+    order.payments.find((item) => item.paymentStatus === "PENDING" && isSePayPayment(item)) ??
+    order.payments.find((item) => item.paymentStatus === "CANCELLED" && isSePayPayment(item));
   if (!payment) {
     throw new SePaySettlementError("No pending SePay payment found", 409);
   }
@@ -144,7 +145,7 @@ export async function settleSePayPayment({
     const claimed = await transaction.payment.updateMany({
       where: {
         id: payment.id,
-        paymentStatus: "PENDING",
+        paymentStatus: payment.paymentStatus,
         OR: [
           { gatewayTransactionId: null },
           { gatewayTransactionId: transactionId }
@@ -165,7 +166,7 @@ export async function settleSePayPayment({
       return "already_processed" as const;
     }
 
-    await transaction.order.updateMany({
+    const updated = await transaction.order.updateMany({
       where: { id: order.id, status: "PENDING_ONLINE_PAYMENT" },
       data: {
         status: "PAID_FULL",
@@ -173,6 +174,18 @@ export async function settleSePayPayment({
         remainingAmount: 0
       }
     });
+
+    if (updated.count === 0) {
+      await transaction.orderStatusHistory.create({
+        data: {
+          orderId: order.id,
+          status: order.status,
+          note: `SePay payment received while the order was ${order.status}; status not changed. Refund or reopen the order. Amount: ${payment.amount}. Transaction: ${transactionId}`
+        }
+      });
+      return "needs_review" as const;
+    }
+
     await transaction.orderStatusHistory.create({
       data: {
         orderId: order.id,
@@ -183,6 +196,13 @@ export async function settleSePayPayment({
 
     return "paid" as const;
   });
+
+  if (result === "needs_review") {
+    console.error("[SePay IPN] Payment received for an order that is not awaiting payment", {
+      orderNumber: order.orderNumber,
+      status: order.status
+    });
+  }
 
   if (result === "paid") {
     // payment.amount is always VND (validatePaymentAmounts enforces it); displayCurrency is only what the shopper saw.
