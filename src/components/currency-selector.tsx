@@ -1,7 +1,6 @@
 "use client";
 
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCoins } from "@fortawesome/free-solid-svg-icons";
+import { Coins } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCurrency } from "./currency-provider";
 
@@ -29,7 +28,7 @@ export function CurrencySelector() {
         isPending && "opacity-60 pointer-events-none"
       )}
     >
-      <FontAwesomeIcon icon={faCoins} className="text-[12px] text-zinc-400" />
+      <Coins className="size-[12px] text-zinc-400" />
       <span>{currency}</span>
     </button>
   );

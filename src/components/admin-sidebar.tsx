@@ -1,24 +1,16 @@
 "use client";
 
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faGauge,
-  faShirt,
-  faBoxesStacked,
-  faClipboardList,
-  faGear,
-  faRightFromBracket
-} from "@fortawesome/free-solid-svg-icons";
+import { Boxes, ClipboardList, Gauge, LogOut, Settings, Shirt } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const links = [
-  { href: "/admin", label: "Tổng quan", shortLabel: "T.quan", icon: faGauge },
-  { href: "/admin/products", label: "Sản phẩm", shortLabel: "S.phẩm", icon: faShirt },
-  { href: "/admin/orders", label: "Đơn hàng", shortLabel: "Đ.hàng", icon: faBoxesStacked },
-  { href: "/admin/order-requests", label: "Yêu cầu", shortLabel: "Y.cầu", icon: faClipboardList },
-  { href: "/admin/settings", label: "Cài đặt", shortLabel: "C.đặt", icon: faGear }
+  { href: "/admin", label: "Tổng quan", shortLabel: "T.quan", icon: Gauge },
+  { href: "/admin/products", label: "Sản phẩm", shortLabel: "S.phẩm", icon: Shirt },
+  { href: "/admin/orders", label: "Đơn hàng", shortLabel: "Đ.hàng", icon: Boxes },
+  { href: "/admin/order-requests", label: "Yêu cầu", shortLabel: "Y.cầu", icon: ClipboardList },
+  { href: "/admin/settings", label: "Cài đặt", shortLabel: "C.đặt", icon: Settings }
 ];
 
 export function AdminSidebar() {
@@ -44,7 +36,7 @@ export function AdminSidebar() {
           className="flex items-center gap-1 px-2 py-1 border border-transparent rounded text-[9px] font-bold uppercase tracking-wider hover:bg-white/5 active:bg-white/10 transition-colors cursor-pointer"
           aria-label="Đăng xuất"
         >
-          <FontAwesomeIcon icon={faRightFromBracket} className="text-[10px]" />
+          <LogOut className="size-[10px]" />
           <span>Đăng xuất</span>
         </button>
       </header>
@@ -68,7 +60,7 @@ export function AdminSidebar() {
                 "flex items-center justify-center transition-all duration-200 text-white/50",
                 active && "text-[#bd3a2d]"
               )}>
-                <FontAwesomeIcon icon={link.icon} className="text-[13px]" />
+                <link.icon className="size-[13px]" />
               </div>
               <span className={cn("text-[9px] font-bold uppercase tracking-wider mt-1 font-mono", active && "text-white")}>
                 {link.shortLabel}
@@ -105,7 +97,7 @@ export function AdminSidebar() {
                 href={link.href}
                 key={link.href}
               >
-                <FontAwesomeIcon icon={link.icon} className="text-[12px]" />
+                <link.icon className="size-[12px]" />
                 {link.label}
               </Link>
             );
@@ -118,7 +110,7 @@ export function AdminSidebar() {
             onClick={logout}
             type="button"
           >
-            <FontAwesomeIcon icon={faRightFromBracket} className="text-[12px]" />
+            <LogOut className="size-[12px]" />
             Đăng xuất
           </button>
         </div>

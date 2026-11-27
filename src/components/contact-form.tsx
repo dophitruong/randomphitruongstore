@@ -1,7 +1,6 @@
 "use client";
 
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPaperPlane } from "@fortawesome/free-solid-svg-icons";
+import { Send } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -62,7 +61,7 @@ export function ContactForm({
         {errors.message ? <span className="error-text">Required</span> : null}
       </label>
       <button className="button-primary w-full sm:w-fit" type="submit">
-        <FontAwesomeIcon icon={faPaperPlane} className="text-[14px] translate-y-[-0.5px]" />
+        <Send className="size-[14px] translate-y-[-0.5px]" />
         {labels.send}
       </button>
       </div>

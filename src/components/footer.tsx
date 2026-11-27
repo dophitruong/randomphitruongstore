@@ -1,6 +1,4 @@
-import { faArrowUpRightFromSquare, faCheck, faEnvelope, faPhone } from "@fortawesome/free-solid-svg-icons";
-import { faFacebook, faInstagram } from "@fortawesome/free-brands-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Check, ExternalLink, Facebook, Instagram, Mail, Phone } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import Image from "next/image";
 import Link from "next/link";
@@ -68,7 +66,7 @@ export async function Footer() {
               rel="noreferrer"
               target="_blank"
             >
-              <FontAwesomeIcon icon={faInstagram} className="text-[18px]" />
+              <Instagram className="size-[18px]" />
             </TrackedLink>
             <a
               aria-label="TikTok"
@@ -86,7 +84,7 @@ export async function Footer() {
               rel="noreferrer"
               target="_blank"
             >
-              <FontAwesomeIcon icon={faFacebook} className="text-[18px]" />
+              <Facebook className="size-[18px]" />
             </a>
           </div>
         </div>
@@ -99,7 +97,7 @@ export async function Footer() {
                 className="flex min-w-0 items-start gap-3 border-b border-white/10 pb-4 text-sm leading-6 text-white/70"
                 key={policy}
               >
-                <FontAwesomeIcon icon={faCheck} className="mt-1 shrink-0 text-[14px] text-[#d64b3d]" />
+                <Check className="mt-1 shrink-0 size-[14px] text-[#d64b3d]" />
                 <span>{policy}</span>
               </li>
             ))}
@@ -112,7 +110,7 @@ export async function Footer() {
                 key={link.href}
               >
                 {link.label}
-                <FontAwesomeIcon icon={faArrowUpRightFromSquare} className="text-[12px]" />
+                <ExternalLink className="size-[12px]" />
               </Link>
             ))}
           </nav>
@@ -158,14 +156,14 @@ export async function Footer() {
                   className="inline-flex items-center gap-2 text-sm font-bold text-white/70 hover:text-white"
                   href={`mailto:${CONTACT_EMAIL}`}
                 >
-                  <FontAwesomeIcon icon={faEnvelope} className="text-[16px]" />
+                  <Mail className="size-[16px]" />
                   <span className="whitespace-nowrap">Email: {CONTACT_EMAIL}</span>
                 </a>
                 <a
                   className="inline-flex items-center gap-2 text-sm font-bold text-white/70 hover:text-white"
                   href={`tel:${HOTLINE.replace(/\s+/g, "")}`}
                 >
-                  <FontAwesomeIcon icon={faPhone} className="text-[16px]" />
+                  <Phone className="size-[16px]" />
                   <span>Hotline: {HOTLINE}</span>
                 </a>
                 <div className="text-xs text-white/55">
