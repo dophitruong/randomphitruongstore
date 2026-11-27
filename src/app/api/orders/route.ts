@@ -1,5 +1,4 @@
 import { err, handlePrismaError, ok, zodDetails } from "@/lib/api-response";
-import { isAdminAuthenticated } from "@/lib/admin-auth";
 import {
   orderCurrencySnapshotFor,
   resolveEnabledCurrency
@@ -15,22 +14,6 @@ import { getPrisma } from "@/lib/prisma";
 import { rateLimitPolicies, rateLimitRequest } from "@/lib/rate-limit";
 import { orderInputSchema } from "@/lib/validations";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
-
-export async function GET() {
-  if (!(await isAdminAuthenticated())) {
-    return err("Unauthorized", 401);
-  }
-
-  try {
-    const orders = await getPrisma().order.findMany({
-      include: { customer: true, items: { include: { product: true } } },
-      orderBy: { createdAt: "desc" }
-    });
-    return ok(orders);
-  } catch (error) {
-    return handlePrismaError(error);
-  }
-}
 
 export async function POST(request: Request) {
   try {

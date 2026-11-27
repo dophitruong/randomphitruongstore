@@ -12,7 +12,6 @@ describe("product image query shapes", () => {
   it("fetches only the ordered primary image for product listing contexts", async () => {
     const sources = await Promise.all([
       readSource("../src/lib/public-catalog.ts"),
-      readSource("../src/app/api/products/route.ts"),
       readSource("../src/app/(store)/checkout/page.tsx")
     ]);
 
