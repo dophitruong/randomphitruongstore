@@ -87,6 +87,8 @@ Open `http://localhost:3000`. Admin sign-in is at
 | `SEPAY_MERCHANT_SECRET_KEY` | SePay merchant secret used to sign checkout forms |
 | `SEPAY_IPN_SECRET_KEY` | Secret configured for SePay's `X-Secret-Key` IPN authentication |
 | `SEPAY_SANDBOX_SECRET` | Optional dedicated secret for local simulator completion proofs |
+| `CRON_SECRET` | Secret Vercel Cron sends to `/api/cron/cleanup`, which deletes expired rate-limit and admin-session rows daily |
+| `DIRECT_URL` | Direct (non-pooled) PostgreSQL URL for migrations; production builds fail without it |
 
 Production runtime validation rejects placeholder or weak values for the
 database URL, Supabase settings, SePay secrets, site URL, and any bootstrap
@@ -119,6 +121,10 @@ hash in `AdminSession`, where it can expire or be revoked. To bootstrap the
 first account, set `ADMIN_BOOTSTRAP_EMAIL` and a strong
 `ADMIN_BOOTSTRAP_PASSWORD`, run `npm run prisma:seed`, then remove those
 bootstrap values from the deployment environment.
+
+Roles: `OWNER` and `ADMIN` can delete orders and products and change currency
+settings. `STAFF` (the default for new accounts) can manage orders and products
+but not delete them. Paid orders can never be deleted; cancel them instead.
 
 ## Customer authentication
 
