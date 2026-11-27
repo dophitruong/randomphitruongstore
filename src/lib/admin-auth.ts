@@ -183,6 +183,13 @@ export async function getCurrentAdmin(prisma = getPrisma()) {
   return verifyAdminSessionToken({ prisma, token });
 }
 
+// Roles allowed to delete records or change shop-wide settings; STAFF can only work orders and products.
+export const MANAGER_ROLES: readonly AdminRole[] = ["OWNER", "ADMIN"];
+
+export function isManager(admin: AdminPrincipal) {
+  return MANAGER_ROLES.includes(admin.role);
+}
+
 export async function isAdminAuthenticated() {
   return Boolean(await getCurrentAdmin());
 }

@@ -60,16 +60,16 @@ export default async function SuccessPage({ searchParams }: PageProps) {
             {/* Google Ads page view conversion event snippet */}
             <Script id="google-ads-success-conversion" strategy="afterInteractive">
               {`
-                gtag('event', 'conversion', {'send_to': 'AW-18283180920/qk-5CJuWucocEPjmjI5E'});
+                gtag('event', 'conversion', {'send_to': 'AW-18283180920/qk-5CJuWucocEPjmjI5E', 'transaction_id': '${order.orderNumber}'});
               `}
             </Script>
-            {/* Meta Pixel Purchase conversion event snippet */}
+            {/* Meta Pixel Purchase conversion event snippet. Order amounts are stored in VND whatever the shopper browsed in. */}
             {process.env.NEXT_PUBLIC_META_PIXEL_ID && (
               <Script id="meta-pixel-success-conversion" strategy="afterInteractive">
                 {`
                   fbq('track', 'Purchase', {
                     value: ${order.totalAmount},
-                    currency: '${order.displayCurrency}'
+                    currency: 'VND'
                   }, {
                     eventID: '${order.orderNumber}'
                   });

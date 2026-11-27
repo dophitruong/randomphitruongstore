@@ -1,16 +1,6 @@
 "use client";
 
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faArrowRight,
-  faBagShopping,
-  faBars,
-  faCartShopping,
-  faCircleUser,
-  faPaperPlane,
-  faRightFromBracket,
-  faXmark
-} from "@fortawesome/free-solid-svg-icons";
+import { ArrowRight, CircleUser, LogOut, Menu, Send, ShoppingBag, ShoppingCart, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -55,17 +45,17 @@ export function MobileNavBar() {
     {
       href: "/shop",
       label: common("shop"),
-      icon: faBagShopping
+      icon: ShoppingBag
     },
     {
       href: "/order-request",
       label: common("orderRequest"),
-      icon: faPaperPlane
+      icon: Send
     },
     {
       href: "/cart",
       label: common("cart"),
-      icon: faCartShopping,
+      icon: ShoppingCart,
       badge: hydrated && count > 0 ? count : null
     }
   ];
@@ -109,7 +99,7 @@ export function MobileNavBar() {
                       : "bg-[#d64b3d]/10 text-[#d64b3d]"
                   )}
                 >
-                  <FontAwesomeIcon icon={Icon} className="text-[14px]" />
+                  <Icon className="size-[14px]" />
                   {badge !== null && badge !== undefined ? (
                     <span className="absolute -right-2 -top-1 grid min-w-4 place-items-center rounded-full bg-[#a72b1f] px-0.5 text-[9px] font-black text-white">
                       {badge}
@@ -145,7 +135,7 @@ export function MobileNavBar() {
                   : "bg-[#d64b3d]/10 text-[#d64b3d]"
               )}
             >
-              <FontAwesomeIcon icon={faBars} className="text-[14px]" />
+              <Menu className="size-[14px]" />
             </span>
             <span className="text-[9px] font-bold uppercase tracking-[0.1em] leading-none">
               Menu
@@ -189,7 +179,7 @@ export function MobileNavBar() {
             className="grid size-8 place-items-center rounded-full bg-[#d64b3d]/10 text-[#d64b3d] hover:bg-[#d64b3d]/20"
             aria-label="Close menu"
           >
-            <FontAwesomeIcon icon={faXmark} className="text-[14px]" />
+            <X className="size-[14px]" />
           </button>
         </div>
 
@@ -204,13 +194,13 @@ export function MobileNavBar() {
                 className="flex items-center gap-3 rounded-xl px-2 py-2.5 transition-colors hover:bg-white/8 active:bg-white/10"
               >
                 <div className={mobileIconShell}>
-                  <FontAwesomeIcon icon={faCircleUser} className="text-[15px]" />
+                  <CircleUser className="size-[15px]" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-bold leading-tight">{displayName}</p>
                   <p className="truncate text-xs text-white/50">{user.email}</p>
                 </div>
-                <FontAwesomeIcon icon={faArrowRight} className="shrink-0 text-[13px] text-white/30" />
+                <ArrowRight className="shrink-0 size-[13px] text-white/30" />
               </Link>
 
               {/* Logout row — separate, clearly labelled */}
@@ -223,7 +213,7 @@ export function MobileNavBar() {
                 className="flex items-center gap-3 rounded-xl px-2 py-2.5 text-left transition-colors hover:bg-white/8 active:bg-white/10"
               >
                 <div className={mobileIconShell}>
-                  <FontAwesomeIcon icon={faRightFromBracket} className="text-[14px]" />
+                  <LogOut className="size-[14px]" />
                 </div>
                 <span className="text-sm font-semibold text-white/50">{common("logout")}</span>
               </button>
@@ -235,10 +225,10 @@ export function MobileNavBar() {
               onClick={() => setMenuOpen(false)}
             >
               <div className="grid size-9 shrink-0 place-items-center rounded-full bg-[#d64b3d]/10 text-[#d64b3d]">
-                <FontAwesomeIcon icon={faCircleUser} className="text-[14px]" />
+                <CircleUser className="size-[14px]" />
               </div>
               <span className="text-sm font-bold">{common("login")}</span>
-              <FontAwesomeIcon icon={faArrowRight} className="ml-auto text-[12px] text-white/40" />
+              <ArrowRight className="ml-auto size-[12px] text-white/40" />
             </Link>
           )}
         </div>
@@ -261,7 +251,7 @@ export function MobileNavBar() {
                 {isActive ? (
                   <span className="size-1.5 rounded-full bg-[#d64b3d]" />
                 ) : (
-                  <FontAwesomeIcon icon={faArrowRight} className="text-[12px] text-white/30" />
+                  <ArrowRight className="size-[12px] text-white/30" />
                 )}
               </Link>
             );

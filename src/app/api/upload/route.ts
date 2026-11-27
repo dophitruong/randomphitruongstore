@@ -1,16 +1,11 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { getCurrentAdmin } from "@/lib/admin-auth";
-import { getPrisma } from "@/lib/prisma";
 import {
   rateLimitIdentifier,
   rateLimitPolicies,
   rateLimitRequest
 } from "@/lib/rate-limit";
-import {
-  consumeUploadIntent,
-  type UploadIntentPurpose
-} from "@/lib/upload-intent";
 import {
   getUploadStorage,
   logUploadFailure,
@@ -18,6 +13,7 @@ import {
   validateImageUpload
 } from "@/lib/upload";
 import { resolveUploadAuthorization } from "@/lib/upload-authorization";
+import { getSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function POST(request: Request) {
   const admin = await getCurrentAdmin();
@@ -28,6 +24,13 @@ export async function POST(request: Request) {
       })
     : await rateLimitRequest(request, rateLimitPolicies.uploadIp);
   if (limited) return limited;
+
+  let isCustomerSignedIn = false;
+  if (!admin) {
+    const supabase = await getSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    isCustomerSignedIn = Boolean(user);
+  }
 
   const data = await request.formData();
   const file = data.get("file");
@@ -40,25 +43,14 @@ export async function POST(request: Request) {
   const isAdminUpload = Boolean(admin);
   const authorization = resolveUploadAuthorization({
     purpose,
-    isAdminUpload
+    isAdminUpload,
+    isCustomerSignedIn
   });
   if (!authorization.ok) {
     return NextResponse.json(
       { error: authorization.error },
       { status: authorization.status }
     );
-  }
-
-  if (authorization.requiresIntent) {
-    const intentToken = String(data.get("intentToken") ?? "");
-    const validIntent = await consumeUploadIntent({
-      prisma: getPrisma(),
-      token: intentToken,
-      purpose: purpose as UploadIntentPurpose
-    });
-    if (!validIntent) {
-      return NextResponse.json({ error: "Invalid upload intent" }, { status: 403 });
-    }
   }
 
   try {

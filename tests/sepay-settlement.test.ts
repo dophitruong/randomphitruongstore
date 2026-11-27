@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { describe, it } from "node:test";
+import type { OrderStatus, PaymentStatus } from "@prisma/client";
 import {
   SePaySettlementError,
   settleSePayPayment
@@ -40,7 +41,7 @@ function createSettlementStore() {
       orderNumber: "RPT-0001",
       paymentMethod: "ONLINE_100_SEPAY",
       displayCurrency: "VND",
-      status: "PENDING_ONLINE_PAYMENT",
+      status: "PENDING_ONLINE_PAYMENT" as OrderStatus,
       customer: {
         email: "customer@example.com",
         phone: "0901234567"
@@ -49,7 +50,7 @@ function createSettlementStore() {
         {
           id: "payment-1",
           amount: 50000,
-          paymentStatus: "PENDING",
+          paymentStatus: "PENDING" as PaymentStatus,
           gatewayProvider: "sepay" as string | null,
           gatewayOrderId: "RPT-0001" as string | null,
           gatewayTransactionId: null as string | null
@@ -169,6 +170,44 @@ describe("SePay settlement", () => {
     );
     assert.equal(state.order.payments[0].paymentStatus, "PENDING");
     assert.equal(state.history.length, 0);
+  });
+
+  it("records a payment that arrives after the order was cancelled and flags it for review", async () => {
+    const { store, state } = createSettlementStore();
+    state.order.status = "CANCELLED";
+    state.order.payments[0].paymentStatus = "CANCELLED";
+    const tracked: unknown[] = [];
+
+    const result = await settleSePayPayment({
+      prisma: store,
+      payload: basePayload,
+      trackPurchase: (event) => tracked.push(event)
+    });
+
+    assert.equal(result, "needs_review");
+    assert.equal(state.order.payments[0].paymentStatus, "PAID");
+    assert.equal(state.order.payments[0].gatewayTransactionId, "68ba94ac80123");
+    assert.equal(state.order.status, "CANCELLED");
+    assert.equal(state.history.length, 1);
+    assert.equal(state.history[0].status, "CANCELLED");
+    assert.match(String(state.history[0].note), /Refund or reopen/);
+    assert.equal(tracked.length, 0);
+  });
+
+  it("does not log PAID_FULL history when the order already moved past payment", async () => {
+    const { store, state } = createSettlementStore();
+    state.order.status = "ORDERED_FROM_SUPPLIER";
+
+    const result = await settleSePayPayment({
+      prisma: store,
+      payload: basePayload,
+      trackPurchase: () => {}
+    });
+
+    assert.equal(result, "needs_review");
+    assert.equal(state.order.payments[0].paymentStatus, "PAID");
+    assert.equal(state.order.status, "ORDERED_FROM_SUPPLIER");
+    assert.equal(state.history[0].status, "ORDERED_FROM_SUPPLIER");
   });
 
   it("rejects settlement for a non-SePay order", async () => {

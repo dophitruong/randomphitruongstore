@@ -1,14 +1,5 @@
+import { ArrowRight, Facebook, Headphones, Instagram, MessageCircleMore, Palette, ShieldCheck, Truck } from "lucide-react";
 import type { Metadata } from "next";
-import {
-  faCommentDots,
-  faArrowRight,
-  faHeadphones,
-  faPalette,
-  faShieldHeart,
-  faTruck
-} from "@fortawesome/free-solid-svg-icons";
-import { faFacebook, faInstagram } from "@fortawesome/free-brands-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
@@ -53,25 +44,25 @@ export default async function HomePage() {
   ];
   const benefits = [
     {
-      icon: faShieldHeart,
+      icon: ShieldCheck,
       number: "01",
       title: t("qualityTitle"),
       body: t("qualityBody")
     },
     {
-      icon: faPalette,
+      icon: Palette,
       number: "02",
       title: t("styleTitle"),
       body: t("styleBody")
     },
     {
-      icon: faTruck,
+      icon: Truck,
       number: "03",
       title: t("deliveryTitle"),
       body: t("deliveryBody")
     },
     {
-      icon: faHeadphones,
+      icon: Headphones,
       number: "04",
       title: t("supportTitle"),
       body: t("supportBody")
@@ -126,7 +117,7 @@ export default async function HomePage() {
                 href="/shop"
               >
                 {common("viewShop")}
-                <FontAwesomeIcon icon={faArrowRight} className="text-[14px]" />
+                <ArrowRight className="size-[14px]" />
               </Link>
               <p className="text-xs font-bold uppercase tracking-[0.12em] text-white/65">
                 {t("trustLine")}
@@ -207,7 +198,7 @@ export default async function HomePage() {
               key={number}
             >
               <div className="flex items-start justify-between gap-4">
-                <FontAwesomeIcon icon={Icon} className="text-[22px] text-[#a72b1f]" />
+                <Icon className="size-[22px] text-[#a72b1f]" />
                 <span className="text-xs font-black tracking-[0.16em] text-black/35 group-hover:text-white/35">
                   {number}
                 </span>
@@ -270,7 +261,7 @@ export default async function HomePage() {
                       rel="noreferrer"
                       target="_blank"
                     >
-                        <FontAwesomeIcon icon={faCommentDots} className="text-[12px]" />
+                        <MessageCircleMore className="size-[12px]" />
                       Zalo
                     </TrackedLink>
                     <a
@@ -279,7 +270,7 @@ export default async function HomePage() {
                       rel="noreferrer"
                       target="_blank"
                     >
-                        <FontAwesomeIcon icon={faFacebook} className="text-[12px]" />
+                        <Facebook className="size-[12px]" />
                       Facebook
                     </a>
                   </div>
@@ -338,7 +329,7 @@ export default async function HomePage() {
             target="_blank"
           >
             <span className="flex min-w-0 items-center gap-3">
-              <FontAwesomeIcon icon={faInstagram} className="shrink-0 text-[14px]" />
+              <Instagram className="shrink-0 size-[14px]" />
               <span>Instagram</span>
             </span>
             <span className="truncate text-sm">@random.phitruong4</span>

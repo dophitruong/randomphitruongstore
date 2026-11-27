@@ -64,7 +64,8 @@ export const rateLimitPolicies = {
     limit: 3,
     windowMs: 60 * 60_000
   },
-  checkoutOrderIp: { scope: "checkout-order:ip", limit: 10, windowMs: 60 * 60_000 },
+  // Vietnamese mobile carriers share one public IP across many phones, so a drop needs headroom.
+  checkoutOrderIp: { scope: "checkout-order:ip", limit: 30, windowMs: 60 * 60_000 },
   inquiryIp: { scope: "inquiry:ip", limit: 10, windowMs: 60 * 60_000 },
   internationalRequestIp: {
     scope: "international-request:ip",

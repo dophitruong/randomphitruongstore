@@ -42,7 +42,7 @@ export default async function OrderPage({ params }: PageProps) {
       },
       customer: true,
       shippingAddress: true,
-      payments: true
+      payments: { orderBy: { createdAt: "asc" } }
     }
   });
 

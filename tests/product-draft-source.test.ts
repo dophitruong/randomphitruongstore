@@ -7,10 +7,9 @@ async function readSource(path: string) {
 }
 
 describe("product draft source integration", () => {
-  it("excludes drafts from public catalog, public API, checkout page, and order lookup", async () => {
+  it("excludes drafts from public catalog, checkout page, and order lookup", async () => {
     const sources = await Promise.all([
       readSource("../src/lib/public-catalog.ts"),
-      readSource("../src/app/api/products/route.ts"),
       readSource("../src/app/(store)/checkout/page.tsx"),
       readSource("../src/lib/checkout-order.ts")
     ]);

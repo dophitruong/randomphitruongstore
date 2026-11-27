@@ -1,12 +1,5 @@
+import { Banknote, Instagram, RefreshCw, Truck, Wallet } from "lucide-react";
 import type { Metadata } from "next";
-import {
-  faArrowsRotate,
-  faMoneyBillWave,
-  faTruck,
-  faWallet
-} from "@fortawesome/free-solid-svg-icons";
-import { faInstagram } from "@fortawesome/free-brands-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
 import { getLocale, getTranslations } from "next-intl/server";
 import Script from "next/script";
@@ -115,22 +108,22 @@ export default async function ContactPage() {
   const t = await getTranslations("contact");
   const policies = [
     {
-      icon: faMoneyBillWave,
+      icon: Banknote,
       title: t("depositPolicy"),
       body: t("depositPolicyBody")
     },
     {
-      icon: faTruck,
+      icon: Truck,
       title: t("deliveryPolicy"),
       body: t("deliveryPolicyBody")
     },
     {
-      icon: faArrowsRotate,
+      icon: RefreshCw,
       title: t("returnPolicy"),
       body: t("returnPolicyBody")
     },
     {
-      icon: faWallet,
+      icon: Wallet,
       title: t("paymentPolicy"),
       body: t("paymentPolicyBody")
     }
@@ -226,7 +219,7 @@ export default async function ContactPage() {
                 rel="noreferrer"
                 target="_blank"
               >
-                  <FontAwesomeIcon icon={faInstagram} className="text-[24px]" />
+                  <Instagram className="size-[24px]" />
                 <p className="mt-10 font-black">Instagram</p>
                 <p className="mt-1 truncate text-sm text-zinc-500">
                   @random.phitruong4
@@ -269,7 +262,7 @@ export default async function ContactPage() {
               key={title}
             >
               <div className="flex items-start justify-between gap-5">
-                <FontAwesomeIcon icon={Icon} className="text-[22px] text-[#a72b1f]" />
+                <Icon className="size-[22px] text-[#a72b1f]" />
                 <span className="text-xs font-black tracking-[0.15em] text-black/30">
                   0{index + 1}
                 </span>

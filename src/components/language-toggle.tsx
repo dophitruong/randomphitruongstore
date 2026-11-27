@@ -1,7 +1,6 @@
 "use client";
 
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faGlobe } from "@fortawesome/free-solid-svg-icons";
+import { Globe } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
@@ -36,7 +35,7 @@ export function LanguageToggle() {
         isPending && "opacity-60 pointer-events-none"
       )}
     >
-      <FontAwesomeIcon icon={faGlobe} className="text-[12px] text-zinc-400" />
+      <Globe className="size-[12px] text-zinc-400" />
       <span>{locale}</span>
     </button>
   );

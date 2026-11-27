@@ -30,7 +30,7 @@ export function AdminOrderDeleteButton({
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.message || "Xóa đơn hàng thất bại");
+        throw new Error(data.error || "Xóa đơn hàng thất bại");
       }
 
       if (redirectOnDelete) {

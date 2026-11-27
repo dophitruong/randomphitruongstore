@@ -7,12 +7,12 @@ export function normalizeEmail(email: string | null | undefined) {
 
 export function buildShippingAddressSnapshot(input: Pick<
   OrderInput,
-  "fullName" | "phone" | "address" | "province" | "district" | "ward" | "shippingRegion"
+  "fullName" | "phone" | "address" | "province" | "district" | "ward"
 >) {
   return {
     recipientName: input.fullName,
     phone: input.phone,
-    country: countryForShippingRegion(input.shippingRegion),
+    country: "Vietnam",
     provinceCity: input.province,
     district: input.district,
     ward: input.ward,
@@ -23,48 +23,6 @@ export function buildShippingAddressSnapshot(input: Pick<
       input.district,
       input.province
     ].join(", "),
-    isInternational: input.shippingRegion !== "VIETNAM"
+    isInternational: false
   };
-}
-
-export function isMissingCustomerEmailColumn(error: unknown) {
-  const prismaError = error as {
-    code?: string;
-    meta?: { modelName?: string; column?: string };
-  };
-
-  return (
-    prismaError?.code === "P2022" &&
-    prismaError.meta?.modelName === "Customer" &&
-    prismaError.meta?.column === "Customer.email"
-  );
-}
-
-export function isMissingCustomerSupabaseUserIdColumn(error: unknown) {
-  const prismaError = error as {
-    code?: string;
-    meta?: { modelName?: string; column?: string };
-  };
-
-  return (
-    prismaError?.code === "P2022" &&
-    prismaError.meta?.modelName === "Customer" &&
-    prismaError.meta?.column === "Customer.supabaseUserId"
-  );
-}
-
-function countryForShippingRegion(region: OrderInput["shippingRegion"]) {
-  switch (region) {
-    case "SINGAPORE":
-      return "Singapore";
-    case "KOREA":
-      return "Korea";
-    case "TAIWAN":
-      return "Taiwan";
-    case "JAPAN":
-      return "Japan";
-    case "VIETNAM":
-    default:
-      return "Vietnam";
-  }
 }

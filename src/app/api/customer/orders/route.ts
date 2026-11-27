@@ -1,5 +1,4 @@
 import { err, handlePrismaError, ok } from "@/lib/api-response";
-import { isMissingCustomerSupabaseUserIdColumn } from "@/lib/customer-account";
 import { getPrisma } from "@/lib/prisma";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -42,9 +41,6 @@ export async function GET() {
 
     return ok(orders);
   } catch (error) {
-    if (isMissingCustomerSupabaseUserIdColumn(error)) {
-      return ok([]);
-    }
     return handlePrismaError(error);
   }
 }

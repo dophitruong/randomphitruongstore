@@ -1,10 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { cartStorageKeyForOwner } from "../src/lib/cart-storage";
-import {
-  buildShippingAddressSnapshot,
-  isMissingCustomerEmailColumn
-} from "../src/lib/customer-account";
+import { buildShippingAddressSnapshot } from "../src/lib/customer-account";
 import { orderInputSchema, profileUpdateSchema } from "../src/lib/validations";
 
 const validOrderInput = {
@@ -87,13 +84,10 @@ describe("auth/account safety regressions", () => {
     });
   });
 
-  it("recognizes the local database missing Customer.email migration error", () => {
+  it("rejects checkout orders outside Vietnam, which are quoted through Zalo instead", () => {
     assert.equal(
-      isMissingCustomerEmailColumn({
-        code: "P2022",
-        meta: { modelName: "Customer", column: "Customer.email" }
-      }),
-      true
+      orderInputSchema.safeParse({ ...validOrderInput, shippingRegion: "JAPAN" }).success,
+      false
     );
   });
 });

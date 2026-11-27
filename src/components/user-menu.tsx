@@ -1,13 +1,6 @@
 "use client";
 
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faChevronDown,
-  faCircleUser,
-  faRightFromBracket,
-  faSpinner,
-  faUser
-} from "@fortawesome/free-solid-svg-icons";
+import { ChevronDown, CircleUser, LoaderCircle, LogOut, User } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useState } from "react";
@@ -22,7 +15,7 @@ export function UserMenu() {
   if (loading) {
     return (
       <div className="p-2">
-        <FontAwesomeIcon icon={faSpinner} className="text-[18px] animate-spin text-white/70" />
+        <LoaderCircle className="size-[18px] animate-spin text-white/70" />
       </div>
     );
   }
@@ -34,7 +27,7 @@ export function UserMenu() {
         className="p-2 text-white/70 hover:text-white"
         href="/login"
       >
-        <FontAwesomeIcon icon={faCircleUser} className="text-[18px]" />
+        <CircleUser className="size-[18px]" />
       </Link>
     );
   }
@@ -68,10 +61,10 @@ export function UserMenu() {
               style={{ backgroundImage: `url(${JSON.stringify(avatarUrl)})` }}
             />
           ) : (
-            <FontAwesomeIcon icon={faUser} className="text-[18px] text-white/70" />
+            <User className="size-[18px] text-white/70" />
           )}
         </div>
-        <FontAwesomeIcon icon={faChevronDown} className={cn("text-[13px] text-white/70 transition-transform", open && "rotate-180")} />
+        <ChevronDown className={cn("size-[13px] text-white/70 transition-transform", open && "rotate-180")} />
       </button>
 
       {open && (
@@ -92,7 +85,7 @@ export function UserMenu() {
                 href="/account"
                 onClick={() => setOpen(false)}
               >
-                  <FontAwesomeIcon icon={faCircleUser} className="text-[14px]" />
+                  <CircleUser className="size-[14px]" />
                 {t("profile")}
               </Link>
               <button
@@ -100,7 +93,7 @@ export function UserMenu() {
                 onClick={handleSignOut}
                 type="button"
               >
-                  <FontAwesomeIcon icon={faRightFromBracket} className="text-[14px]" />
+                  <LogOut className="size-[14px]" />
                 {t("logout")}
               </button>
             </div>

@@ -1,11 +1,4 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faShirt,
-  faBoxesStacked,
-  faHandHoldingDollar,
-  faClipboardList,
-  faArrowRight
-} from "@fortawesome/free-solid-svg-icons";
+import { ArrowRight, Boxes, ClipboardList, HandCoins, Shirt } from "lucide-react";
 import { requireAdmin } from "@/lib/admin-auth";
 import { getPrisma } from "@/lib/prisma";
 import { formatVietnamDateTime } from "@/lib/format";
@@ -64,28 +57,28 @@ export default async function AdminDashboardPage() {
     {
       label: "Tổng sản phẩm",
       value: productsCount,
-      icon: faShirt,
+      icon: Shirt,
       themeClass: "border-l-4 border-l-blue-500 border-blue-100 bg-gradient-to-br from-white to-blue-50/20",
       iconColor: "text-blue-500"
     },
     {
       label: "Tổng đơn hàng",
       value: ordersCount,
-      icon: faBoxesStacked,
+      icon: Boxes,
       themeClass: "border-l-4 border-l-emerald-500 border-emerald-100 bg-gradient-to-br from-white to-emerald-50/20",
       iconColor: "text-emerald-500"
     },
     {
       label: "Đơn chờ cọc",
       value: pendingDepositCount,
-      icon: faHandHoldingDollar,
+      icon: HandCoins,
       themeClass: "border-l-4 border-l-amber-500 border-amber-100 bg-gradient-to-br from-white to-amber-50/20",
       iconColor: "text-amber-500"
     },
     {
       label: "Yêu cầu tìm nguồn",
       value: requestsCount,
-      icon: faClipboardList,
+      icon: ClipboardList,
       themeClass: "border-l-4 border-l-purple-500 border-purple-100 bg-gradient-to-br from-white to-purple-50/20",
       iconColor: "text-purple-500"
     }
@@ -116,7 +109,7 @@ export default async function AdminDashboardPage() {
                   </p>
                 </div>
                 <div className={`flex size-7 sm:size-9 shrink-0 items-center justify-center ${stat.iconColor}`}>
-                  <FontAwesomeIcon icon={stat.icon} className="text-xs sm:text-sm" />
+                  <stat.icon className="size-3 sm:size-3.5" />
                 </div>
               </div>
             </article>
@@ -134,7 +127,7 @@ export default async function AdminDashboardPage() {
               href="/admin/orders" 
               className="text-xs font-bold text-[#a72b1f] hover:underline flex items-center gap-1"
             >
-              Xem tất cả <FontAwesomeIcon icon={faArrowRight} className="text-[10px]" />
+              Xem tất cả <ArrowRight className="size-[10px]" />
             </Link>
           </div>
 
@@ -220,7 +213,7 @@ export default async function AdminDashboardPage() {
               href="/admin/order-requests" 
               className="text-xs font-bold text-[#a72b1f] hover:underline flex items-center gap-1"
             >
-              Xem tất cả <FontAwesomeIcon icon={faArrowRight} className="text-[10px]" />
+              Xem tất cả <ArrowRight className="size-[10px]" />
             </Link>
           </div>
 

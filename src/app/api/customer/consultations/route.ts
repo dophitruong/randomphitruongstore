@@ -1,5 +1,4 @@
 import { err, handlePrismaError, ok } from "@/lib/api-response";
-import { isMissingCustomerSupabaseUserIdColumn } from "@/lib/customer-account";
 import { getPrisma } from "@/lib/prisma";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -12,18 +11,11 @@ export async function GET() {
   }
 
   try {
-    let customerId: string | null = null;
-    try {
-      const customer = await getPrisma().customer.findFirst({
-        where: { supabaseUserId: user.id },
-        select: { id: true }
-      });
-      customerId = customer?.id ?? null;
-    } catch (error) {
-      if (!isMissingCustomerSupabaseUserIdColumn(error)) {
-        throw error;
-      }
-    }
+    const customer = await getPrisma().customer.findFirst({
+      where: { supabaseUserId: user.id },
+      select: { id: true }
+    });
+    const customerId = customer?.id ?? null;
 
     if (!customerId) {
       return ok({ inquiries: [] });

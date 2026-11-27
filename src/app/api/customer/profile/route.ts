@@ -1,9 +1,5 @@
 import { err, handlePrismaError, ok, zodDetails } from "@/lib/api-response";
-import {
-  isMissingCustomerEmailColumn,
-  isMissingCustomerSupabaseUserIdColumn,
-  normalizeEmail
-} from "@/lib/customer-account";
+import { normalizeEmail } from "@/lib/customer-account";
 import { saveCustomerProfileForEmail } from "@/lib/customer-profile";
 import { getPrisma } from "@/lib/prisma";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
@@ -40,12 +36,6 @@ export async function GET() {
 
     return ok(customer);
   } catch (error) {
-    if (
-      isMissingCustomerEmailColumn(error) ||
-      isMissingCustomerSupabaseUserIdColumn(error)
-    ) {
-      return ok(authProfileFallback(user.id, email, user.user_metadata?.full_name));
-    }
     return handlePrismaError(error);
   }
 }
@@ -75,9 +65,6 @@ export async function PATCH(request: Request) {
 
     return ok(updated);
   } catch (error) {
-    if (isMissingCustomerEmailColumn(error)) {
-      return err("Customer profile storage is not migrated", 503);
-    }
     return handlePrismaError(error);
   }
 }

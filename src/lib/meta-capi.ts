@@ -7,6 +7,13 @@ function hashValue(value: string | null | undefined): string | null {
   return crypto.createHash("sha256").update(normalized).digest("hex");
 }
 
+// Meta matches phones in E.164 digits; Vietnamese numbers are stored locally as 0xxxxxxxxx.
+export function normalizeMetaPhone(phone: string | null | undefined): string | null {
+  const digits = phone?.replace(/\D/g, "") ?? "";
+  if (!digits) return null;
+  return digits.startsWith("0") ? `84${digits.slice(1)}` : digits;
+}
+
 export type MetaCapiEventOptions = {
   eventName: "Purchase";
   eventId: string;
@@ -34,7 +41,7 @@ export async function sendMetaCapiEvent(options: MetaCapiEventOptions) {
 
   // Hash user data
   const hashedEmail = hashValue(options.email);
-  const hashedPhone = hashValue(options.phone);
+  const hashedPhone = hashValue(normalizeMetaPhone(options.phone));
 
   const payload = {
     data: [
@@ -58,7 +65,7 @@ export async function sendMetaCapiEvent(options: MetaCapiEventOptions) {
   };
 
   try {
-    const url = `https://graph.facebook.com/v19.0/${pixelId}/events?access_token=${accessToken}`;
+    const url = `https://graph.facebook.com/v23.0/${pixelId}/events?access_token=${accessToken}`;
     const response = await fetch(url, {
       method: "POST",
       headers: {

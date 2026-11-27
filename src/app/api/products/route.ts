@@ -5,25 +5,6 @@ import { getPrisma } from "@/lib/prisma";
 import { revalidatePublicCatalog } from "@/lib/public-catalog";
 import { productInputSchema } from "@/lib/validations";
 
-export async function GET() {
-  try {
-    const products = await getPrisma().product.findMany({
-      where: { status: "PUBLISHED", isActive: true, stockStatus: "IN_STOCK" },
-      include: {
-        categoryRecord: true,
-        images: { orderBy: { sortOrder: "asc" }, take: 1 },
-        variants: { orderBy: [{ size: "asc" }, { colorVi: "asc" }] },
-        sizeCharts: { orderBy: { size: "asc" } },
-        sizeTemplate: true
-      },
-      orderBy: { createdAt: "desc" }
-    });
-    return ok(products);
-  } catch (error) {
-    return handlePrismaError(error);
-  }
-}
-
 export async function POST(request: Request) {
   if (!(await isAdminAuthenticated())) {
     return err("Unauthorized", 401);
